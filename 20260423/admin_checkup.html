@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사무포털 - 건강검진 설정</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        </div>
+        <span class="logo-text">통합 사무포털</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-group-title">대시보드</div>
+          <a href="#" class="nav-item">
+             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            종합 현황
+          </a>
+        </div>
+        
+        <div class="nav-group expanded">
+          <div class="nav-group-title">헬스케어포털 관리</div>
+          <a href="admin.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+            헬스케어 포털 메뉴설정
+          </a>
+          <a href="admin_checkup.html" class="nav-item active">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            건강검진 설정
+          </a>
+          <a href="#" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354A4 4 0 1112 12a4 4 0 010-7.646zm3 16.646h-6v-1a6 6 0 0112 0v1h-6zm0 0h6v-1a6 6 0 00-6-6v7zm-6-7A6 6 0 003 20v1h6v-7z"></path></svg>
+            고객사 권한관리
+          </a>
+          <a href="#" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            공통 설정
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="breadcrumb">
+          사무포털 <span class="separator">></span> 헬스케어포털 관리 <span class="separator">></span> <strong>건강검진 설정</strong>
+        </div>
+        <div class="user-controls">
+          <div class="profile-circle">A</div>
+          <span>Admin 님</span>
+        </div>
+      </header>
+
+      <div class="content-wrapper checkup-wrapper">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">건강검진 파트너 & 패키지 설정</h1>
+            <p class="page-subtitle">제휴 병원 정보를 등록하고, 연도별 맞춤 건강검진 패키지를 구성합니다.</p>
+          </div>
+          <button class="btn btn-primary" onclick="saveCheckupData()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; margin-right:6px; display:inline-block; vertical-align:middle; margin-top:-2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            전체 저장
+          </button>
+        </div>
+
+        <div class="tabs-container">
+          <div class="tab-header">
+            <button class="tab-btn active" onclick="switchTab('hospital')">제휴 병원 등록</button>
+            <button class="tab-btn" onclick="switchTab('package')">검진 패키지 등록</button>
+          </div>
+
+          <!-- Tab 1: Hospital -->
+          <div id="tab-hospital" class="tab-content active fade-in">
+            <div class="config-card">
+              <div class="card-header">
+                <h2 class="card-title">병원 기본 정보</h2>
+                <button class="btn btn-secondary btn-sm" onclick="clearHospitalForm()">새로 입력</button>
+              </div>
+              <div class="card-body form-grid">
+                <div class="form-group full-width">
+                  <label class="form-label">병원 검색 및 선택 (기존 데이터 로드)</label>
+                  <select id="sel-hospital" class="form-select" onchange="loadHospitalData()">
+                    <option value="">새로운 병원 등록하기</option>
+                    <option value="h1">GC녹십자아이메드 (강남)</option>
+                    <option value="h2">KMI 한국의학연구소 (여의도)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">병원명</label>
+                  <input type="text" class="form-input" id="hosp-name" placeholder="예: GC녹십자아이메드 강남센터">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">사업자등록번호</label>
+                  <input type="text" class="form-input" id="hosp-bizno" placeholder="예: 123-45-67890">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">대표자명</label>
+                  <input type="text" class="form-input" id="hosp-ceo" placeholder="대표자명 입력">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">대표번호</label>
+                  <input type="text" class="form-input" id="hosp-phone" placeholder="예: 02-1234-5678">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">주소</label>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-input" id="hosp-addr" placeholder="주소를 입력하세요" style="flex: 1;">
+                    <button class="btn btn-secondary">주소 검색</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2-cols" style="margin-top: 24px; gap: 24px;">
+                <div class="config-card flex-col">
+                <div class="card-header">
+                    <h2 class="card-title">담당자 정보 설정</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Reservation Manager -->
+                    <div class="manager-section">
+                    <h3 class="manager-title"><span class="badge info">예약 담당</span> 담당자</h3>
+                    <div class="form-group">
+                        <label class="form-label">이름</label>
+                        <input type="text" class="form-input" id="mgr-res-name" placeholder="담당자명">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">연락처</label>
+                        <input type="text" class="form-input" id="mgr-res-phone" placeholder="직통번호 또는 휴대전화">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">이메일</label>
+                        <input type="email" class="form-input" id="mgr-res-email" placeholder="예약 수신 이메일">
+                    </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- Contract/Settlement Manager -->
+                    <div class="manager-section">
+                    <h3 class="manager-title"><span class="badge warning">계약 및 정산</span> 담당자</h3>
+                    <div class="form-group">
+                        <label class="form-label">이름</label>
+                        <input type="text" class="form-input" id="mgr-con-name" placeholder="담당자명">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">연락처</label>
+                        <input type="text" class="form-input" id="mgr-con-phone" placeholder="직통번호 또는 휴대전화">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">이메일</label>
+                        <input type="email" class="form-input" id="mgr-con-email" placeholder="계산서 수신 이메일">
+                    </div>
+                    </div>
+                </div>
+                </div>
+
+                <div class="config-card flex-col">
+                <div class="card-header">
+                    <h2 class="card-title">병원 부가 정보</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group full-width">
+                    <label class="form-label">병원 전경 / 대표 사진</label>
+                    <div class="file-upload-box" id="hosp-photo-box">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p>클릭하거나 이미지를 드래그하여 업로드하세요</p>
+                        <span>권장 해상도: 800 x 600px (JPG, PNG)</span>
+                    </div>
+                    </div>
+                    <div class="form-group full-width mt-4">
+                    <label class="form-label">병원 소개글</label>
+                    <textarea class="form-input" id="hosp-intro" rows="6" placeholder="고객에게 노출될 병원에 대한 특징과 소개글을 작성해주세요."></textarea>
+                    </div>
+                </div>
+                </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Package -->
+          <div id="tab-package" class="tab-content">
+            <div class="config-card">
+              <div class="card-header">
+                <h2 class="card-title">검진 패키지 기본 설정</h2>
+              </div>
+              <div class="card-body form-grid">
+                <div class="form-group">
+                  <label class="form-label">제공 연도</label>
+                  <select class="form-select" id="pkg-year">
+                    <option value="2026">2026년</option>
+                    <option value="2025">2025년</option>
+                    <option value="2024">2024년</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">패키지 구분</label>
+                  <select class="form-select" id="pkg-type">
+                    <option value="B2B">회사지원 패키지 (B2B)</option>
+                    <option value="B2C">고객부담 패키지 (B2C)</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">패키지명</label>
+                  <input type="text" class="form-input" id="pkg-name" placeholder="예: 2026 임원 프리미엄 종합검진">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">등록 병원 연결</label>
+                  <select class="form-select" id="pkg-hospital">
+                    <option value="h1">GC녹십자아이메드 (강남)</option>
+                    <option value="h2">KMI 한국의학연구소 (여의도)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkup Items Section -->
+            <div class="config-card mt-4">
+              <div class="card-header">
+                <h2 class="card-title">기본 검사 항목</h2>
+                <div class="header-actions">
+                  <button class="btn btn-secondary btn-sm" onclick="addTableRow('basic')">+ 항목 추가</button>
+                </div>
+              </div>
+              <div class="card-body no-padding">
+                <table class="data-table" id="table-basic">
+                  <thead>
+                    <tr>
+                      <th width="12%">대분류</th>
+                      <th width="15%">중분류</th>
+                      <th width="15%">소분류</th>
+                      <th width="25%">검사명</th>
+                      <th width="25%">설명/비고</th>
+                      <th width="8%">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Rows injected by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="config-card mt-4 border-info">
+              <div class="card-header bg-info-light">
+                <h2 class="card-title text-info">선택 검사 항목 (그룹 내 택1 등)</h2>
+                <div class="header-actions">
+                  <button class="btn btn-info btn-sm" onclick="addTableRow('optional')">+ 선택항목 추가</button>
+                </div>
+              </div>
+              <div class="card-body no-padding">
+                <table class="data-table" id="table-optional">
+                  <thead>
+                    <tr>
+                      <th width="15%">선택 그룹명</th>
+                      <th width="12%">대분류</th>
+                      <th width="12%">중분류</th>
+                      <th width="20%">검사명</th>
+                      <th width="15%">추가비용(선택 시)</th>
+                      <th width="18%">설명</th>
+                      <th width="8%">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Rows injected by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="config-card mt-4 border-warning">
+              <div class="card-header bg-warning-light">
+                <h2 class="card-title text-warning">추가 검사 항목 (개별 비용 발생)</h2>
+                <div class="header-actions">
+                  <button class="btn btn-warning btn-sm" onclick="addTableRow('additional')">+ 추가항목 추가</button>
+                </div>
+              </div>
+              <div class="card-body no-padding">
+                <table class="data-table" id="table-additional">
+                  <thead>
+                    <tr>
+                      <th width="12%">대분류</th>
+                      <th width="15%">중분류</th>
+                      <th width="25%">검사명</th>
+                      <th width="20%">개별 추가비용</th>
+                      <th width="20%">설명/비고</th>
+                      <th width="8%">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Rows injected by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  
+  <div id="toast-container"></div>
+  <script src="admin_checkup.js"></script>
+</body>
+</html>
