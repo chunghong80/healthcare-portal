@@ -67,71 +67,77 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadAllData() {
-  // 1. Client Configs
-  const savedClients = localStorage.getItem('hc_portal_data');
-  if (savedClients) {
-    try {
-      const parsed = JSON.parse(savedClients);
-      for(let k in parsed) {
-        if(adminClientConfigs[k]) {
-          adminClientConfigs[k] = { ...adminClientConfigs[k], ...parsed[k] };
-        }
-      }
-    } catch(e) {}
-  }
-  
-  // Migration & Default initialization
-  Object.values(adminClientConfigs).forEach(client => {
-    if (!client.sites || client.sites.length === 0) {
-      let currentMenus = client.menus;
-      if (!currentMenus || currentMenus.length === 0) {
-        if (client.menuLabels) {
-          currentMenus = defaultMenus.map(m => ({
-            ...m,
-            defaultLabel: m.defaultLabel,
-            label: client.menuLabels[m.id] || m.label,
-            isVisible: client.menuVisibility ? client.menuVisibility[m.id] !== false : true
-          }));
-        } else {
-          currentMenus = JSON.parse(JSON.stringify(defaultMenus));
-        }
-      }
-      
-      const defaultSite = {
-        siteId: "default",
-        siteName: "기본 사이트",
-        mappedTiers: [...(client.tiers || [])],
-        logoImage: client.logoImage || null,
-        themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
-        themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
-        menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
-        heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
-        serviceName: client.serviceName || client.name || "",
-        csNumber: client.csNumber || "",
-        name: client.name || "",
-        clientLink: client.clientLink || "",
-        providerName: client.providerName || BRAND_DEFAULTS.providerName,
-        providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
-        menus: currentMenus
-      };
-      client.sites = [defaultSite];
-    } else {
-      client.sites.forEach(site => {
-        if (!site.menus || site.menus.length === 0) {
-          site.menus = JSON.parse(JSON.stringify(defaultMenus));
-        } else {
-          const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
-          if (sgIndex > 0) {
-            const sg = site.menus.splice(sgIndex, 1)[0];
-            site.menus.unshift(sg);
+  try {
+    // 1. Client Configs
+    const savedClients = localStorage.getItem('hc_portal_data');
+    if (savedClients) {
+      try {
+        const parsed = JSON.parse(savedClients);
+        for(let k in parsed) {
+          if(adminClientConfigs[k]) {
+            adminClientConfigs[k] = { ...adminClientConfigs[k], ...parsed[k] };
           }
         }
-        if (!site.mappedTiers) {
-          site.mappedTiers = [...(client.tiers || [])];
-        }
-      });
+      } catch(e) {}
     }
-  });
+    
+    // Migration & Default initialization
+    Object.values(adminClientConfigs).forEach(client => {
+      if (!client.sites || client.sites.length === 0) {
+        let currentMenus = client.menus;
+        if (!currentMenus || currentMenus.length === 0) {
+          if (client.menuLabels) {
+            currentMenus = defaultMenus.map(m => ({
+              ...m,
+              defaultLabel: m.defaultLabel,
+              label: client.menuLabels[m.id] || m.label,
+              isVisible: client.menuVisibility ? client.menuVisibility[m.id] !== false : true
+            }));
+          } else {
+            currentMenus = JSON.parse(JSON.stringify(defaultMenus));
+          }
+        }
+        
+        const defaultSite = {
+          siteId: "default",
+          siteName: "기본 사이트",
+          mappedTiers: [...(client.tiers || [])],
+          logoImage: client.logoImage || null,
+          themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
+          themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+          menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+          heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+          serviceName: client.serviceName || client.name || "",
+          csNumber: client.csNumber || "",
+          name: client.name || "",
+          clientLink: client.clientLink || "",
+          providerName: client.providerName || BRAND_DEFAULTS.providerName,
+          providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
+          menus: currentMenus
+        };
+        client.sites = [defaultSite];
+      } else {
+        client.sites.forEach(site => {
+          if (!site) return;
+          if (!site.menus || site.menus.length === 0) {
+            site.menus = JSON.parse(JSON.stringify(defaultMenus));
+          } else {
+            const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
+            if (sgIndex > 0) {
+              const sg = site.menus.splice(sgIndex, 1)[0];
+              site.menus.unshift(sg);
+            }
+          }
+          if (!site.mappedTiers) {
+            site.mappedTiers = [...(client.tiers || [])];
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Admin data migration failed, purging localStorage key.", error);
+    try { localStorage.removeItem('hc_portal_data'); } catch (e) {}
+  }
 
   // 2. Health Posts
   const savedHealth = localStorage.getItem('hc_health_posts');

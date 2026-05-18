@@ -47,76 +47,82 @@ const mockUsers = {
 let state = { currentUser: null, activeClient: null, route: window.location.hash || '#/' };
 
 function loadSavedConfigs() {
-  const savedData = localStorage.getItem('hc_portal_data');
-  let parsed = null;
-  if (savedData) {
-    try { parsed = JSON.parse(savedData); } catch(e) {}
-  }
+  try {
+    const savedData = localStorage.getItem('hc_portal_data');
+    let parsed = null;
+    if (savedData) {
+      try { parsed = JSON.parse(savedData); } catch(e) {}
+    }
 
-  Object.keys(clientConfigs).forEach(id => {
-    const client = clientConfigs[id];
-    if (parsed && parsed[id]) {
-      if (parsed[id].sites && parsed[id].sites.length > 0) {
-        client.sites = parsed[id].sites;
-        client.tiers = parsed[id].tiers || client.tiers;
+    Object.keys(clientConfigs).forEach(id => {
+      const client = clientConfigs[id];
+      if (parsed && parsed[id]) {
+        if (parsed[id].sites && parsed[id].sites.length > 0) {
+          client.sites = parsed[id].sites;
+          client.tiers = parsed[id].tiers || client.tiers;
+        } else {
+          const currentMenus = parsed[id].menus || client.menus || JSON.parse(JSON.stringify(defaultMenus));
+          const defaultSite = {
+            siteId: "default",
+            siteName: "기본 사이트",
+            mappedTiers: [...(parsed[id].tiers || client.tiers || [])],
+            logoImage: parsed[id].logoImage || client.logoImage || null,
+            themeColor: parsed[id].themeColor || client.themeColor || BRAND_DEFAULTS.themeColor,
+            themeColorRgb: parsed[id].themeColorRgb || client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+            menuTextColor: parsed[id].menuTextColor || client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+            heroText: parsed[id].heroText || client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+            serviceName: parsed[id].serviceName || client.serviceName || client.name || "",
+            csNumber: parsed[id].csNumber || client.csNumber || "",
+            name: parsed[id].name || client.name || "",
+            clientLink: parsed[id].clientLink || client.clientLink || "",
+            providerName: parsed[id].providerName || client.providerName || BRAND_DEFAULTS.providerName,
+            providerLink: parsed[id].providerLink || client.providerLink || BRAND_DEFAULTS.providerLink,
+            menus: currentMenus
+          };
+          client.sites = [defaultSite];
+          client.tiers = parsed[id].tiers || client.tiers;
+        }
       } else {
-        const currentMenus = parsed[id].menus || client.menus || JSON.parse(JSON.stringify(defaultMenus));
         const defaultSite = {
           siteId: "default",
           siteName: "기본 사이트",
-          mappedTiers: [...(parsed[id].tiers || client.tiers || [])],
-          logoImage: parsed[id].logoImage || client.logoImage || null,
-          themeColor: parsed[id].themeColor || client.themeColor || BRAND_DEFAULTS.themeColor,
-          themeColorRgb: parsed[id].themeColorRgb || client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
-          menuTextColor: parsed[id].menuTextColor || client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
-          heroText: parsed[id].heroText || client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
-          serviceName: parsed[id].serviceName || client.serviceName || client.name || "",
-          csNumber: parsed[id].csNumber || client.csNumber || "",
-          name: parsed[id].name || client.name || "",
-          clientLink: parsed[id].clientLink || client.clientLink || "",
-          providerName: parsed[id].providerName || client.providerName || BRAND_DEFAULTS.providerName,
-          providerLink: parsed[id].providerLink || client.providerLink || BRAND_DEFAULTS.providerLink,
-          menus: currentMenus
+          mappedTiers: [...(client.tiers || [])],
+          logoImage: client.logoImage || null,
+          themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
+          themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+          menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+          heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+          serviceName: client.serviceName || client.name || "",
+          csNumber: client.csNumber || "",
+          name: client.name || "",
+          clientLink: client.clientLink || "",
+          providerName: client.providerName || BRAND_DEFAULTS.providerName,
+          providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
+          menus: JSON.parse(JSON.stringify(defaultMenus))
         };
         client.sites = [defaultSite];
-        client.tiers = parsed[id].tiers || client.tiers;
       }
-    } else {
-      const defaultSite = {
-        siteId: "default",
-        siteName: "기본 사이트",
-        mappedTiers: [...(client.tiers || [])],
-        logoImage: client.logoImage || null,
-        themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
-        themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
-        menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
-        heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
-        serviceName: client.serviceName || client.name || "",
-        csNumber: client.csNumber || "",
-        name: client.name || "",
-        clientLink: client.clientLink || "",
-        providerName: client.providerName || BRAND_DEFAULTS.providerName,
-        providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
-        menus: JSON.parse(JSON.stringify(defaultMenus))
-      };
-      client.sites = [defaultSite];
-    }
 
-    client.sites.forEach(site => {
-      if (!site.menus || site.menus.length === 0) {
-        site.menus = JSON.parse(JSON.stringify(defaultMenus));
-      } else {
-        const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
-        if (sgIndex > 0) {
-          const sg = site.menus.splice(sgIndex, 1)[0];
-          site.menus.unshift(sg);
+      client.sites.forEach(site => {
+        if (!site) return;
+        if (!site.menus || site.menus.length === 0) {
+          site.menus = JSON.parse(JSON.stringify(defaultMenus));
+        } else {
+          const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
+          if (sgIndex > 0) {
+            const sg = site.menus.splice(sgIndex, 1)[0];
+            site.menus.unshift(sg);
+          }
         }
-      }
-      if (!site.mappedTiers) {
-        site.mappedTiers = [...(client.tiers || [])];
-      }
+        if (!site.mappedTiers) {
+          site.mappedTiers = [...(client.tiers || [])];
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.error("Incompatible client config, resetting localStorage key", error);
+    try { localStorage.removeItem('hc_portal_data'); } catch(e) {}
+  }
 }
 loadSavedConfigs();
 
