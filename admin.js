@@ -22,9 +22,17 @@ let adminClientConfigs = {
 
 const defaultMenus = [
   { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
-  { id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [] },
-  { id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [] },
-  { id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [] },
+  { id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
+    { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: true, children: [] },
+    { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
+  ] },
+  { id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
+    { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
+    { id: "expert", defaultLabel: "명의안내", label: "명의안내", isVisible: true, children: [] }
+  ] },
+  { id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
+    { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+  ] },
   { id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [] },
   { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [] },
   { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
@@ -48,6 +56,7 @@ let masterItems = [];
 let itemEditingId = null;
 
 let currentClientId = "kyobo";
+let currentSiteId = "default";
 let currentView = "menu-settings";
 
 // --- Initialization ---
@@ -73,25 +82,54 @@ function loadAllData() {
   
   // Migration & Default initialization
   Object.values(adminClientConfigs).forEach(client => {
-    if (!client.menus || client.menus.length === 0) {
-      // Migrate from old structure if possible, else use default
-      if (client.menuLabels) {
-        client.menus = defaultMenus.map(m => ({
-          ...m,
-          defaultLabel: m.defaultLabel,
-          label: client.menuLabels[m.id] || m.label,
-          isVisible: client.menuVisibility ? client.menuVisibility[m.id] !== false : true
-        }));
-      } else {
-        client.menus = JSON.parse(JSON.stringify(defaultMenus));
+    if (!client.sites || client.sites.length === 0) {
+      let currentMenus = client.menus;
+      if (!currentMenus || currentMenus.length === 0) {
+        if (client.menuLabels) {
+          currentMenus = defaultMenus.map(m => ({
+            ...m,
+            defaultLabel: m.defaultLabel,
+            label: client.menuLabels[m.id] || m.label,
+            isVisible: client.menuVisibility ? client.menuVisibility[m.id] !== false : true
+          }));
+        } else {
+          currentMenus = JSON.parse(JSON.stringify(defaultMenus));
+        }
       }
+      
+      const defaultSite = {
+        siteId: "default",
+        siteName: "기본 사이트",
+        mappedTiers: [...(client.tiers || [])],
+        logoImage: client.logoImage || null,
+        themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
+        themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+        menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+        heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+        serviceName: client.serviceName || client.name || "",
+        csNumber: client.csNumber || "",
+        name: client.name || "",
+        clientLink: client.clientLink || "",
+        providerName: client.providerName || BRAND_DEFAULTS.providerName,
+        providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
+        menus: currentMenus
+      };
+      client.sites = [defaultSite];
     } else {
-      // Reorder: ensure serviceGuide is first if it exists
-      const sgIndex = client.menus.findIndex(m => m.id === 'serviceGuide');
-      if (sgIndex > 0) {
-        const sg = client.menus.splice(sgIndex, 1)[0];
-        client.menus.unshift(sg);
-      }
+      client.sites.forEach(site => {
+        if (!site.menus || site.menus.length === 0) {
+          site.menus = JSON.parse(JSON.stringify(defaultMenus));
+        } else {
+          const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
+          if (sgIndex > 0) {
+            const sg = site.menus.splice(sgIndex, 1)[0];
+            site.menus.unshift(sg);
+          }
+        }
+        if (!site.mappedTiers) {
+          site.mappedTiers = [...(client.tiers || [])];
+        }
+      });
     }
   });
 
@@ -246,12 +284,15 @@ function renderMenuSettings(container) {
     </div>
 
     <div class="config-card">
-      <div class="card-header">
-        <h2 class="card-title">고객사 선택</h2>
-        <select id="client-select" class="form-select" onchange="loadClientSettings()"></select>
+      <div class="card-header" style="flex-direction:column; align-items:stretch; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 class="card-title">고객사 및 사이트 선택</h2>
+          <select id="client-select" class="form-select" onchange="loadClientSettings()"></select>
+        </div>
+        <div id="site-tabs-area"></div>
       </div>
       <div class="card-body">
-        <div class="menu-tree-header" style="display:grid; grid-template-columns: 1fr 1fr 100px 200px; padding: 12px 16px; background:#f8fafc; font-weight:600; font-size:13px; border-radius:8px; margin-bottom:12px; gap:12px;">
+        <div class="menu-tree-header" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 280px; padding: 12px 16px; background:#f8fafc; font-weight:600; font-size:13px; border-radius:8px; margin-bottom:12px; gap:12px;">
            <span>기본 메뉴명</span>
            <span>고객사별 메뉴명</span>
            <span style="text-align:center;">노출여부</span>
@@ -266,6 +307,10 @@ function renderMenuSettings(container) {
       <div class="card-header"><h2 class="card-title">헤더 및 브랜드 설정</h2></div>
       <div class="card-body">
         <div class="menu-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+          <div class="form-group" style="grid-column: span 2; margin-bottom: 8px;">
+            <label class="form-label" style="font-weight:600; color:#334155;">사이트명 (상단 탭 및 브릿지 페이지 노출 명칭)</label>
+            <input type="text" id="input-siteName" class="form-input" placeholder="예: 기본 사이트">
+          </div>
           <div class="form-group">
             <label class="form-label">서비스 로고 (SVG/이미지)</label>
             <div style="display:flex; gap:12px; align-items:center;">
@@ -329,31 +374,38 @@ function renderMenuSettings(container) {
 
 window.loadClientSettings = function() {
   currentClientId = document.getElementById("client-select").value;
-  const config = adminClientConfigs[currentClientId];
-  const container = document.getElementById("menu-tree-container");
+  const client = adminClientConfigs[currentClientId];
   
-  container.innerHTML = '';
-  renderMenuLevel(config.menus, container, 1);
+  // Render Site Tabs
+  renderSiteTabs(client);
+  
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  currentSiteId = activeSite.siteId; // Normalize
 
-  document.getElementById('input-heroTitle').value = config.heroText.title;
-  document.getElementById('input-heroSubtitle').value = config.heroText.subtitle;
-  document.getElementById('input-csName').value = config.serviceName || '';
-  document.getElementById('input-csNumber').value = config.csNumber || '';
-  document.getElementById('input-clientName').value = config.name || '';
-  document.getElementById('input-clientLink').value = config.clientLink || '';
-  document.getElementById('input-providerName').value = config.providerName || BRAND_DEFAULTS.providerName;
-  document.getElementById('input-providerLink').value = config.providerLink || BRAND_DEFAULTS.providerLink;
+  const container = document.getElementById("menu-tree-container");
+  container.innerHTML = '';
+  renderMenuLevel(activeSite.menus, container, 1);
+
+  document.getElementById('input-siteName').value = activeSite.siteName || '';
+  document.getElementById('input-heroTitle').value = activeSite.heroText.title;
+  document.getElementById('input-heroSubtitle').value = activeSite.heroText.subtitle;
+  document.getElementById('input-csName').value = activeSite.serviceName || '';
+  document.getElementById('input-csNumber').value = activeSite.csNumber || '';
+  document.getElementById('input-clientName').value = activeSite.name || '';
+  document.getElementById('input-clientLink').value = activeSite.clientLink || '';
+  document.getElementById('input-providerName').value = activeSite.providerName || BRAND_DEFAULTS.providerName;
+  document.getElementById('input-providerLink').value = activeSite.providerLink || BRAND_DEFAULTS.providerLink;
   
   // Branding settings
-  document.getElementById('input-themeColor').value = config.themeColor || BRAND_DEFAULTS.themeColor;
-  document.getElementById('preview-themeColor').style.backgroundColor = config.themeColor || BRAND_DEFAULTS.themeColor;
+  document.getElementById('input-themeColor').value = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
+  document.getElementById('preview-themeColor').style.backgroundColor = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
   
-  document.getElementById('input-menuTextColor').value = config.menuTextColor || BRAND_DEFAULTS.menuTextColor;
-  document.getElementById('preview-menuTextColor').style.backgroundColor = config.menuTextColor || BRAND_DEFAULTS.menuTextColor;
+  document.getElementById('input-menuTextColor').value = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
+  document.getElementById('preview-menuTextColor').style.backgroundColor = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
   
   const preview = document.getElementById('logo-preview');
-  if (config.logoImage) {
-    preview.innerHTML = `<img src="${config.logoImage}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+  if (activeSite.logoImage) {
+    preview.innerHTML = `<img src="${activeSite.logoImage}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
   } else {
     preview.innerHTML = `<span style="font-size:10px; color:#94a3b8;">No Logo</span>`;
   }
@@ -387,7 +439,7 @@ function renderMenuLevel(menus, container, depth) {
     const item = document.createElement('div');
     item.className = `menu-tree-item depth-${depth}`;
     item.innerHTML = `
-      <div class="menu-item-row ${!menu.isVisible ? 'disabled' : ''}">
+      <div class="menu-item-row ${!menu.isVisible ? 'disabled' : ''}" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 280px; align-items:center; gap:12px;">
         <div class="menu-info">
           <div class="depth-indicator">${'—'.repeat(depth - 1)}</div>
           <input type="text" class="form-input default-label-input" value="${menu.defaultLabel || menu.label}" onchange="updateMenuDefaultLabel('${menu.id}', this.value)" placeholder="기본 명칭">
@@ -401,8 +453,9 @@ function renderMenuLevel(menus, container, depth) {
             <span class="slider"></span>
           </label>
         </div>
-        <div class="menu-management" style="text-align:right;">
+        <div class="menu-management" style="text-align:right; display:flex; justify-content:flex-end; gap:4px; align-items:center;">
           ${depth < 3 ? `<button class="btn btn-sm" onclick="addSubMenu('${menu.id}', ${depth})">+ 하위</button>` : ''}
+          <button class="btn btn-sm" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" onclick="openMenuRBACModal('${menu.id}')">⚙️ 노출 조건</button>
           <button class="btn btn-sm" style="color:#ef4444;" onclick="deleteMenu('${menu.id}')">삭제</button>
         </div>
       </div>
@@ -417,17 +470,23 @@ function renderMenuLevel(menus, container, depth) {
 }
 
 window.updateMenuLabel = function(id, val) {
-  const menu = findMenuById(adminClientConfigs[currentClientId].menus, id);
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(activeSite.menus, id);
   if(menu) menu.label = val;
 };
 
 window.updateMenuDefaultLabel = function(id, val) {
-  const menu = findMenuById(adminClientConfigs[currentClientId].menus, id);
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(activeSite.menus, id);
   if(menu) menu.defaultLabel = val;
 };
 
 window.toggleMenuVisibility = function(id, checked) {
-  const menu = findMenuById(adminClientConfigs[currentClientId].menus, id);
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(activeSite.menus, id);
   if(menu) {
     menu.isVisible = checked;
     loadClientSettings(); // Re-render to update disabled states
@@ -435,14 +494,18 @@ window.toggleMenuVisibility = function(id, checked) {
 };
 
 window.addTopMenu = function() {
-  adminClientConfigs[currentClientId].menus.push({
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  activeSite.menus.push({
     id: 'm_' + Date.now(), defaultLabel: '새 메뉴', label: '새 메뉴', isVisible: true, children: []
   });
   loadClientSettings();
 };
 
 window.addSubMenu = function(parentId, depth) {
-  const parent = findMenuById(adminClientConfigs[currentClientId].menus, parentId);
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const parent = findMenuById(activeSite.menus, parentId);
   if(parent && depth < 3) {
     if(!parent.children) parent.children = [];
     parent.children.push({
@@ -454,7 +517,9 @@ window.addSubMenu = function(parentId, depth) {
 
 window.deleteMenu = function(id) {
   if(confirm("이 메뉴와 모든 하위 메뉴를 삭제하시겠습니까?")) {
-    adminClientConfigs[currentClientId].menus = removeMenuById(adminClientConfigs[currentClientId].menus, id);
+    const client = adminClientConfigs[currentClientId];
+    const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+    activeSite.menus = removeMenuById(activeSite.menus, id);
     loadClientSettings();
   }
 };
@@ -479,28 +544,815 @@ function removeMenuById(menus, id) {
 }
 
 window.saveMenuSettings = function() {
-  const config = adminClientConfigs[currentClientId];
-  config.heroText.title = document.getElementById('input-heroTitle').value;
-  config.heroText.subtitle = document.getElementById('input-heroSubtitle').value;
-  config.serviceName = document.getElementById('input-csName').value;
-  config.csNumber = document.getElementById('input-csNumber').value;
-  config.name = document.getElementById('input-clientName').value;
-  config.clientLink = document.getElementById('input-clientLink').value;
-  config.providerName = document.getElementById('input-providerName').value;
-  config.providerLink = document.getElementById('input-providerLink').value;
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
   
-  config.themeColor = document.getElementById('input-themeColor').value;
-  config.menuTextColor = document.getElementById('input-menuTextColor').value;
+  const siteNameInput = document.getElementById('input-siteName');
+  if (siteNameInput) {
+    const nameVal = siteNameInput.value.trim();
+    if (nameVal) {
+      activeSite.siteName = nameVal;
+    }
+  }
   
-  // Calculate RGB for transparency support
-  const hex = config.themeColor.replace('#', '');
+  activeSite.heroText.title = document.getElementById('input-heroTitle').value;
+  activeSite.heroText.subtitle = document.getElementById('input-heroSubtitle').value;
+  activeSite.serviceName = document.getElementById('input-csName').value;
+  activeSite.csNumber = document.getElementById('input-csNumber').value;
+  activeSite.name = document.getElementById('input-clientName').value;
+  activeSite.clientLink = document.getElementById('input-clientLink').value;
+  activeSite.providerName = document.getElementById('input-providerName').value;
+  activeSite.providerLink = document.getElementById('input-providerLink').value;
+  
+  activeSite.themeColor = document.getElementById('input-themeColor').value;
+  activeSite.menuTextColor = document.getElementById('input-menuTextColor').value;
+  
+  const hex = activeSite.themeColor.replace('#', '');
   const r = parseInt(hex.substring(0,2), 16);
   const g = parseInt(hex.substring(2,4), 16);
   const b = parseInt(hex.substring(4,6), 16);
-  config.themeColorRgb = `${r}, ${g}, ${b}`;
+  activeSite.themeColorRgb = `${r}, ${g}, ${b}`;
 
   localStorage.setItem('hc_portal_data', JSON.stringify(adminClientConfigs));
-  showToast("메뉴 구조와 설정이 저장되었습니다.");
+  renderSiteTabs(client); // Immediately update tabs!
+  showToast("사이트 구성과 설정이 완료되어 저장되었습니다.");
+};
+
+window.renderSiteTabs = function(client) {
+  const tabsArea = document.getElementById("site-tabs-area");
+  if (!tabsArea) return;
+  
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const activeColor = activeSite.themeColor || "#17B890";
+  
+  tabsArea.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; margin-top:8px; padding-bottom:8px;">
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">
+        ${client.sites.map(site => `
+          <button class="site-tab-btn" onclick="selectSiteTab('${site.siteId}')" title="${site.siteId === currentSiteId ? '클릭하여 사이트명 및 등급 수정 (셔틀 박스)' : '클릭하여 사이트로 전환'}" style="
+            background: ${site.siteId === currentSiteId ? 'rgba(23,184,144,0.1)' : 'white'};
+            border: 1.5px solid ${site.siteId === currentSiteId ? activeColor : '#cbd5e1'};
+            color: ${site.siteId === currentSiteId ? activeColor : '#475569'};
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+          ">
+            <span>🌐 ${site.siteName} ${site.siteId === currentSiteId ? '✏️' : ''}</span>
+            <span style="font-size:10px; opacity:0.8; background:#f1f5f9; padding:2px 6px; border-radius:10px; color:#64748b;">
+              ${site.mappedTiers.length}등급
+            </span>
+          </button>
+        `).join('')}
+        <button onclick="openAddSiteModal()" style="
+          background: #f8fafc;
+          border: 1.5px dashed #cbd5e1;
+          color: #64748b;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          outline: none;
+        ">+ 사이트 추가</button>
+      </div>
+      ${client.sites.length > 1 ? `
+        <button class="btn btn-sm" style="color:#ef4444; border:1px solid #fee2e2; background:#fff5f5; font-size:12px; padding:6px 12px; border-radius:6px; cursor:pointer;" onclick="deleteActiveSite()">
+          🗑️ 현재 사이트 삭제
+        </button>
+      ` : ''}
+    </div>
+  `;
+};
+
+window.selectSiteTab = function(siteId) {
+  if (currentSiteId === siteId) {
+    window.openEditSiteModal(siteId);
+  } else {
+    currentSiteId = siteId;
+    loadClientSettings();
+  }
+};
+
+window.openEditSiteModal = function(siteId) {
+  const client = adminClientConfigs[currentClientId];
+  const site = client.sites.find(s => s.siteId === siteId);
+  if (!site) return;
+
+  // Calculate used tiers by other sites
+  const usedByOthers = new Set();
+  (client.sites || []).forEach(s => {
+    if (s.siteId !== siteId) {
+      (s.mappedTiers || []).forEach(t => {
+        const name = typeof t === 'object' ? (t.name || t.id) : t;
+        usedByOthers.add(name);
+      });
+    }
+  });
+
+  const allTiersMapped = (client.tiers || []).map(t => {
+    const name = typeof t === 'object' ? (t.name || t.id) : t;
+    return {
+      name: name,
+      isUsedByOther: usedByOthers.has(name)
+    };
+  });
+
+  const currentlyMapped = (site.mappedTiers || []).map(t => {
+    return typeof t === 'object' ? (t.name || t.id) : t;
+  });
+
+  window.editSiteShuttleState = {
+    siteId: siteId,
+    left: allTiersMapped.filter(t => !t.isUsedByOther && !currentlyMapped.includes(t.name)),
+    leftUsed: allTiersMapped.filter(t => t.isUsedByOther),
+    right: currentlyMapped.map(name => ({ name })),
+    leftSearch: "",
+    rightSearch: ""
+  };
+
+  const modal = document.createElement("div");
+  modal.id = "edit-site-modal";
+  modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
+  modal.innerHTML = `
+    <div class="config-card" style="width:100%; max-width:640px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+      <div class="card-header">
+        <h2 class="card-title">사이트 정보 및 등급 수정</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">사이트명</label>
+          <input type="text" id="edit-site-name" class="form-input" value="${site.siteName}" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+        </div>
+        <div class="form-group" style="margin-bottom:24px;">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">접근 허용 등급 선택 (Shuttle Box)</label>
+          
+          <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
+            <!-- Left List Panel -->
+            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+                전체 서비스 등급 목록
+              </div>
+              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteLeft(this.value)">
+              </div>
+              <div id="edit-site-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+                <!-- Dynamic left items -->
+              </div>
+            </div>
+
+            <!-- Middle Action Buttons -->
+            <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
+              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('add')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
+                추가 ▶
+              </button>
+              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('remove')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+                ◀ 제거
+              </button>
+            </div>
+
+            <!-- Right List Panel -->
+            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+                접속 허용할 등급 목록
+              </div>
+              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteRight(this.value)">
+              </div>
+              <div id="edit-site-shuttle-right" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+                <!-- Dynamic right items -->
+              </div>
+            </div>
+          </div>
+          
+          <p style="font-size:12px; color:#64748b; margin-top:8px;">* 선택된 등급의 회원만 이 사이트로 진입이 가능해집니다. 이미 다른 사이트에 지정된 등급은 좌측 목록에서 비활성화되어 중복 매핑이 방지됩니다.</p>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn" onclick="closeEditSiteModal()">취소</button>
+          <button class="btn btn-primary" onclick="submitEditSite()">저장하기</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  window.renderEditSiteShuttle();
+};
+
+window.filterEditSiteLeft = function(val) {
+  window.editSiteShuttleState.leftSearch = val;
+  window.renderEditSiteShuttle();
+};
+
+window.filterEditSiteRight = function(val) {
+  window.editSiteShuttleState.rightSearch = val;
+  window.renderEditSiteShuttle();
+};
+
+window.renderEditSiteShuttle = function() {
+  const leftContainer = document.getElementById("edit-site-shuttle-left");
+  const rightContainer = document.getElementById("edit-site-shuttle-right");
+  if (!leftContainer || !rightContainer) return;
+
+  const leftSearchText = (window.editSiteShuttleState.leftSearch || "").toLowerCase();
+  const rightSearchText = (window.editSiteShuttleState.rightSearch || "").toLowerCase();
+
+  // Render Left
+  let leftHtml = "";
+  
+  // 1. Available active
+  const filteredActiveLeft = window.editSiteShuttleState.left.filter(t => 
+    t.name.toLowerCase().includes(leftSearchText)
+  );
+  filteredActiveLeft.forEach(t => {
+    leftHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="edit-site-left-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  // 2. Disabled used
+  const filteredUsedLeft = window.editSiteShuttleState.leftUsed.filter(t => 
+    t.name.toLowerCase().includes(leftSearchText)
+  );
+  filteredUsedLeft.forEach(t => {
+    leftHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#94a3b8; cursor:not-allowed; margin:0; background:#f8fafc; border-radius:4px; border:1px dashed #cbd5e1; opacity:0.75; user-select:none;">
+        <input type="checkbox" disabled checked style="width:14px; height:14px; cursor:not-allowed; opacity:0.5;">
+        <span style="text-decoration:line-through; font-weight:500;">${t.name}</span>
+        <span style="font-size:10px; color:#f97316; background:#fff7ed; padding:1px 6px; border-radius:4px; margin-left:auto; border:1px solid #ffedd5;">다른 사이트 지정됨</span>
+      </label>
+    `;
+  });
+
+  if (leftHtml === "") {
+    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
+  }
+  leftContainer.innerHTML = leftHtml;
+
+  // Render Right
+  let rightHtml = "";
+  const filteredRight = window.editSiteShuttleState.right.filter(t => 
+    t.name.toLowerCase().includes(rightSearchText)
+  );
+  filteredRight.forEach(t => {
+    rightHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="edit-site-right-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  if (rightHtml === "") {
+    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
+  }
+  rightContainer.innerHTML = rightHtml;
+};
+
+window.moveEditSiteTiers = function(action) {
+  if (action === 'add') {
+    const checked = Array.from(document.querySelectorAll('.edit-site-left-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("추가할 등급을 좌측 목록에서 선택해 주세요.");
+      return;
+    }
+    
+    // Safety check
+    const alreadyUsed = checked.filter(name => window.editSiteShuttleState.leftUsed.some(u => u.name === name));
+    if (alreadyUsed.length > 0) {
+      alert(`이미 다른 사이트에 지정된 등급(${alreadyUsed.join(", ")})은 중복 지정할 수 없습니다.`);
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.editSiteShuttleState.left.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.editSiteShuttleState.left.splice(idx, 1)[0];
+        window.editSiteShuttleState.right.push(item);
+      }
+    });
+  } else if (action === 'remove') {
+    const checked = Array.from(document.querySelectorAll('.edit-site-right-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("제거할 등급을 우측 목록에서 선택해 주세요.");
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.editSiteShuttleState.right.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.editSiteShuttleState.right.splice(idx, 1)[0];
+        window.editSiteShuttleState.left.push(item);
+      }
+    });
+  }
+  
+  window.renderEditSiteShuttle();
+};
+
+window.closeEditSiteModal = function() {
+  const modal = document.getElementById("edit-site-modal");
+  if (modal) modal.remove();
+};
+
+window.submitEditSite = function() {
+  const name = document.getElementById("edit-site-name").value.trim();
+  if (!name) {
+    alert("사이트명을 입력해 주세요.");
+    return;
+  }
+  
+  const mappedTiers = window.editSiteShuttleState.right.map(t => t.name);
+  if (mappedTiers.length === 0) {
+    alert("사이트에 최소 하나의 접근 등급을 추가해 주세요.");
+    return;
+  }
+  
+  const client = adminClientConfigs[currentClientId];
+  const site = client.sites.find(s => s.siteId === window.editSiteShuttleState.siteId);
+  if (site) {
+    site.siteName = name;
+    site.mappedTiers = mappedTiers;
+  }
+  
+  closeEditSiteModal();
+  loadClientSettings();
+  showToast(`사이트 '${name}'의 설정이 저장되었습니다.`);
+};
+
+window.openAddSiteModal = function() {
+  const client = adminClientConfigs[currentClientId];
+  
+  // Calculate which tiers are already mapped to another site
+  const usedTiers = new Set();
+  (client.sites || []).forEach(s => {
+    (s.mappedTiers || []).forEach(t => {
+      const name = typeof t === 'object' ? (t.name || t.id) : t;
+      usedTiers.add(name);
+    });
+  });
+  
+  const allTiersMapped = (client.tiers || []).map(t => {
+    const name = typeof t === 'object' ? (t.name || t.id) : t;
+    return {
+      name: name,
+      isUsed: usedTiers.has(name)
+    };
+  });
+
+  window.addSiteShuttleState = {
+    left: allTiersMapped.filter(t => !t.isUsed),
+    leftUsed: allTiersMapped.filter(t => t.isUsed),
+    right: [],
+    leftSearch: "",
+    rightSearch: ""
+  };
+
+  const modal = document.createElement("div");
+  modal.id = "add-site-modal";
+  modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
+  modal.innerHTML = `
+    <div class="config-card" style="width:100%; max-width:640px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+      <div class="card-header">
+        <h2 class="card-title">신규 사이트 추가</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">사이트명</label>
+          <input type="text" id="new-site-name" class="form-input" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+        </div>
+        <div class="form-group" style="margin-bottom:24px;">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">접근 허용 등급 선택 (Shuttle Box)</label>
+          
+          <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
+            <!-- Left List Panel -->
+            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+                전체 서비스 등급 목록
+              </div>
+              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteLeft(this.value)">
+              </div>
+              <div id="add-site-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+                <!-- Dynamic left items -->
+              </div>
+            </div>
+
+            <!-- Middle Action Buttons -->
+            <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
+              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('add')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
+                추가 ▶
+              </button>
+              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('remove')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+                ◀ 제거
+              </button>
+            </div>
+
+            <!-- Right List Panel -->
+            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+                접속 허용할 등급 목록
+              </div>
+              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteRight(this.value)">
+              </div>
+              <div id="add-site-shuttle-right" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+                <!-- Dynamic right items -->
+              </div>
+            </div>
+          </div>
+          
+          <p style="font-size:12px; color:#64748b; margin-top:8px;">* 선택된 등급의 회원만 이 사이트로 진입이 가능해집니다. 이미 다른 사이트에 지정된 등급은 좌측 목록에서 비활성화되어 중복 매핑이 방지됩니다.</p>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn" onclick="closeAddSiteModal()">취소</button>
+          <button class="btn btn-primary" onclick="submitAddSite()">추가하기</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  window.renderAddSiteShuttle();
+};
+
+window.filterAddSiteLeft = function(val) {
+  window.addSiteShuttleState.leftSearch = val;
+  window.renderAddSiteShuttle();
+};
+
+window.filterAddSiteRight = function(val) {
+  window.addSiteShuttleState.rightSearch = val;
+  window.renderAddSiteShuttle();
+};
+
+window.renderAddSiteShuttle = function() {
+  const leftContainer = document.getElementById("add-site-shuttle-left");
+  const rightContainer = document.getElementById("add-site-shuttle-right");
+  if (!leftContainer || !rightContainer) return;
+
+  const leftSearchText = (window.addSiteShuttleState.leftSearch || "").toLowerCase();
+  const rightSearchText = (window.addSiteShuttleState.rightSearch || "").toLowerCase();
+
+  // Render Left
+  let leftHtml = "";
+  
+  // 1. Available active
+  const filteredActiveLeft = window.addSiteShuttleState.left.filter(t => 
+    t.name.toLowerCase().includes(leftSearchText)
+  );
+  filteredActiveLeft.forEach(t => {
+    leftHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="add-site-left-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  // 2. Disabled used
+  const filteredUsedLeft = window.addSiteShuttleState.leftUsed.filter(t => 
+    t.name.toLowerCase().includes(leftSearchText)
+  );
+  filteredUsedLeft.forEach(t => {
+    leftHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#94a3b8; cursor:not-allowed; margin:0; background:#f8fafc; border-radius:4px; border:1px dashed #cbd5e1; opacity:0.75; user-select:none;">
+        <input type="checkbox" disabled checked style="width:14px; height:14px; cursor:not-allowed; opacity:0.5;">
+        <span style="text-decoration:line-through; font-weight:500;">${t.name}</span>
+        <span style="font-size:10px; color:#f97316; background:#fff7ed; padding:1px 6px; border-radius:4px; margin-left:auto; border:1px solid #ffedd5;">다른 사이트 지정됨</span>
+      </label>
+    `;
+  });
+
+  if (leftHtml === "") {
+    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
+  }
+  leftContainer.innerHTML = leftHtml;
+
+  // Render Right
+  let rightHtml = "";
+  const filteredRight = window.addSiteShuttleState.right.filter(t => 
+    t.name.toLowerCase().includes(rightSearchText)
+  );
+  filteredRight.forEach(t => {
+    rightHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="add-site-right-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  if (rightHtml === "") {
+    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
+  }
+  rightContainer.innerHTML = rightHtml;
+};
+
+window.moveAddSiteTiers = function(action) {
+  if (action === 'add') {
+    const checked = Array.from(document.querySelectorAll('.add-site-left-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("추가할 등급을 좌측 목록에서 선택해 주세요.");
+      return;
+    }
+    
+    // Safety check for used list
+    const alreadyUsed = checked.filter(name => window.addSiteShuttleState.leftUsed.some(u => u.name === name));
+    if (alreadyUsed.length > 0) {
+      alert(`이미 다른 사이트에 지정된 등급(${alreadyUsed.join(", ")})은 중복 지정할 수 없습니다.`);
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.addSiteShuttleState.left.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.addSiteShuttleState.left.splice(idx, 1)[0];
+        window.addSiteShuttleState.right.push(item);
+      }
+    });
+  } else if (action === 'remove') {
+    const checked = Array.from(document.querySelectorAll('.add-site-right-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("제거할 등급을 우측 목록에서 선택해 주세요.");
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.addSiteShuttleState.right.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.addSiteShuttleState.right.splice(idx, 1)[0];
+        window.addSiteShuttleState.left.push(item);
+      }
+    });
+  }
+  
+  window.renderAddSiteShuttle();
+};
+
+window.closeAddSiteModal = function() {
+  const modal = document.getElementById("add-site-modal");
+  if (modal) modal.remove();
+};
+
+window.submitAddSite = function() {
+  const name = document.getElementById("new-site-name").value.trim();
+  if (!name) {
+    alert("사이트명을 입력해 주세요.");
+    return;
+  }
+  
+  const mappedTiers = window.addSiteShuttleState.right.map(t => t.name);
+  if (mappedTiers.length === 0) {
+    alert("사이트에 최소 하나의 접근 등급을 추가해 주세요.");
+    return;
+  }
+  
+  const client = adminClientConfigs[currentClientId];
+  const newSiteId = "site_" + Date.now();
+  
+  const defaultSite = client.sites[0] || {};
+  const newSite = {
+    siteId: newSiteId,
+    siteName: name,
+    mappedTiers: mappedTiers,
+    logoImage: defaultSite.logoImage || null,
+    themeColor: defaultSite.themeColor || BRAND_DEFAULTS.themeColor,
+    themeColorRgb: defaultSite.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+    menuTextColor: defaultSite.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+    heroText: { title: name + "에 오신 것을 환영합니다", subtitle: "고객님을 위한 특별한 혜택과 정보를 제공합니다." },
+    serviceName: defaultSite.serviceName || client.serviceName || client.name || "",
+    csNumber: defaultSite.csNumber || client.csNumber || "",
+    name: defaultSite.name || client.name || "",
+    clientLink: defaultSite.clientLink || "",
+    providerName: defaultSite.providerName || BRAND_DEFAULTS.providerName,
+    providerLink: defaultSite.providerLink || BRAND_DEFAULTS.providerLink,
+    menus: JSON.parse(JSON.stringify(defaultMenus))
+  };
+  
+  client.sites.push(newSite);
+  currentSiteId = newSiteId;
+  closeAddSiteModal();
+  loadClientSettings();
+  showToast(`신규 사이트 '${name}'가 추가되었습니다.`);
+};
+
+window.deleteActiveSite = function() {
+  const client = adminClientConfigs[currentClientId];
+  if (client.sites.length <= 1) {
+    alert("최소 1개의 사이트는 유지되어야 합니다.");
+    return;
+  }
+  
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId);
+  if (confirm(`현재 사이트 '${activeSite.siteName}'를 정말로 삭제하시겠습니까?\n이 사이트의 모든 메뉴 구성 및 브랜드 디자인 정보가 함께 영구 삭제됩니다.`)) {
+    client.sites = client.sites.filter(s => s.siteId !== currentSiteId);
+    currentSiteId = client.sites[0].siteId;
+    loadClientSettings();
+    showToast("선택한 사이트가 삭제되었습니다.");
+  }
+};
+
+window.openMenuRBACModal = function(menuId) {
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(activeSite.menus, menuId);
+  if (!menu) return;
+  
+  const allSiteTiers = (activeSite.mappedTiers || []).map(t => {
+    return typeof t === 'object' ? (t.name || t.id) : t;
+  });
+  const exposed = (menu.exposedTiers || []).map(t => {
+    return typeof t === 'object' ? (t.name || t.id) : t;
+  });
+
+  window.rbacShuttleState = {
+    left: allSiteTiers.filter(t => !exposed.includes(t)).map(name => ({ name })),
+    right: exposed.map(name => ({ name })),
+    leftSearch: "",
+    rightSearch: ""
+  };
+
+  const modal = document.createElement("div");
+  modal.id = "menu-rbac-modal";
+  modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
+  modal.innerHTML = `
+    <div class="config-card" style="width:100%; max-width:640px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+      <div class="card-header" style="border-bottom:1px solid #e2e8f0; background:#f8fafc; padding:16px 24px;">
+        <h2 class="card-title" style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">⚙️ '${menu.label || menu.defaultLabel}' 노출 조건 설정</h2>
+      </div>
+      <div class="card-body" style="padding:24px;">
+        <div style="margin-bottom:16px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px; font-size:13px; color:#1e3a8a; line-height:1.5;">
+          <strong>합집합(OR) 노출 원칙:</strong><br/>
+          선택한 등급 중 <u>하나라도 보유한 사용자</u>에게만 이 메뉴가 노출됩니다.<br/>
+          아무것도 선택하지 않으면 해당 사이트에 접근 가능한 <strong>모든 회원에게 공통 노출</strong>됩니다.
+        </div>
+        
+        <div style="font-weight:600; font-size:14px; color:#334155; margin-bottom:12px;">노출 허용 등급 선택 (Shuttle Box)</div>
+        
+        <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
+          <!-- Left List Panel -->
+          <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+            <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              전체 사이트 권한 등급
+            </div>
+            <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+              <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterRbacLeft(this.value)">
+            </div>
+            <div id="rbac-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+              <!-- Dynamic left items -->
+            </div>
+          </div>
+
+          <!-- Middle Action Buttons -->
+          <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
+            <button type="button" class="btn btn-sm" onclick="moveRbacTiers('add')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:${activeSite.themeColor || '#17B890'}; color:white; border:none; border-radius:6px; cursor:pointer;">
+              추가 ▶
+            </button>
+            <button type="button" class="btn btn-sm" onclick="moveRbacTiers('remove')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+              ◀ 제거
+            </button>
+          </div>
+
+          <!-- Right List Panel -->
+          <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
+            <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              노출 허용할 등급 목록
+            </div>
+            <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
+              <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterRbacRight(this.value)">
+            </div>
+            <div id="rbac-shuttle-right" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
+              <!-- Dynamic right items -->
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
+          <button class="btn btn-secondary btn-sm" onclick="closeMenuRBACModal()">취소</button>
+          <button class="btn btn-primary btn-sm" style="background:${activeSite.themeColor || '#17B890'}; border:none;" onclick="submitMenuRBAC('${menuId}')">조건 저장</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  window.renderRbacShuttle();
+};
+
+window.filterRbacLeft = function(val) {
+  window.rbacShuttleState.leftSearch = val;
+  window.renderRbacShuttle();
+};
+
+window.filterRbacRight = function(val) {
+  window.rbacShuttleState.rightSearch = val;
+  window.renderRbacShuttle();
+};
+
+window.renderRbacShuttle = function() {
+  const leftContainer = document.getElementById("rbac-shuttle-left");
+  const rightContainer = document.getElementById("rbac-shuttle-right");
+  if (!leftContainer || !rightContainer) return;
+
+  const leftSearchText = (window.rbacShuttleState.leftSearch || "").toLowerCase();
+  const rightSearchText = (window.rbacShuttleState.rightSearch || "").toLowerCase();
+
+  // Render Left
+  let leftHtml = "";
+  const filteredLeft = window.rbacShuttleState.left.filter(t => 
+    t.name.toLowerCase().includes(leftSearchText)
+  );
+  filteredLeft.forEach(t => {
+    leftHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="rbac-left-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  if (leftHtml === "") {
+    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
+  }
+  leftContainer.innerHTML = leftHtml;
+
+  // Render Right
+  let rightHtml = "";
+  const filteredRight = window.rbacShuttleState.right.filter(t => 
+    t.name.toLowerCase().includes(rightSearchText)
+  );
+  filteredRight.forEach(t => {
+    rightHtml += `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+        <input type="checkbox" class="rbac-right-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
+        <span style="font-weight:500;">${t.name}</span>
+      </label>
+    `;
+  });
+
+  if (rightHtml === "") {
+    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
+  }
+  rightContainer.innerHTML = rightHtml;
+};
+
+window.moveRbacTiers = function(action) {
+  if (action === 'add') {
+    const checked = Array.from(document.querySelectorAll('.rbac-left-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("추가할 등급을 좌측 목록에서 선택해 주세요.");
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.rbacShuttleState.left.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.rbacShuttleState.left.splice(idx, 1)[0];
+        window.rbacShuttleState.right.push(item);
+      }
+    });
+  } else if (action === 'remove') {
+    const checked = Array.from(document.querySelectorAll('.rbac-right-chk:checked')).map(el => el.value);
+    if (checked.length === 0) {
+      alert("제거할 등급을 우측 목록에서 선택해 주세요.");
+      return;
+    }
+
+    checked.forEach(name => {
+      const idx = window.rbacShuttleState.right.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        const item = window.rbacShuttleState.right.splice(idx, 1)[0];
+        window.rbacShuttleState.left.push(item);
+      }
+    });
+  }
+  
+  window.renderRbacShuttle();
+};
+
+window.closeMenuRBACModal = function() {
+  const modal = document.getElementById("menu-rbac-modal");
+  if (modal) modal.remove();
+};
+
+window.submitMenuRBAC = function(menuId) {
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(activeSite.menus, menuId);
+  if (!menu) return;
+  
+  const selectedTiers = window.rbacShuttleState.right.map(t => t.name);
+  
+  menu.exposedTiers = selectedTiers;
+  closeMenuRBACModal();
+  showToast(`'${menu.label}'의 노출 등급 조건이 설정되었습니다.`);
 };
 
 // --- View: Health Info ---
