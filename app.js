@@ -1,16 +1,14 @@
 // Data Models (Default/Fallback)
 const clientConfigs = {
   kyobo: { id: "kyobo", name: "교보생명", serviceName: "교보생명", csNumber: "1588-1001", clientLink: "", dasomLink: "", themeColor: "#2F4A9A", themeColorRgb: "47, 74, 154", logoText: "교보생명 헬스케어",
-    tiers: [{ id: "basic", label: "기본플랜", priority: 1 }, { id: "vip", label: "VIP플랜", priority: 2 }],
-    heroText: { default: { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요.", csNumber: "1588-1001" } }, menus: [] },
+    tiers: ["기본플랜", "VIP플랜"],
+    heroText: { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요.", csNumber: "1588-1001" }, menus: [] },
   dasom: { id: "dasom", name: "교보다솜케어", serviceName: "교보다솜케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", themeColor: "#17B890", themeColorRgb: "23, 184, 144", logoText: "교보다솜케어",
-    tiers: [{ id: "standard", label: "통합등급", priority: 1 }, { id: "premium", label: "우대등급", priority: 2 }],
-    heroText: { default: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다.", csNumber: "1588-1002" } }, menus: [] },
+    tiers: ["통합등급", "우대등급"],
+    heroText: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다.", csNumber: "1588-1002" }, menus: [] },
   other: { id: "other", name: "A기업(제휴사)", serviceName: "A기업", csNumber: "1588-1003", clientLink: "", dasomLink: "", themeColor: "#5b21b6", themeColorRgb: "91, 33, 182", logoText: "A기업 복지라운지",
-    tiers: [{ id: "emp1", label: "임직원 1등급", priority: 1 }, { id: "exec", label: "임원급", priority: 2 }],
-    heroText: { default: { title: "임직원 복지 라운지", subtitle: "A기업 임직원만을 위한 프리미엄 건강 관리 혜택을 만나보세요.", csNumber: "1588-1003" } }, menus: [] }
-};
-��(제휴사)", serviceName: "A기업", csNumber: "1588-1003", clientLink: "", dasomLink: "", themeColor: "#5b21b6", themeColorRgb: "91, 33, 182", logoText: "A기업 복지라운지", heroText: { title: "임직원 복지 라운지", subtitle: "A기업 임직원만을 위한 프리미엄 건강 관리 혜택을 만나보세요." }, menus: [] }
+    tiers: ["임직원 1등급", "임원급"],
+    heroText: { title: "임직원 복지 라운지", subtitle: "A기업 임직원만을 위한 프리미엄 건강 관리 혜택을 만나보세요.", csNumber: "1588-1003" }, menus: [] }
 };
 
 const defaultMenus = [
@@ -23,7 +21,9 @@ const defaultMenus = [
     { id: "search", label: "병원검색", isVisible: true, children: [] },
     { id: "expert", label: "명의안내", isVisible: true, children: [] }
   ] },
-  { id: "medicalAppt", label: "진료예약", isVisible: true, children: [] },
+  { id: "medicalAppt", label: "진료예약", isVisible: true, children: [
+    { id: "history", label: "상담 신청 이력", isVisible: true, children: [] }
+  ] },
   { id: "checkupAppt", label: "건강검진 예약", isVisible: true, children: [] },
   { id: "healthInfo", label: "건강정보", isVisible: true, children: [] },
   { id: "psyCare", label: "심리케어", isVisible: true, children: [] }
@@ -39,9 +39,9 @@ const BRAND_DEFAULTS = {
 };
 
 const mockUsers = {
-  user_multi: { name: "홍길동", clients: ["kyobo", "dasom", "other"], tiers: { kyobo: ["basic", "vip"], dasom: ["standard"], other: ["emp1"] } },
-  user_single_dasom: { name: "이다솜", clients: ["dasom"], tiers: { dasom: ["premium"] } },
-  user_single_other: { name: "김제휴", clients: ["other"], tiers: { other: ["exec"] } }
+  user_multi: { name: "홍길동", clients: ["kyobo", "dasom", "other"], tiers: { kyobo: ["기본플랜", "VIP플랜"], dasom: ["통합등급"], other: ["임직원 1등급"] } },
+  user_single_dasom: { name: "이다솜", clients: ["dasom"], tiers: { dasom: ["우대등급"] } },
+  user_single_other: { name: "김제휴", clients: ["other"], tiers: { other: ["임원급"] } }
 };
 
 let state = { currentUser: null, activeClient: null, route: window.location.hash || '#/' };
@@ -56,80 +56,69 @@ function loadSavedConfigs() {
   Object.keys(clientConfigs).forEach(id => {
     const client = clientConfigs[id];
     if (parsed && parsed[id]) {
-      client.menus = parsed[id].menus || client.menus;
-      client.heroText = parsed[id].heroText || client.heroText;
-      client.serviceName = parsed[id].serviceName || client.serviceName;
-      client.csNumber = parsed[id].csNumber || client.csNumber;
-      client.logoImage = parsed[id].logoImage || client.logoImage || BRAND_DEFAULTS.logoImage;
-      client.themeColor = parsed[id].themeColor || client.themeColor || BRAND_DEFAULTS.themeColor;
-      client.menuTextColor = parsed[id].menuTextColor || client.menuTextColor || BRAND_DEFAULTS.menuTextColor;
-      client.name = parsed[id].name || client.name;
-      client.clientLink = parsed[id].clientLink || client.clientLink;
-      client.providerName = parsed[id].providerName || client.providerName || BRAND_DEFAULTS.providerName;
-      client.providerLink = parsed[id].providerLink || client.providerLink || BRAND_DEFAULTS.providerLink;
-      
-      // Calculate themeColorRgb if not present
-      if (client.themeColor) {
-        const hex = client.themeColor.replace('#', '');
-        const r = parseInt(hex.substring(0,2), 16);
-        const g = parseInt(hex.substring(2,4), 16);
-        const b = parseInt(hex.substring(4,6), 16);
-        client.themeColorRgb = `${r}, ${g}, ${b}`;
+      if (parsed[id].sites && parsed[id].sites.length > 0) {
+        client.sites = parsed[id].sites;
+        client.tiers = parsed[id].tiers || client.tiers;
+      } else {
+        const currentMenus = parsed[id].menus || client.menus || JSON.parse(JSON.stringify(defaultMenus));
+        const defaultSite = {
+          siteId: "default",
+          siteName: "기본 사이트",
+          mappedTiers: [...(parsed[id].tiers || client.tiers || [])],
+          logoImage: parsed[id].logoImage || client.logoImage || null,
+          themeColor: parsed[id].themeColor || client.themeColor || BRAND_DEFAULTS.themeColor,
+          themeColorRgb: parsed[id].themeColorRgb || client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+          menuTextColor: parsed[id].menuTextColor || client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+          heroText: parsed[id].heroText || client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+          serviceName: parsed[id].serviceName || client.serviceName || client.name || "",
+          csNumber: parsed[id].csNumber || client.csNumber || "",
+          name: parsed[id].name || client.name || "",
+          clientLink: parsed[id].clientLink || client.clientLink || "",
+          providerName: parsed[id].providerName || client.providerName || BRAND_DEFAULTS.providerName,
+          providerLink: parsed[id].providerLink || client.providerLink || BRAND_DEFAULTS.providerLink,
+          menus: currentMenus
+        };
+        client.sites = [defaultSite];
+        client.tiers = parsed[id].tiers || client.tiers;
       }
-    }
-    
-    // Merge tiers from saved data
-    if (parsed && parsed[id]?.tiers) client.tiers = parsed[id].tiers;
-    // Migrate flat heroText → per-tier
-    if (client.heroText && client.heroText.title !== undefined) {
-      client.heroText = { default: { title: client.heroText.title, subtitle: client.heroText.subtitle, csNumber: client.csNumber || '' } };
-    }
-    if (parsed && parsed[id]?.heroText && parsed[id].heroText.default !== undefined) {
-      client.heroText = parsed[id].heroText;
-    }
-    // Fallback to default menus if empty
-    if (!client.menus || client.menus.length === 0) {
-      client.menus = JSON.parse(JSON.stringify(defaultMenus));
     } else {
-      // Reorder: ensure serviceGuide is first if it exists
-      const sgIndex = client.menus.findIndex(m => m.id === 'serviceGuide');
-      if (sgIndex > 0) {
-        const sg = client.menus.splice(sgIndex, 1)[0];
-        client.menus.unshift(sg);
-      }
+      const defaultSite = {
+        siteId: "default",
+        siteName: "기본 사이트",
+        mappedTiers: [...(client.tiers || [])],
+        logoImage: client.logoImage || null,
+        themeColor: client.themeColor || BRAND_DEFAULTS.themeColor,
+        themeColorRgb: client.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
+        menuTextColor: client.menuTextColor || BRAND_DEFAULTS.menuTextColor,
+        heroText: client.heroText || { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요." },
+        serviceName: client.serviceName || client.name || "",
+        csNumber: client.csNumber || "",
+        name: client.name || "",
+        clientLink: client.clientLink || "",
+        providerName: client.providerName || BRAND_DEFAULTS.providerName,
+        providerLink: client.providerLink || BRAND_DEFAULTS.providerLink,
+        menus: JSON.parse(JSON.stringify(defaultMenus))
+      };
+      client.sites = [defaultSite];
     }
+
+    client.sites.forEach(site => {
+      if (!site.menus || site.menus.length === 0) {
+        site.menus = JSON.parse(JSON.stringify(defaultMenus));
+      } else {
+        const sgIndex = site.menus.findIndex(m => m.id === 'serviceGuide');
+        if (sgIndex > 0) {
+          const sg = site.menus.splice(sgIndex, 1)[0];
+          site.menus.unshift(sg);
+        }
+      }
+      if (!site.mappedTiers) {
+        site.mappedTiers = [...(client.tiers || [])];
+      }
+    });
   });
 }
 loadSavedConfigs();
-
-// Get current user's tier IDs for the active client
-function getCurrentTierIds() {
-  if (!state.currentUser || !state.activeClient) return [];
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlTier = urlParams.get('tier');
-  if (urlTier) return [urlTier];
-  return state.currentUser.tiers?.[state.activeClient.id] || [];
-}
-
-// Resolve the best heroText for the current user's tiers
-function resolveHeroText(client) {
-  const userTierIds = getCurrentTierIds();
-  const tiers = client.tiers || [];
-  // Find the highest-priority tier the user has that has a custom heroText
-  const matchedTiers = tiers
-    .filter(t => userTierIds.includes(t.id) && client.heroText[t.id])
-    .sort((a, b) => b.priority - a.priority);
-  if (matchedTiers.length > 0) return client.heroText[matchedTiers[0].id];
-  return client.heroText?.default || { title: '', subtitle: '', csNumber: client.csNumber || '' };
-}
-
-// Filter menus by the user's tiers (allowedTiers: [] means all)
-function filterMenusByTier(menus) {
-  const userTierIds = getCurrentTierIds();
-  return menus
-    .filter(m => !m.allowedTiers || m.allowedTiers.length === 0 || m.allowedTiers.some(t => userTierIds.includes(t)))
-    .map(m => ({ ...m, children: m.children ? filterMenusByTier(m.children) : [] }));
-}
 
 const app = document.getElementById('app');
 
@@ -140,14 +129,36 @@ function render() {
   else if (state.route.startsWith('#/portal/')) {
     const parts = state.route.split('/');
     const clientId = parts[2];
-    state.activeMenuId = parts[3] || null;
-    state.activeSubId = parts[4] || null;
-    state.activeSubSubId = parts[5] || null;
-    if(clientConfigs[clientId]) {
-      state.activeClient = clientConfigs[clientId];
-      applyTheme(state.activeClient);
+    const client = clientConfigs[clientId];
+    
+    if (client) {
+      state.activeClient = client;
+      
+      const siteId = parts[3];
+      const matchingSite = client.sites.find(s => s.siteId === siteId);
+      
+      if (matchingSite) {
+        state.activeSite = matchingSite;
+        state.activeMenuId = parts[4] || null;
+        state.activeSubId = parts[5] || null;
+        state.activeSubSubId = parts[6] || null;
+      } else {
+        const userTiers = state.currentUser ? (state.currentUser.tiers[clientId] || []) : [];
+        const accessibleSites = client.sites.filter(site => 
+          site.mappedTiers.some(t => userTiers.includes(t))
+        );
+        state.activeSite = accessibleSites[0] || client.sites[0];
+        
+        state.activeMenuId = parts[3] || null;
+        state.activeSubId = parts[4] || null;
+        state.activeSubSubId = parts[5] || null;
+      }
+      
+      applyTheme(state.activeSite);
       renderPortal();
-    } else { window.location.hash = '#/'; }
+    } else {
+      window.location.hash = '#/';
+    }
   }
 }
 
@@ -155,13 +166,35 @@ window.addEventListener('hashchange', () => { state.route = window.location.hash
 
 window.login = function(userId) {
   state.currentUser = mockUsers[userId];
-  const clients = state.currentUser.clients;
-  if (clients.length > 1) window.location.hash = '#/select';
-  else window.location.hash = `#/portal/${clients[0]}`;
+  
+  let totalSites = 0;
+  let singleClient = null;
+  let singleSite = null;
+  
+  state.currentUser.clients.forEach(clientId => {
+    const client = clientConfigs[clientId];
+    const userTiers = state.currentUser.tiers[clientId] || [];
+    const accessibleSites = client.sites.filter(site => 
+      site.mappedTiers.some(t => userTiers.includes(t))
+    );
+    totalSites += accessibleSites.length;
+    if (accessibleSites.length > 0) {
+      singleClient = client;
+      singleSite = accessibleSites[0];
+    }
+  });
+
+  if (totalSites === 1 && singleClient && singleSite) {
+    state.activeClient = singleClient;
+    state.activeSite = singleSite;
+    window.location.hash = `#/portal/${singleClient.id}/${singleSite.siteId}`;
+  } else {
+    window.location.hash = '#/select';
+  }
 };
 
 window.logout = function() {
-  state.currentUser = null; state.activeClient = null;
+  state.currentUser = null; state.activeClient = null; state.activeSite = null;
   window.location.hash = '#/';
   document.documentElement.style.removeProperty('--theme-color');
   document.documentElement.style.removeProperty('--theme-color-rgb');
@@ -179,6 +212,16 @@ window.toggleConsultingForm = function() {
 
 window.toggleMedicalApptForm = function() {
   const form = document.getElementById('medical-appt-form-area');
+  if (form) {
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    if (form.style.display === 'block') {
+      form.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+};
+
+window.toggleExpertConsultingForm = function() {
+  const form = document.getElementById('expert-consulting-form-area');
   if (form) {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
     if (form.style.display === 'block') {
@@ -241,7 +284,7 @@ window.submitConsulting = function() {
     
     showToast('전화상담신청이 등록되었습니다.');
     setTimeout(() => {
-      window.location.hash = `#/portal/${state.activeClient.id}/healthConsulting/consultHistory`;
+      window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/healthConsulting/consultHistory`;
     }, 1500);
   } else {
     if (!memo) {
@@ -266,7 +309,7 @@ window.submitConsulting = function() {
     localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
     
     alert('문의가 등록되었습니다.\n문의 등록 후 3일 이내에 답변이 등록됩니다.');
-    window.location.hash = `#/portal/${state.activeClient.id}/healthConsulting/consultHistory`;
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/healthConsulting/consultHistory`;
   }
 };
 
@@ -388,7 +431,7 @@ window.submitInquiry = function() {
   localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
   
   alert('문의가 정상적으로 등록되었습니다.\n영업일 기준 3일 이내에 답변해 드리겠습니다.');
-  window.location.hash = `#/portal/${state.activeClient.id}/onlineInquiry`;
+  window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/onlineInquiry`;
   render();
 };
 
@@ -417,36 +460,160 @@ function renderLogin() {
 
 function renderClientSelect() {
   if (!state.currentUser) { window.location.hash = '#/'; return; }
-  const clients = state.currentUser.clients.map(id => clientConfigs[id]);
-  const clientCards = clients.map(client => `
-    <div class="client-card" onclick="window.location.hash='#/portal/${client.id}'">
-      <div class="client-logo-placeholder" style="background-color: rgba(${client.themeColorRgb}, 0.1); color: ${client.themeColor}; border: 1px solid rgba(${client.themeColorRgb}, 0.2);">
-        ${client.name.charAt(0)}
-      </div>
-      <h3>${client.name}</h3>
-      <p style="font-size:13px; color:var(--text-secondary); margin-top:8px;">접속하기 &rarr;</p>
-    </div>
-  `).join('');
+  
+  let cardsHtml = '';
+  state.currentUser.clients.forEach(clientId => {
+    const client = clientConfigs[clientId];
+    const userTiers = state.currentUser.tiers[clientId] || [];
+    const accessibleSites = client.sites.filter(site => 
+      site.mappedTiers.some(t => userTiers.includes(t))
+    );
+    
+    accessibleSites.forEach(site => {
+      const activeColor = site.themeColor || "#17B890";
+      
+      cardsHtml += `
+        <div class="client-card premium-card" onclick="selectBridgeSite('${client.id}', '${site.siteId}')" style="
+          border: 2px solid #cbd5e1;
+          border-radius: 16px;
+          padding: 24px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        ">
+          <div style="position:absolute; top:0; left:0; right:0; height:6px; background:${activeColor};"></div>
+          
+          <div class="client-logo-placeholder" style="
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            background-color: rgba(${site.themeColorRgb || '23,184,144'}, 0.1);
+            color: ${activeColor};
+            border: 1px solid rgba(${site.themeColorRgb || '23,184,144'}, 0.2);
+            font-weight: 700;
+          ">
+            ${site.logoImage ? `<img src="${site.logoImage}" style="max-width:100%; max-height:100%; object-fit:contain;">` : client.name.charAt(0)}
+          </div>
+          
+          <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">${site.siteName}</h3>
+          <span style="font-size:12px; color:${activeColor}; background:rgba(${site.themeColorRgb || '23,184,144'}, 0.1); padding:4px 10px; border-radius:12px; font-weight:600; margin-bottom:12px;">
+            ${client.name}
+          </span>
+          <p style="font-size: 13px; color: #64748b; line-height: 1.5; flex-grow: 1;">
+            ${site.heroText.title || '프리미엄 헬스케어 포털 서비스'}
+          </p>
+          
+          <div class="card-btn" style="
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+          ">
+            접속하기 &rarr;
+          </div>
+        </div>
+      `;
+    });
+  });
+
   app.innerHTML = `
-    <div class="auth-wrapper fade-in">
-      <div class="auth-card" style="max-width: 600px; padding: 48px;">
-        <h1 style="font-size: 24px;">접속할 서비스 선택</h1>
-        <div class="client-select-grid">${clientCards}</div>
-        <button class="logout-btn" style="margin-top: 32px;" onclick="logout()">돌아가기 (로그아웃)</button>
+    <div class="auth-wrapper fade-in" style="background: radial-gradient(circle at 50% 50%, #eff6ff 0%, #f8fafc 100%);">
+      <div class="auth-card" style="max-width: 800px; padding: 48px; width: 90%;">
+        <div style="text-align:center; margin-bottom:32px;">
+          <h1 style="font-size: 26px; font-weight: 800; color:#0f172a; letter-spacing:-0.5px;">접속할 사이트 선택</h1>
+          <p style="color:#64748b; font-size:14px; margin-top:8px;">권한이 부여된 고객사 및 맞춤형 웰니스 포털 사이트를 선택해주세요.</p>
+        </div>
+        <div class="client-select-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:24px;">
+          ${cardsHtml}
+        </div>
+        <div style="text-align:center; margin-top:40px;">
+          <button class="logout-btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-weight:600; padding:10px 24px; border-radius:8px;" onclick="logout()">돌아가기 (로그아웃)</button>
+        </div>
       </div>
     </div>
   `;
 }
 
+window.selectBridgeSite = function(clientId, siteId) {
+  state.activeClient = clientConfigs[clientId];
+  state.activeSite = state.activeClient.sites.find(s => s.siteId === siteId) || state.activeClient.sites[0];
+  window.location.hash = `#/portal/${clientId}/${siteId}`;
+};
+
+function filterMenusForUser(menus, userTiers) {
+  return menus
+    .filter(menu => {
+      if (menu.isVisible === false) return false;
+      if (menu.exposedTiers && menu.exposedTiers.length > 0) {
+        const hasAccess = menu.exposedTiers.some(tier => userTiers.includes(tier));
+        if (!hasAccess) return false;
+      }
+      return true;
+    })
+    .map(menu => {
+      const clone = { ...menu };
+      if (clone.children && clone.children.length > 0) {
+        clone.children = filterMenusForUser(clone.children, userTiers);
+      }
+      return clone;
+    });
+}
+
 function renderPortal() {
   const client = state.activeClient;
-  const menus = client.menus || [];
-  // Filter only top-level menus that are set to visible
-  const visibleMenus = menus.filter(m => m.isVisible !== false);
+  const activeSite = state.activeSite || client.sites[0];
+  
+  const userTiers = state.currentUser ? (state.currentUser.tiers[client.id] || []) : [];
+  const visibleMenus = filterMenusForUser(activeSite.menus || [], userTiers);
+
+  // Render Site Selector dropdown if multiple accessible sites exist
+  const accessibleSites = client.sites.filter(site => 
+    site.mappedTiers.some(t => userTiers.includes(t))
+  );
+
+  let siteSelectorHtml = '';
+  if (accessibleSites.length > 1) {
+    siteSelectorHtml = `
+      <div class="site-selector" style="position:relative; margin-right:12px;">
+        <select onchange="selectBridgeSite('${client.id}', this.value)" style="
+          padding: 6px 12px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--theme-color);
+          background: rgba(var(--theme-color-rgb), 0.08);
+          border: 1px solid rgba(var(--theme-color-rgb), 0.2);
+          border-radius: 6px;
+          cursor: pointer;
+          outline: none;
+        ">
+          ${accessibleSites.map(s => `
+            <option value="${s.siteId}" ${s.siteId === activeSite.siteId ? 'selected' : ''}>🌐 ${s.siteName}</option>
+          `).join('')}
+        </select>
+      </div>
+    `;
+  }
 
   // GNB HTML (1st depth only)
   const gnbHtml = visibleMenus.map(m => `
-    <a href="#/portal/${client.id}/${m.id}" class="${state.activeMenuId === m.id ? 'active' : ''}">${m.label}</a>
+    <a href="#/portal/${client.id}/${activeSite.siteId}/${m.id}" class="${state.activeMenuId === m.id ? 'active' : ''}">${m.label}</a>
   `).join('');
 
   // Mega Menu Panel (shows all children levels)
@@ -455,14 +622,14 @@ function renderPortal() {
       <div class="container mega-menu-content">
         ${visibleMenus.map(m => `
           <div class="mega-column">
-            <div class="mega-title" onclick="window.location.hash='#/portal/${client.id}/${m.id}'" style="cursor:pointer;">${m.label}</div>
+            <div class="mega-title" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/${m.id}'" style="cursor:pointer;">${m.label}</div>
             <ul class="mega-list">
-              ${(m.children || []).filter(c => c.isVisible !== false).map(c2 => `
+              ${(m.children || []).map(c2 => `
                 <li class="mega-item">
-                  <a href="#/portal/${client.id}/${m.id}/${c2.id}">${c2.label}</a>
+                  <a href="#/portal/${client.id}/${activeSite.siteId}/${m.id}/${c2.id}">${c2.label}</a>
                   <ul class="mega-list-inner">
-                    ${(c2.children || []).filter(c3 => c3.isVisible !== false).map(c3 => `
-                      <li class="mega-item depth-3"><a href="#/portal/${client.id}/${m.id}/${c2.id}/${c3.id}">${c3.label}</a></li>
+                    ${(c2.children || []).map(c3 => `
+                      <li class="mega-item depth-3"><a href="#/portal/${client.id}/${activeSite.siteId}/${m.id}/${c2.id}/${c3.id}">${c3.label}</a></li>
                     `).join('')}
                   </ul>
                 </li>
@@ -480,20 +647,20 @@ function renderPortal() {
     contentHtml = `
       <div class="hero-section">
         <div class="hero-content">
-          <h2 style="margin-top:0;">${client.heroText.title}</h2>
-          <p>${client.heroText.subtitle}</p>
+          <h2 style="margin-top:0;">${activeSite.heroText.title}</h2>
+          <p>${activeSite.heroText.subtitle}</p>
         </div>
       </div>
       <div class="quick-menu-grid">
-         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/hospitalGuide'">
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'">
             <h3>병원 찾기</h3>
             <p>내 주변 제휴 병원 및 명의 검색</p>
          </div>
-         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/healthConsulting'">
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting'">
             <h3>상담 신청</h3>
             <p>의료진과 1:1 건강 상담</p>
          </div>
-         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/checkupAppt'">
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/checkupAppt'">
             <h3>검진 예약</h3>
             <p>프리미엄 가족 건강검진 예약</p>
          </div>
@@ -501,24 +668,23 @@ function renderPortal() {
     `;
   } else {
     // SUBPAGE VIEW
-    // Sidebar: Show all top-level menus, but only expand the active one
     let sidebarHtml = visibleMenus.map(m => {
       const isActive = state.activeMenuId === m.id;
       return `
         <li class="sidebar-group ${isActive ? 'active' : ''}">
-          <div class="sidebar-group-header" onclick="window.location.hash='#/portal/${client.id}/${m.id}'">
+          <div class="sidebar-group-header" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/${m.id}'">
             ${m.label}
           </div>
           ${isActive && m.children && m.children.length > 0 ? `
             <ul class="sidebar-sub-list">
-              ${m.children.filter(c => c.isVisible !== false).map(sm => `
+              ${m.children.map(sm => `
                 <li class="sidebar-sub-item ${state.activeSubId === sm.id ? 'active' : ''}">
-                  <a href="#/portal/${client.id}/${m.id}/${sm.id}">${sm.label}</a>
+                  <a href="#/portal/${client.id}/${activeSite.siteId}/${m.id}/${sm.id}">${sm.label}</a>
                   ${state.activeSubId === sm.id && sm.children && sm.children.length > 0 ? `
                     <ul class="sidebar-inner-list">
-                      ${sm.children.filter(c => c.isVisible !== false).map(c3 => `
+                      ${sm.children.map(c3 => `
                         <li class="sidebar-inner-item ${state.activeSubSubId === c3.id ? 'active' : ''}">
-                          <a href="#/portal/${client.id}/${m.id}/${sm.id}/${c3.id}">${c3.label}</a>
+                          <a href="#/portal/${client.id}/${activeSite.siteId}/${m.id}/${sm.id}/${c3.id}">${c3.label}</a>
                         </li>
                       `).join('')}
                     </ul>
@@ -548,7 +714,7 @@ function renderPortal() {
     `;
 
     const isConsultingGroup = state.activeMenuId === 'healthConsulting' || activeMenu?.id === 'healthConsulting' || pageTitle.includes('상담');
-    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || pageTitle.includes('이력') || pageTitle.includes('내역');
+    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || pageTitle.includes('이력') || pageTitle.includes('내역') || state.activeSubId === 'history' || activeSub?.id === 'history';
     const isHospitalGuideGroup = state.activeMenuId === 'hospitalGuide' || activeMenu?.id === 'hospitalGuide' || pageTitle.includes('병원안내');
     const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
 
@@ -772,7 +938,452 @@ function renderPortal() {
           <div>본 서비스는 의료행위가 아닌 의료정보 안내 및 진료 연계 지원 서비스입니다.<br/>최종 진단 및 치료 여부는 의료진의 판단에 따라 결정됩니다.</div>
         </div>
       `;
+      } else if (state.activeSubId === expertSubId) {
+        detailContentHtml = `
+          <div class="hg-card-green-large" style="background: rgba(var(--theme-color-rgb), 0.03); border: 2px solid var(--theme-color); border-radius: 16px; padding: 40px; margin-bottom: 40px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 30px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                  <span style="background: var(--theme-color); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 16px;">02</span>
+                  <h3 style="margin: 0; font-size: 24px; font-weight: 700; color: #1e293b;">전문가 상담을 통해 안내받으세요</h3>
+                </div>
+                <p style="font-size: 16px; color: #475569; line-height: 1.6; margin-bottom: 30px;">
+                  건강 상태와 증상에 따라 간호사가 적절한 병원과 전문의료진을 안내해드립니다.
+                </p>
+              </div>
+              <div class="agent-illustration" style="flex-shrink: 0;">
+                <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+                  <circle cx="50" cy="50" r="45" fill="rgba(var(--theme-color-rgb), 0.1)"/>
+                  <circle cx="50" cy="40" r="15" fill="#fbcfe8" />
+                  <path d="M35 40c0-8 6-15 15-15s15 7 15 15c0 2-2 4-4 4s-3-2-3-4a8 8 0 00-16 0c0 2-1 4-3 4s-4-2-4-4z" fill="#1e293b"/>
+                  <path d="M25 80c0-15 10-22 25-22s25 7 25 22H25z" fill="var(--theme-color)" />
+                  <path d="M33 40c0-10 8-17 17-17s17 7 17 17" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                  <rect x="30" y="36" width="6" height="10" rx="3" fill="#1e293b" />
+                  <rect x="64" y="36" width="6" height="10" rx="3" fill="#1e293b" />
+                  <path d="M33 44c0 4 3 6 7 6" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Step flow matching the image -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 40px 0; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+              <div style="text-align: center; flex: 1;">
+                <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(var(--theme-color-rgb), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--theme-color);">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                </div>
+                <div style="font-weight: 600; color: #334155; font-size: 14px;">전화상담 신청</div>
+              </div>
+              <div style="color: #cbd5e1; font-size: 18px; font-weight: bold;">▶</div>
+              <div style="text-align: center; flex: 1;">
+                <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(var(--theme-color-rgb), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--theme-color);">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                </div>
+                <div style="font-weight: 600; color: #334155; font-size: 14px;">간호사 상담</div>
+              </div>
+              <div style="color: #cbd5e1; font-size: 18px; font-weight: bold;">▶</div>
+              <div style="text-align: center; flex: 1;">
+                <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(var(--theme-color-rgb), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--theme-color);">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div style="font-weight: 600; color: #334155; font-size: 14px;">증상 및 상태 확인</div>
+              </div>
+              <div style="color: #cbd5e1; font-size: 18px; font-weight: bold;">▶</div>
+              <div style="text-align: center; flex: 1;">
+                <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(var(--theme-color-rgb), 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--theme-color);">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <div style="font-weight: 600; color: #334155; font-size: 14px;">병원 및 의료진 안내</div>
+              </div>
+            </div>
+
+            <button class="auth-btn btn-primary" style="width: 100%; padding: 20px; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 12px; background: var(--theme-color); color: white; border: none; cursor: pointer;" onclick="toggleExpertConsultingForm()">
+              상담 신청하기 &gt;
+            </button>
+          </div>
+
+          <!-- Phone Consultation Request Form Area -->
+          <div id="expert-consulting-form-area" style="display:none; margin-top:40px; padding:40px; background:#f8fafc; border-radius:16px; border:1.5px solid #e2e8f0; animation: fadeIn 0.4s ease;">
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">명의안내 전문가 상담 신청</h3>
+            
+            <input type="radio" name="consult-type" value="phone" checked style="display:none;">
+
+            <div class="consulting-guide-box" style="margin-bottom:24px; padding:20px; background:#fff; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; line-height:1.6; color:#475569;">
+              <i style="display:block; margin-bottom:6px; font-style:normal;">• 상담 가능 시간은 평일 오전 9시 ~ 오후 6시입니다.</i>
+              <i style="display:block; margin-bottom:6px; font-style:normal;">• 상담을 원하시는 날짜와 시간대를 선택하시고, 상담받고 싶은 내용을 간단히 작성해 주세요.</i>
+              <i style="display:block; font-style:normal;">• 남겨주신 내용을 확인한 후 전문 간호사가 직접 전화드리겠습니다.</i>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:24px;">
+              <div class="form-group">
+                <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">상담 희망 일자</label>
+                <input type="date" id="consult-date" class="form-input" min="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:15px;">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">상담 희망 시간</label>
+                <select id="consult-time" class="form-input" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; background:white; font-size:15px;">
+                  <option value="anytime">전일 (언제든 통화 가능)</option>
+                  ${Array.from({length: 9}, (_, i) => 9 + i).map(h => `<option value="${h}:00">${h < 10 ? '0'+h : h}:00</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:28px;">
+              <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">상담 및 문의 내용</label>
+              <textarea id="consult-memo" class="form-input" placeholder="원하시는 병원이나 겪고 계신 증상 등을 적어주세요." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; min-height:120px; resize:vertical; font-size:15px;"></textarea>
+            </div>
+
+            <button class="auth-btn btn-primary" style="width:100%; padding:16px; font-size:16px; font-weight:700;" onclick="submitConsulting()">신청 완료</button>
+          </div>
+
+          <div class="hg-footer-note" style="margin-top:24px;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+            <div>본 서비스는 의료행위가 아닌 의료정보 안내 및 진료 연계 지원 서비스입니다.<br/>최종 진단 및 치료 여부는 의료진의 판단에 따라 결정됩니다.</div>
+          </div>
+        `;
+      } else if (state.activeSubId === searchSubId) {
+        detailContentHtml = `
+          <div class="hospital-search-wrapper" style="animation: fadeIn 0.4s ease;">
+            
+            <!-- Header Block -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <div>
+                <h3 style="font-size:24px; font-weight:700; color:#1e293b; margin:0 0 8px 0;">병원 검색</h3>
+                <p style="color:#64748b; font-size:14px; margin:0;">지역, 진료과, 병원 종별 등 다양한 조건으로 원하시는 병원을 검색할 수 있습니다.</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:16px;">
+                <button style="display:flex; align-items:center; gap:6px; background:white; border:1px solid #cbd5e1; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600; color:#475569; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); outline:none;">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+                  검색 이용 안내
+                </button>
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style="opacity:0.85; flex-shrink:0;">
+                  <rect x="15" y="15" width="30" height="35" rx="4" fill="#bfdbfe"/>
+                  <rect x="27" y="5" width="6" height="15" fill="#3b82f6"/>
+                  <rect x="22" y="10" width="16" height="5" fill="#3b82f6"/>
+                  <rect x="20" y="20" width="6" height="6" rx="1" fill="white"/>
+                  <rect x="34" y="20" width="6" height="6" rx="1" fill="white"/>
+                  <rect x="20" y="30" width="6" height="6" rx="1" fill="white"/>
+                  <rect x="34" y="30" width="6" height="6" rx="1" fill="white"/>
+                  <rect x="27" y="40" width="6" height="10" fill="#3b82f6"/>
+                  <circle cx="50" cy="15" r="8" fill="rgba(var(--theme-color-rgb), 0.1)"/>
+                  <circle cx="50" cy="15" r="4" fill="var(--theme-color)"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:32px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom:32px;">
+              
+              <!-- Address Search Title & Tabs -->
+              <div style="margin-bottom:24px;">
+                <h4 style="font-size:16px; font-weight:700; color:#1e293b; margin:0 0 16px 0;">주소 검색</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                  <div style="display:flex; gap:16px;">
+                    <button style="background:none; border:none; color:var(--theme-color); font-weight:700; font-size:14px; border-bottom:3px solid var(--theme-color); padding-bottom:10px; cursor:pointer; position:relative; bottom:-11px;">주소별 검색</button>
+                    <button style="background:none; border:none; color:#94a3b8; font-weight:600; font-size:14px; padding-bottom:10px; cursor:pointer; position:relative; bottom:-11px;">도로명 검색</button>
+                  </div>
+                  <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; cursor:pointer;">
+                    <input type="checkbox" style="width:16px; height:16px; accent-color:var(--theme-color);">
+                    현재 위치로 검색
+                  </label>
+                </div>
+              </div>
+
+              <!-- Address Dropdowns Row -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1.2fr; gap:16px; margin-bottom:32px;">
+                <div>
+                  <select style="width:100%; padding:14px; border:1px solid #cbd5e1; border-radius:8px; background:white; font-size:14px; font-weight:500; color:#1e293b; outline:none; cursor:pointer;">
+                    <option>서울특별시</option>
+                  </select>
+                </div>
+                <div>
+                  <select style="width:100%; padding:14px; border:1px solid #cbd5e1; border-radius:8px; background:white; font-size:14px; font-weight:500; color:#1e293b; outline:none; cursor:pointer;">
+                    <option>강남구</option>
+                  </select>
+                </div>
+                <div>
+                  <select style="width:100%; padding:14px; border:1px solid #cbd5e1; border-radius:8px; background:white; font-size:14px; font-weight:500; color:#1e293b; outline:none; cursor:pointer;">
+                    <option>역삼동</option>
+                  </select>
+                </div>
+                <div>
+                  <input type="text" value="테헤란로 123" placeholder="상세 주소 입력 (선택) 예) 테헤란로 123" style="width:100%; padding:14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; color:#1e293b;">
+                </div>
+              </div>
+
+              <!-- Category Grid (Speciality, Area, Tiers) -->
+              <div style="display:grid; grid-template-columns:1.2fr 1.2fr 1fr; gap:24px; border-top:1px solid #e2e8f0; padding-top:24px; margin-bottom:32px;">
+                
+                <!-- Speciality Column -->
+                <div style="border-right:1px solid #f1f5f9; padding-right:20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h5 style="margin:0; font-size:14px; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:4px;">
+                      진료과 선택
+                      <span style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#e2e8f0; color:#64748b; font-size:10px; font-weight:bold; cursor:pointer;">?</span>
+                    </h5>
+                    <button style="background:#f1f5f9; border:none; border-radius:4px; padding:4px 8px; font-size:11px; font-weight:600; color:#64748b; cursor:pointer;">전체 선택</button>
+                  </div>
+                  
+                  <!-- Speciality Search -->
+                  <div style="position:relative; margin-bottom:12px;">
+                    <input type="text" placeholder="진료과 검색" style="width:100%; padding:8px 12px 8px 32px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; outline:none;">
+                    <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:12px;">🔍</span>
+                  </div>
+
+                  <!-- Speciality Checkboxes -->
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:180px; overflow-y:auto; padding-right:6px;">
+                    ${['내과', '외과', '정형외과', '신경과', '신경외과', '소아청소년과', '산부인과', '안과', '이비인후과', '피부과', '정신건강의학과', '재활의학과', '영상의학과', '응급의학과', '가정의학과', '기타'].map(spec => `
+                      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; cursor:pointer; padding:2px 0;">
+                        <input type="checkbox" style="width:15px; height:15px; accent-color:var(--theme-color);" ${spec === '정형외과' ? 'checked' : ''}>
+                        ${spec}
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Specific Area Column -->
+                <div style="border-right:1px solid #f1f5f9; padding-right:20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h5 style="margin:0; font-size:14px; font-weight:700; color:#1e293b;">특정 분야 선택 (선택)</h5>
+                    <button style="background:#f1f5f9; border:none; border-radius:4px; padding:4px 8px; font-size:11px; font-weight:600; color:#64748b; cursor:pointer;">전체 선택</button>
+                  </div>
+
+                  <!-- Specific Area Checkboxes -->
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:220px; overflow-y:auto; padding-right:6px;">
+                    ${['암센터', '심뇌혈관센터', '소화기센터', '관절센터', '척추센터', '뇌신경센터', '심장센터', '호흡기센터', '건강검진센터', '난임센터', '통증센터', '기타'].map(area => `
+                      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; cursor:pointer; padding:2px 0;">
+                        <input type="checkbox" style="width:15px; height:15px; accent-color:var(--theme-color);" ${area === '관절센터' ? 'checked' : ''}>
+                        ${area}
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Hospital Tier Column -->
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h5 style="margin:0; font-size:14px; font-weight:700; color:#1e293b;">병원 종별(규모별) 선택</h5>
+                    <button style="background:#f1f5f9; border:none; border-radius:4px; padding:4px 8px; font-size:11px; font-weight:600; color:#64748b; cursor:pointer;">전체 선택</button>
+                  </div>
+
+                  <!-- Hospital Tiers Checkboxes -->
+                  <div style="display:grid; grid-template-columns:1fr; gap:8px; max-height:220px; overflow-y:auto;">
+                    ${['상급종합병원', '종합병원', '병원', '의원', '요양병원', '치과병원', '한방병원', '보건기관'].map(tier => `
+                      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; cursor:pointer; padding:2px 0;">
+                        <input type="checkbox" style="width:15px; height:15px; accent-color:var(--theme-color);" ${tier === '상급종합병원' ? 'checked' : ''}>
+                        ${tier}
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Reset & Search Buttons -->
+              <div style="display:flex; justify-content:center; gap:12px; border-top:1px solid #f1f5f9; padding-top:24px;">
+                <button style="display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 30px; font-size:14px; font-weight:600; color:#475569; cursor:pointer; transition:background 0.2s; outline:none;">
+                  <span>초기화</span>
+                </button>
+                <button class="auth-btn btn-primary" style="margin:0; width:auto; padding:12px 40px; font-size:14px; font-weight:700; border-radius:8px;">
+                  검색하기
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Result Section Title -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+              <h4 style="margin:0; font-size:18px; font-weight:700; color:#1e293b;">검색 결과 <span style="color:var(--theme-color);">125</span>건</h4>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:white; outline:none;">
+                  <option>정확도순</option>
+                  <option>거리순</option>
+                </select>
+                <button style="display:flex; align-items:center; gap:4px; background:white; border:1px solid #cbd5e1; border-radius:6px; padding:6px 12px; font-size:13px; color:#475569; font-weight:600; cursor:pointer;">
+                  <span>📍 지도에서 보기</span>
+                </button>
+                <button style="display:flex; align-items:center; gap:4px; background:white; border:1px solid #cbd5e1; border-radius:6px; padding:6px 12px; font-size:13px; color:#475569; font-weight:600; cursor:pointer;">
+                  <span>📥 목록 다운로드</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Two-Column Results Grid (List + Map) -->
+            <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:start;">
+              
+              <!-- Left: Result Cards List -->
+              <div style="display:grid; gap:16px;">
+                
+                <!-- Card 1 -->
+                <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:24px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02); transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px -1px rgba(0,0,0,0.05)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';">
+                  <div style="display:flex; gap:16px; align-items:flex-start;">
+                    <!-- Blue circular badge -->
+                    <div style="width:24px; height:24px; border-radius:50%; background:#2563eb; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0;">1</div>
+                    <div>
+                      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        <h5 style="margin:0; font-size:17px; font-weight:700; color:#1e293b;">OO대학교병원</h5>
+                        <span style="background:#eff6ff; color:#2563eb; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px;">상급종합병원</span>
+                      </div>
+                      <p style="margin:0 0 8px 0; font-size:13px; color:#64748b; display:flex; align-items:center; gap:4px;">
+                        📍 서울 강남구 테헤란로 123
+                      </p>
+                      <p style="margin:0 0 4px 0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">진료과:</strong> 내과, 외과, 정형외과, 신경외과, 소아청소년과 외 12개
+                      </p>
+                      <p style="margin:0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">특성화:</strong> 관절센터, 심뇌혈관센터
+                      </p>
+                    </div>
+                  </div>
+                  <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:14px; font-weight:700; color:#2563eb; margin-bottom:12px;">1.2km</div>
+                    <button class="auth-btn btn-secondary" style="margin:0; padding:8px 16px; font-size:13px;" onclick="window.location.hash='#/portal/${client.id}/healthConsulting'">상세보기</button>
+                  </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:24px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02); transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px -1px rgba(0,0,0,0.05)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';">
+                  <div style="display:flex; gap:16px; align-items:flex-start;">
+                    <div style="width:24px; height:24px; border-radius:50%; background:#2563eb; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0;">2</div>
+                    <div>
+                      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        <h5 style="margin:0; font-size:17px; font-weight:700; color:#1e293b;">△△종합병원</h5>
+                        <span style="background:#f0fdf4; color:#16a34a; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px;">종합병원</span>
+                      </div>
+                      <p style="margin:0 0 8px 0; font-size:13px; color:#64748b; display:flex; align-items:center; gap:4px;">
+                        📍 서울 강남구 봉은사로 456
+                      </p>
+                      <p style="margin:0 0 4px 0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">진료과:</strong> 내과, 정형외과, 신경과, 재활의학과 외 8개
+                      </p>
+                      <p style="margin:0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">특성화:</strong> 관절센터, 척추센터
+                      </p>
+                    </div>
+                  </div>
+                  <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:14px; font-weight:700; color:#2563eb; margin-bottom:12px;">2.4km</div>
+                    <button class="auth-btn btn-secondary" style="margin:0; padding:8px 16px; font-size:13px;" onclick="window.location.hash='#/portal/${client.id}/healthConsulting'">상세보기</button>
+                  </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:24px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02); transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px -1px rgba(0,0,0,0.05)';" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';">
+                  <div style="display:flex; gap:16px; align-items:flex-start;">
+                    <div style="width:24px; height:24px; border-radius:50%; background:#2563eb; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0;">3</div>
+                    <div>
+                      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        <h5 style="margin:0; font-size:17px; font-weight:700; color:#1e293b;">ㅁㅁ병원</h5>
+                        <span style="background:#fdf2f8; color:#db2777; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px;">병원</span>
+                      </div>
+                      <p style="margin:0 0 8px 0; font-size:13px; color:#64748b; display:flex; align-items:center; gap:4px;">
+                        📍 서울 강남구 언주로 789
+                      </p>
+                      <p style="margin:0 0 4px 0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">진료과:</strong> 내과, 정형외과, 마취통증의학과 외 5개
+                      </p>
+                      <p style="margin:0; font-size:13px; color:#475569;">
+                        <strong style="color:#1e293b;">특성화:</strong> 통증센터
+                      </p>
+                    </div>
+                  </div>
+                  <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:14px; font-weight:700; color:#2563eb; margin-bottom:12px;">3.1km</div>
+                    <button class="auth-btn btn-secondary" style="margin:0; padding:8px 16px; font-size:13px;" onclick="window.location.hash='#/portal/${client.id}/healthConsulting'">상세보기</button>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right: Interactive Vector Map Panel -->
+              <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); position:sticky; top:20px;">
+                <!-- Map Header Control -->
+                <div style="background:#1e293b; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600;">
+                  <span>📍 강남구 역삼동 주변</span>
+                  <button style="background:rgba(255,255,255,0.15); border:none; border-radius:4px; padding:4px 8px; color:white; font-size:11px; font-weight:600; cursor:pointer;">
+                    검색 결과 범위 재설정
+                  </button>
+                </div>
+
+                <!-- High-Fidelity Canvas/Grid Map Mockup -->
+                <div style="height:380px; background:#f4f3f0; position:relative; overflow:hidden; border-bottom:1px solid #e2e8f0;">
+                  <!-- Abstract Road Lines in Map -->
+                  <div style="position:absolute; width:100%; height:100%; background-image: 
+                    linear-gradient(90deg, transparent 49%, #e4e2db 50%, #e4e2db 52%, transparent 53%),
+                    linear-gradient(0deg, transparent 49%, #e4e2db 50%, #e4e2db 52%, transparent 53%),
+                    linear-gradient(45deg, transparent 39%, #eae8e1 40%, #eae8e1 42%, transparent 43%),
+                    linear-gradient(-45deg, transparent 59%, #eae8e1 60%, #eae8e1 62%, transparent 63%);
+                    background-size: 160px 160px; opacity:0.85;"></div>
+                  
+                  <!-- Green Park Shapes in Map -->
+                  <div style="position:absolute; left:20%; top:15%; width:90px; height:80px; background:#d2f1d2; border-radius:24px; filter:blur(4px); opacity:0.65;"></div>
+                  <div style="position:absolute; right:15%; bottom:20%; width:110px; height:90px; background:#d2f1d2; border-radius:30px; filter:blur(4px); opacity:0.65;"></div>
+                  
+                  <!-- Blue Han-River Grid at the top -->
+                  <div style="position:absolute; width:100%; height:45px; top:0; background:#cde1f9; opacity:0.7; border-bottom:2px solid #b9d3f7;">
+                    <div style="position:absolute; bottom:6px; left:20px; font-size:10px; font-weight:bold; color:#789cc7; letter-spacing:4px;">HAN RIVER (한강)</div>
+                  </div>
+
+                  <!-- Scattered Map Pins (corresponds to results and clusters) -->
+                  <!-- Pin 1 -->
+                  <div style="position:absolute; left:35%; top:45%; transform:translate(-50%, -50%); text-align:center;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#2563eb; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.3); z-index:10; cursor:pointer;">1</div>
+                    <div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #2563eb; margin: -2px auto 0; z-index:10;"></div>
+                    <div style="background:rgba(30,41,59,0.85); color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:600; margin-top:2px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.15);">OO대학교병원</div>
+                  </div>
+
+                  <!-- Pin 2 -->
+                  <div style="position:absolute; left:65%; top:65%; transform:translate(-50%, -50%); text-align:center;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#16a34a; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.3); z-index:10; cursor:pointer;">2</div>
+                    <div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #16a34a; margin: -2px auto 0; z-index:10;"></div>
+                    <div style="background:rgba(30,41,59,0.85); color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:600; margin-top:2px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.15);">△△종합병원</div>
+                  </div>
+
+                  <!-- Pin 3 -->
+                  <div style="position:absolute; left:48%; top:80%; transform:translate(-50%, -50%); text-align:center;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#db2777; color:white; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.3); z-index:10; cursor:pointer;">3</div>
+                    <div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #db2777; margin: -2px auto 0; z-index:10;"></div>
+                    <div style="background:rgba(30,41,59,0.85); color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:600; margin-top:2px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.15);">ㅁㅁ병원</div>
+                  </div>
+
+                  <!-- Cluster Pin 13 -->
+                  <div style="position:absolute; left:25%; top:68%; transform:translate(-50%, -50%);">
+                    <div style="width:22px; height:22px; border-radius:50%; background:rgba(37,99,235,0.75); color:white; font-size:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:1px solid white; cursor:pointer;">13</div>
+                  </div>
+
+                  <!-- Cluster Pin 38 -->
+                  <div style="position:absolute; left:75%; top:35%; transform:translate(-50%, -50%);">
+                    <div style="width:22px; height:22px; border-radius:50%; background:rgba(22,163,74,0.75); color:white; font-size:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:1px solid white; cursor:pointer;">38</div>
+                  </div>
+
+                  <!-- Cluster Pin 19 -->
+                  <div style="position:absolute; left:55%; top:50%; transform:translate(-50%, -50%);">
+                    <div style="width:22px; height:22px; border-radius:50%; background:rgba(219,39,119,0.75); color:white; font-size:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; border:1px solid white; cursor:pointer;">19</div>
+                  </div>
+
+                  <!-- Map Zoom Widget -->
+                  <div style="position:absolute; right:12px; top:12px; display:flex; flex-direction:column; gap:4px; background:white; border-radius:6px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.15); border:1px solid #cbd5e1; z-index:20;">
+                    <button style="width:30px; height:30px; border:none; background:white; font-size:16px; font-weight:bold; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #f1f5f9;">+</button>
+                    <button style="width:30px; height:30px; border:none; background:white; font-size:16px; font-weight:bold; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #f1f5f9;">-</button>
+                    <button style="width:30px; height:30px; border:none; background:white; font-size:14px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center;">🎯</button>
+                  </div>
+                </div>
+
+                <!-- Map Legend -->
+                <div style="background:#f8fafc; padding:12px 16px; display:flex; justify-content:space-between; gap:10px; font-size:11px; font-weight:600; color:#475569;">
+                  <span style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb;"></span> 상급종합병원</span>
+                  <span style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#16a34a;"></span> 종합병원</span>
+                  <span style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#db2777;"></span> 병원</span>
+                  <span style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#7c3aed;"></span> 의원</span>
+                  <span style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f97316;"></span> 보건기관</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        `;
       }
+
     } else if (isMedicalApptGroup) {
       if (!state.activeSubId) {
         detailContentHtml = `
@@ -951,18 +1562,19 @@ function renderPortal() {
     <div style="display:flex; flex-direction:column; min-height:100vh;">
       <header class="header">
         <div class="container header-content">
-          <div class="logo-area" onclick="window.location.hash='#/portal/${client.id}'">
-            ${client.logoImage ? 
-              `<img src="${client.logoImage}" style="height:32px; width:auto; object-fit:contain;">` : 
-              `<svg style="width:28px; height:28px; color:var(--theme-color);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+          <div class="logo-area" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'" style="cursor:pointer;">
+            ${activeSite.logoImage ? 
+              `<img src="${activeSite.logoImage}" style="height:32px; width:auto; object-fit:contain;">` : 
+              `<span style="font-weight:800; font-size:18px; color:var(--theme-color);">${activeSite.serviceName || client.name}</span>`
             }
           </div>
           <nav class="gnb" onmouseenter="document.getElementById('mega-menu').classList.add('active')" onmouseleave="document.getElementById('mega-menu').classList.remove('active')">
             ${gnbHtml}
           </nav>
           ${megaMenuHtml}
-          <div class="user-profile">
-            <span style="font-weight: 500;">${state.currentUser.name} 님</span>
+          <div class="user-profile" style="display:flex; align-items:center;">
+            ${siteSelectorHtml}
+            <span style="font-weight: 500; margin-right:12px;">${state.currentUser.name} 님</span>
             <button class="logout-btn" onclick="logout()">로그아웃</button>
           </div>
         </div>
@@ -971,14 +1583,14 @@ function renderPortal() {
       <footer class="footer">
         <div class="container footer-content" style="text-align:center;">
           <div class="cs-info" style="margin-bottom:32px;">
-            <span class="cs-title">${client.serviceName} 고객센터</span>
-            <span class="cs-number">${client.csNumber}</span>
+            <span class="cs-title">${activeSite.serviceName} 고객센터</span>
+            <span class="cs-number">${activeSite.csNumber}</span>
           </div>
           
           <div class="footer-nav" style="padding:16px 0; margin-bottom:24px;">
-            <a href="${client.clientLink || '#'}" target="_blank" style="color:#1e293b; text-decoration:none; font-weight:600; margin:0 12px;">${client.name}</a>
+            <a href="${activeSite.clientLink || '#'}" target="_blank" style="color:#1e293b; text-decoration:none; font-weight:600; margin:0 12px;">${activeSite.name}</a>
             <span style="color:#cbd5e1;">|</span>
-            <a href="${client.providerLink || '#'}" target="_blank" style="color:#1e293b; text-decoration:none; font-weight:600; margin:0 12px;">${client.providerName || '교보다솜케어'}</a>
+            <a href="${activeSite.providerLink || '#'}" target="_blank" style="color:#1e293b; text-decoration:none; font-weight:600; margin:0 12px;">${activeSite.providerName || '교보다솜케어'}</a>
             <span style="color:#cbd5e1;">|</span>
             <a href="#" style="color:#1e293b; text-decoration:none; font-weight:600; margin:0 12px;">개인정보처리방침</a>
             <span style="color:#cbd5e1;">|</span>
@@ -986,11 +1598,11 @@ function renderPortal() {
           </div>
           
           <div class="footer-disclaimer" style="color:#64748b; font-size:14px; line-height:1.6; margin-bottom:16px;">
-            본 서비스는 ${client.name}와(과) 제휴한 ${client.providerName || '교보다솜케어'}에서 제공합니다.
+            본 서비스는 ${activeSite.name}와(과) 제휴한 ${activeSite.providerName || '교보다솜케어'}에서 제공합니다.
           </div>
           
           <div class="footer-copyright" style="font-size:12px; color:#94a3b8;">
-            © ${client.providerName || '교보다솜케어'}. All rights reserved.
+            © ${activeSite.providerName || '교보다솜케어'}. All rights reserved.
           </div>
         </div>
       </footer>

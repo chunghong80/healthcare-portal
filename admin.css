@@ -303,7 +303,7 @@ body {
 }
 .menu-item-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 100px 200px;
+  grid-template-columns: 140px 1fr 1fr 100px 180px;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
