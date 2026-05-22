@@ -33,7 +33,10 @@ const defaultMenus = [
   { id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
     { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
   ] },
-  { id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [] },
+  { id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+    { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+    { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+  ] },
   { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [] },
   { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
 ];
@@ -132,12 +135,77 @@ function loadAllData() {
             site.mappedTiers = [...(client.tiers || [])];
           }
         });
+        
+        client.sites.forEach(site => {
+          if (site.menus) {
+            const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
+            if (checkupApptMenu && (!checkupApptMenu.children || checkupApptMenu.children.length === 0)) {
+              checkupApptMenu.children = [
+                { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+                { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+              ];
+            }
+          }
+        });
       }
     });
+    syncAllClientMenus(adminClientConfigs);
   } catch (error) {
     console.error("Admin data migration failed, purging localStorage key.", error);
     try { localStorage.removeItem('hc_portal_data'); } catch (e) {}
   }
+}
+
+function syncAllClientMenus(configs) {
+  const kyoboClient = configs.kyobo;
+  if (!kyoboClient || !kyoboClient.sites || kyoboClient.sites.length === 0) return;
+  const masterMenus = kyoboClient.sites[0].menus;
+  if (!masterMenus) return;
+
+  function projectMenuTree(masterList, targetList) {
+    return masterList.map(masterMenu => {
+      const targetMenu = findMenuInList(targetList, masterMenu.id);
+      const isVisible = targetMenu ? targetMenu.isVisible : false;
+      const label = masterMenu.label;
+      const defaultLabel = masterMenu.defaultLabel || masterMenu.label;
+      
+      const newMenu = {
+        id: masterMenu.id,
+        defaultLabel: defaultLabel,
+        label: label,
+        isVisible: isVisible,
+        children: []
+      };
+      
+      if (masterMenu.children && masterMenu.children.length > 0) {
+        newMenu.children = projectMenuTree(masterMenu.children, targetList || []);
+      }
+      return newMenu;
+    });
+  }
+
+  function findMenuInList(list, id) {
+    if (!list) return null;
+    for (let m of list) {
+      if (m.id === id) return m;
+      if (m.children) {
+        const found = findMenuInList(m.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  Object.keys(configs).forEach(clientId => {
+    const client = configs[clientId];
+    if (!client.sites) return;
+    client.sites.forEach(site => {
+      if (clientId === 'kyobo' && site.siteId === 'default') {
+        return;
+      }
+      site.menus = projectMenuTree(masterMenus, site.menus || []);
+    });
+  });
 
   // 2. Health Posts
   const savedHealth = localStorage.getItem('hc_health_posts');
@@ -209,11 +277,15 @@ window.navigateTo = function(viewId) {
   const breadcrumb = document.querySelector('.breadcrumb');
   let pathText = "사무포털 <span class='separator'>></span> ";
   if (viewId === 'menu-settings') pathText += "헬스케어포털 관리 <span class='separator'>></span> <strong>포털 메뉴설정</strong>";
+  else if (viewId === 'client-management') pathText += "헬스케어포털 관리 <span class='separator'>></span> <strong>고객사 및 등급 관리</strong>";
   else if (viewId === 'health-info') pathText += "헬스케어포털 관리 <span class='separator'>></span> <strong>건강정보 관리</strong>";
   else if (viewId === 'online-inquiry') pathText += "헬스케어포털 관리 <span class='separator'>></span> <strong>온라인 문의 관리</strong>";
+  else if (viewId === 'checkup-history') pathText += "건강검진 관리 <span class='separator'>></span> <strong>검진 예약 관리</strong>";
   else if (viewId === 'hospitals') pathText += "건강검진 관리 <span class='separator'>></span> <strong>제휴 병원 관리</strong>";
   else if (viewId === 'packages') pathText += "건강검진 관리 <span class='separator'>></span> <strong>검진 패키지 관리</strong>";
   else if (viewId === 'items') pathText += "건강검진 관리 <span class='separator'>></span> <strong>검진 항목 관리</strong>";
+  else if (viewId === 'location-logs') pathText += "대시보드 <span class='separator'>></span> <strong>위치정보 동의 로그</strong>";
+  else if (viewId === 'checkup-consent-logs') pathText += "대시보드 <span class='separator'>></span> <strong>건강검진 동의 이력</strong>";
   breadcrumb.innerHTML = pathText;
 
   renderView(viewId);
@@ -224,13 +296,233 @@ function renderView(viewId) {
   container.innerHTML = ''; // Clear
 
   if (viewId === 'menu-settings') renderMenuSettings(container);
+  else if (viewId === 'client-management') renderClientManagement(container);
   else if (viewId === 'health-info') renderHealthInfo(container);
   else if (viewId === 'online-inquiry') renderOnlineInquiryView(container);
+  else if (viewId === 'checkup-history') renderCheckupHistoryAdmin(container);
   else if (viewId === 'hospitals') renderHospitals(container);
   else if (viewId === 'packages') renderPackages(container);
   else if (viewId === 'items') renderItemsView(container);
+  else if (viewId === 'location-logs') renderLocationLogs(container);
+  else if (viewId === 'checkup-consent-logs') renderCheckupConsentLogs(container);
   else renderDashboard(container);
 }
+
+// --- View: Location Logs ---
+function renderLocationLogs(container) {
+  const logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
+  
+  let rowsHtml = logs.length === 0 
+    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">저장된 로그 내역이 없습니다.</td></tr>'
+    : logs.map(log => `
+      <tr>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.LOG_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${log.MEMBER_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CONSENT_DATETIME}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SERVICE_TYPE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SCREEN_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.PURPOSE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CLIENT_IP}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:12px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CREATED_AT}</td>
+      </tr>
+    `).join('');
+
+  container.innerHTML = `
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">위치정보 동의 로그 조회</h1>
+        <p class="page-subtitle">서비스 내에서 수집된 사용자 위치정보 제공 동의/거부 이력을 확인합니다.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="if(confirm('모든 로그를 삭제하시겠습니까?')) { localStorage.removeItem('locationLogs'); navigateTo('location-logs'); }">전체 로그 삭제</button>
+      </div>
+    </div>
+    
+    <div class="config-card">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">로그 목록 (총 ${logs.length}건)</h2>
+        <div style="display:flex; gap:8px;">
+          <select class="form-input" style="width: 150px;">
+            <option value="ALL">전체 상태</option>
+            <option value="Y">동의(Y)</option>
+            <option value="N">거부(N)</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:left;">
+          <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+            <tr>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">LOG_ID</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">MEMBER_ID</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">동의/거부일시</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">서비스 구분</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">요청 화면</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">이용 목적</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">CLIENT_IP</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">USER_AGENT</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">생성일시</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// --- View: Checkup Consent Logs ---
+function renderCheckupConsentLogs(container) {
+  const logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
+  
+  let rowsHtml = logs.length === 0 
+    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">저장된 로그 내역이 없습니다.</td></tr>'
+    : logs.map(log => `
+      <tr>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.LOG_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${log.MEMBER_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CONSENT_DATETIME}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SERVICE_TYPE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SCREEN_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.PURPOSE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CLIENT_IP}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:12px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CREATED_AT}</td>
+      </tr>
+    `).join('');
+
+  container.innerHTML = `
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">건강검진 동의 이력 조회</h1>
+        <p class="page-subtitle">서비스 내에서 수집된 건강검진 우대예약 관련 약관 동의 이력을 확인합니다.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="if(confirm('모든 로그를 삭제하시겠습니까?')) { localStorage.removeItem('checkupConsentLogs'); navigateTo('checkup-consent-logs'); }">전체 로그 삭제</button>
+      </div>
+    </div>
+    
+    <div class="config-card">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">로그 목록 (총 ${logs.length}건)</h2>
+        <div style="display:flex; gap:8px;">
+          <select class="form-input" style="width: 150px;">
+            <option value="ALL">전체 상태</option>
+            <option value="Y">동의(Y)</option>
+            <option value="N">거부(N)</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:left;">
+          <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+            <tr>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">LOG_ID</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">MEMBER_ID</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">동의/거부일시</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">서비스 구분</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">요청 화면</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">이용 목적</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">CLIENT_IP</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">USER_AGENT</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">생성일시</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// --- View: Checkup History Admin ---
+function renderCheckupHistoryAdmin(container) {
+  const checkupHistories = JSON.parse(localStorage.getItem('hc_checkup_history') || '[]');
+  
+  window.updateCheckupAdminStatus = function(id, newStatus) {
+    if(confirm('상태를 ' + newStatus + '(으)로 변경하시겠습니까?')) {
+      const hist = JSON.parse(localStorage.getItem('hc_checkup_history') || '[]');
+      const idx = hist.findIndex(h => h.id === id);
+      if (idx !== -1) {
+        hist[idx].status = newStatus;
+        if (newStatus === '확정') {
+          hist[idx].confirmDate = hist[idx].wishDate1; 
+          hist[idx].reservationConfirmedDate = new Date().toISOString().split('T')[0];
+        }
+        localStorage.setItem('hc_checkup_history', JSON.stringify(hist));
+        renderCheckupHistoryAdmin(document.getElementById('admin-main-view'));
+      }
+    }
+  };
+
+  let rowsHtml = checkupHistories.length === 0 
+    ? '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">신청된 검진 내역이 없습니다.</td></tr>'
+    : checkupHistories.map(chk => {
+      const statusColor = chk.status === '확정' ? '#2563eb' : (chk.status === '신청' ? '#17B890' : (chk.status === '취소요청' ? '#f59e0b' : '#94a3b8'));
+      return \`
+      <tr>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.id}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">\${chk.targetName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.applyDate}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.pkgName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.wishDate1} / \${chk.wishDate2 || '-'}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
+          <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:\${statusColor}22; color:\${statusColor};">\${chk.status}</span>
+        </td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
+          <select onchange="window.updateCheckupAdminStatus('\${chk.id}', this.value)" style="padding:4px; font-size:12px; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="신청" \${chk.status === '신청' ? 'selected' : ''}>신청</option>
+            <option value="확정" \${chk.status === '확정' ? 'selected' : ''}>확정</option>
+            <option value="취소요청" \${chk.status === '취소요청' ? 'selected' : ''}>취소요청</option>
+            <option value="취소" \${chk.status === '취소' ? 'selected' : ''}>취소</option>
+          </select>
+        </td>
+      </tr>
+    \`}).join('');
+
+  container.innerHTML = \`
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">검진 예약 관리</h1>
+        <p class="page-subtitle">사용자가 신청한 건강검진 내역을 확인하고 상태를 관리합니다.</p>
+      </div>
+    </div>
+    
+    <div class="config-card">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">신청 목록 (총 \${checkupHistories.length}건)</h2>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table style="width:100%; min-width:1000px; border-collapse:collapse; text-align:left;">
+          <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+            <tr>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">신청ID</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">대상자</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">신청일</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">검진패키지</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">희망일 1/2</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">상태</th>
+              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">상태변경</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  \`;
+}
+
 
 // --- View: Dashboard ---
 function renderDashboard(container) {
@@ -434,7 +726,10 @@ window.handleLogoUpload = function(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     const base64 = e.target.result;
-    adminClientConfigs[currentClientId].logoImage = base64;
+    const client = adminClientConfigs[currentClientId];
+    const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+    client.logoImage = base64;
+    activeSite.logoImage = base64;
     document.getElementById('logo-preview').innerHTML = `<img src="${base64}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
   };
   reader.readAsDataURL(file);
@@ -476,17 +771,21 @@ function renderMenuLevel(menus, container, depth) {
 }
 
 window.updateMenuLabel = function(id, val) {
-  const client = adminClientConfigs[currentClientId];
-  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
-  const menu = findMenuById(activeSite.menus, id);
-  if(menu) menu.label = val;
+  Object.keys(adminClientConfigs).forEach(clientId => {
+    adminClientConfigs[clientId].sites.forEach(site => {
+      const menu = findMenuById(site.menus, id);
+      if (menu) menu.label = val;
+    });
+  });
 };
 
 window.updateMenuDefaultLabel = function(id, val) {
-  const client = adminClientConfigs[currentClientId];
-  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
-  const menu = findMenuById(activeSite.menus, id);
-  if(menu) menu.defaultLabel = val;
+  Object.keys(adminClientConfigs).forEach(clientId => {
+    adminClientConfigs[clientId].sites.forEach(site => {
+      const menu = findMenuById(site.menus, id);
+      if (menu) menu.defaultLabel = val;
+    });
+  });
 };
 
 window.toggleMenuVisibility = function(id, checked) {
@@ -495,37 +794,71 @@ window.toggleMenuVisibility = function(id, checked) {
   const menu = findMenuById(activeSite.menus, id);
   if(menu) {
     menu.isVisible = checked;
+    if (!checked) {
+      const setChildrenInvisible = (m) => {
+        if (m.children) {
+          m.children.forEach(child => {
+            child.isVisible = false;
+            setChildrenInvisible(child);
+          });
+        }
+      };
+      setChildrenInvisible(menu);
+    }
     loadClientSettings(); // Re-render to update disabled states
   }
 };
 
 window.addTopMenu = function() {
-  const client = adminClientConfigs[currentClientId];
-  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
-  activeSite.menus.push({
-    id: 'm_' + Date.now(), defaultLabel: '새 메뉴', label: '새 메뉴', isVisible: true, children: []
+  const newId = 'm_' + Date.now();
+  const newMenu = {
+    id: newId, defaultLabel: '새 메뉴', label: '새 메뉴', isVisible: false, children: []
+  };
+  
+  Object.keys(adminClientConfigs).forEach(clientId => {
+    adminClientConfigs[clientId].sites.forEach(site => {
+      const cloned = JSON.parse(JSON.stringify(newMenu));
+      if (clientId === currentClientId && site.siteId === currentSiteId) {
+        cloned.isVisible = true;
+      }
+      site.menus.push(cloned);
+    });
   });
+  
   loadClientSettings();
 };
 
 window.addSubMenu = function(parentId, depth) {
-  const client = adminClientConfigs[currentClientId];
-  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
-  const parent = findMenuById(activeSite.menus, parentId);
-  if(parent && depth < 3) {
-    if(!parent.children) parent.children = [];
-    parent.children.push({
-      id: 'm_' + Date.now(), defaultLabel: '새 하위 메뉴', label: '새 하위 메뉴', isVisible: true, children: []
+  if (depth >= 3) return;
+  const newId = 'm_' + Date.now();
+  const newSubMenu = {
+    id: newId, defaultLabel: '새 하위 메뉴', label: '새 하위 메뉴', isVisible: false, children: []
+  };
+  
+  Object.keys(adminClientConfigs).forEach(clientId => {
+    adminClientConfigs[clientId].sites.forEach(site => {
+      const parent = findMenuById(site.menus, parentId);
+      if (parent) {
+        if (!parent.children) parent.children = [];
+        const cloned = JSON.parse(JSON.stringify(newSubMenu));
+        if (clientId === currentClientId && site.siteId === currentSiteId) {
+          cloned.isVisible = true;
+        }
+        parent.children.push(cloned);
+      }
     });
-    loadClientSettings();
-  }
+  });
+  
+  loadClientSettings();
 };
 
 window.deleteMenu = function(id) {
   if(confirm("이 메뉴와 모든 하위 메뉴를 삭제하시겠습니까?")) {
-    const client = adminClientConfigs[currentClientId];
-    const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
-    activeSite.menus = removeMenuById(activeSite.menus, id);
+    Object.keys(adminClientConfigs).forEach(clientId => {
+      adminClientConfigs[clientId].sites.forEach(site => {
+        site.menus = removeMenuById(site.menus, id);
+      });
+    });
     loadClientSettings();
   }
 };
@@ -1800,6 +2133,8 @@ function renderOnlineInquiryView(container) {
             <tr>
               <th>ID</th>
               <th>고객사</th>
+              <th>서비스분류</th>
+              <th>문의유형</th>
               <th>작성자</th>
               <th>제목</th>
               <th>작성일</th>
@@ -1809,26 +2144,39 @@ function renderOnlineInquiryView(container) {
           </thead>
           <tbody>
             ${inquiries.length === 0 ? `
-              <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">접수된 문의 내역이 없습니다.</td></tr>
-            ` : inquiries.map(item => `
-              <tr>
-                <td>${item.id}</td>
-                <td><span class="badge" style="background:#e2e8f0; color:#475569;">${item.clientId}</span></td>
-                <td>${item.userName}</td>
-                <td style="font-weight:600;">${item.title}</td>
-                <td>${item.date}</td>
-                <td>
-                  <span class="badge" style="background:${item.status === '완료' ? '#17B890' : '#f59e0b'}; color:white; padding:4px 8px; border-radius:4px; font-size:12px;">
-                    ${item.status === '완료' ? '답변완료' : '답변대기'}
-                  </span>
-                </td>
-                <td>
-                  <button class="btn-action" onclick="openAnswerForm(${item.id})">
-                    ${item.status === '완료' ? '답변수정' : '답변작성'}
-                  </button>
-                </td>
-              </tr>
-            `).reverse().join('')}
+              <tr><td colspan="9" style="text-align:center; padding:40px; color:#94a3b8;">접수된 문의 내역이 없습니다.</td></tr>
+            ` : inquiries.map(item => {
+              const cat = item.category || '건강상담';
+              let badgeStyle = 'background:rgba(59, 130, 246, 0.1); color:#1d4ed8;';
+              if (cat === '병원안내') {
+                badgeStyle = 'background:rgba(16, 185, 129, 0.1); color:#047857;';
+              } else if (cat === '진료예약') {
+                badgeStyle = 'background:rgba(124, 58, 237, 0.1); color:#6d28d9;';
+              }
+              const typeLabel = item.type === 'phone' ? '전화상담' : '온라인문의';
+              const typeBadgeStyle = item.type === 'phone' ? 'background:rgba(47, 74, 154, 0.1); color:#2F4A9A;' : 'background:rgba(23, 184, 144, 0.1); color:#17B890;';
+              return `
+                <tr>
+                  <td>${item.id}</td>
+                  <td><span class="badge" style="background:#e2e8f0; color:#475569;">${item.clientId}</span></td>
+                  <td><span class="badge" style="${badgeStyle} font-weight:700;">${cat}</span></td>
+                  <td><span class="badge" style="${typeBadgeStyle} font-weight:700;">${typeLabel}</span></td>
+                  <td>${item.userName}</td>
+                  <td style="font-weight:600;">${item.title}</td>
+                  <td>${item.date}</td>
+                  <td>
+                    <span class="badge" style="background:${item.status === '완료' ? '#17B890' : '#f59e0b'}; color:white; padding:4px 8px; border-radius:4px; font-size:12px;">
+                      ${item.status === '완료' ? '답변완료' : '답변대기'}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-action" onclick="openAnswerForm(${item.id})">
+                      ${item.status === '완료' ? '답변수정' : '답변작성'}
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).reverse().join('')}
           </tbody>
         </table>
       </div>
@@ -1898,4 +2246,257 @@ window.saveAdminAnswer = function() {
     closeAnswerModal();
     navigateTo('online-inquiry');
   }
+};
+
+window.renderClientManagement = function(container) {
+  container.innerHTML = `
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <div>
+        <h1 class="page-title">고객사 및 서비스 등급 관리</h1>
+        <p class="page-subtitle">신규 고객사를 추가하고 각 고객사의 서비스 등급(Tiers)을 관리합니다.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddClientModal()">+ 신규 고객사 추가</button>
+    </div>
+
+    <div class="client-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
+      <!-- Dynamic Client Cards -->
+    </div>
+  `;
+
+  const grid = container.querySelector('.client-grid');
+  Object.values(adminClientConfigs).forEach(client => {
+    const card = document.createElement('div');
+    card.className = 'config-card';
+    card.style.cssText = 'border-radius: 12px; border: 1px solid #cbd5e1; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow:hidden; display:flex; flex-direction:column; position:relative;';
+    
+    const primaryColor = client.themeColor || client.sites?.[0]?.themeColor || '#17B890';
+    
+    card.innerHTML = `
+      <div style="height:6px; background:${primaryColor};"></div>
+      <div class="card-header" style="padding:20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h3 style="margin:0; font-size:18px; font-weight:700; color:#1e293b;">${client.name}</h3>
+          <span style="font-size:12px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:4px; font-weight:500; margin-top:4px; display:inline-block;">ID: ${client.id}</span>
+        </div>
+        <button class="btn btn-sm" style="color:#ef4444; border:1px solid #fee2e2; background:#fff5f5;" onclick="deleteClient('${client.id}')">삭제</button>
+      </div>
+      <div class="card-body" style="padding:20px; flex-grow:1; display:flex; flex-direction:column; gap:16px;">
+        <div style="font-size:13px; color:#475569; display:grid; grid-template-columns: 80px 1fr; gap:8px;">
+          <span style="font-weight:600; color:#64748b;">서비스명:</span>
+          <span>${client.serviceName || client.name}</span>
+          <span style="font-weight:600; color:#64748b;">고객센터:</span>
+          <span>${client.csNumber || '미등록'}</span>
+          <span style="font-weight:600; color:#64748b;">사이트 수:</span>
+          <span>${client.sites?.length || 0}개</span>
+        </div>
+
+        <div style="border-top:1px solid #f1f5f9; padding-top:16px;">
+          <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:700; color:#334155; display:flex; justify-content:space-between; align-items:center;">
+            <span>등급 관리 (Tiers)</span>
+            <span style="font-size:11px; font-weight:600; color:${primaryColor}; padding:2px 6px; border-radius:10px;">${client.tiers?.length || 0}개 등급</span>
+          </h4>
+          
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;" id="tiers-list-${client.id}">
+            ${(client.tiers || []).map(tier => `
+              <span class="badge-cat" style="
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
+                color: #475569;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-bottom: 4px;
+              ">
+                ${tier}
+                <span onclick="deleteTier('${client.id}', '${tier}')" style="cursor:pointer; color:#ef4444; font-weight:700; font-size:10px; display:inline-block; padding:0 2px;">×</span>
+              </span>
+            `).join('')}
+            ${(client.tiers || []).length === 0 ? '<div style="font-size:12px; color:#94a3b8;">등록된 서비스 등급이 없습니다.</div>' : ''}
+          </div>
+
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <input type="text" id="new-tier-input-${client.id}" placeholder="새 등급명 입력" style="flex-grow:1; padding:8px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; outline:none;">
+            <button class="btn btn-sm btn-primary" onclick="addTier('${client.id}')">추가</button>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+};
+
+window.addTier = function(clientId) {
+  const input = document.getElementById(`new-tier-input-${clientId}`);
+  const val = input ? input.value.trim() : "";
+  if (!val) {
+    alert("추가할 등급명을 입력해 주세요.");
+    return;
+  }
+  
+  const client = adminClientConfigs[clientId];
+  if (client) {
+    if (!client.tiers) client.tiers = [];
+    if (client.tiers.includes(val)) {
+      alert("이미 존재하는 등급명입니다.");
+      return;
+    }
+    client.tiers.push(val);
+    
+    if (client.sites && client.sites.length > 0) {
+      const site = client.sites.find(s => s.siteId === 'default') || client.sites[0];
+      if (site) {
+        if (!site.mappedTiers) site.mappedTiers = [];
+        if (!site.mappedTiers.includes(val)) {
+          site.mappedTiers.push(val);
+        }
+      }
+    }
+
+    localStorage.setItem('hc_portal_data', JSON.stringify(adminClientConfigs));
+    showToast(`'${val}' 등급이 추가되었습니다.`);
+    renderView('client-management');
+  }
+};
+
+window.deleteTier = function(clientId, tierName) {
+  if (confirm(`'${tierName}' 등급을 삭제하시겠습니까?\n이 등급에 매핑된 사이트의 접근 권한도 함께 삭제됩니다.`)) {
+    const client = adminClientConfigs[clientId];
+    if (client && client.tiers) {
+      client.tiers = client.tiers.filter(t => t !== tierName);
+      
+      if (client.sites) {
+        client.sites.forEach(site => {
+          if (site.mappedTiers) {
+            site.mappedTiers = site.mappedTiers.filter(t => t !== tierName);
+          }
+        });
+      }
+      
+      localStorage.setItem('hc_portal_data', JSON.stringify(adminClientConfigs));
+      showToast(`'${tierName}' 등급이 삭제되었습니다.`);
+      renderView('client-management');
+    }
+  }
+};
+
+window.deleteClient = function(clientId) {
+  if (confirm(`정말로 고객사 '${clientId}'와(과) 연동된 모든 설정/사이트를 통째로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+    delete adminClientConfigs[clientId];
+    localStorage.setItem('hc_portal_data', JSON.stringify(adminClientConfigs));
+    showToast(`고객사 '${clientId}'가 삭제되었습니다.`);
+    renderView('client-management');
+  }
+};
+
+window.openAddClientModal = function() {
+  const modal = document.createElement("div");
+  modal.id = "add-client-modal";
+  modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
+  modal.innerHTML = `
+    <div class="config-card" style="width:100%; max-width:500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+      <div class="card-header" style="padding:20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title" style="margin:0; font-size:18px;">신규 고객사 추가</h2>
+      </div>
+      <div class="card-body" style="padding:20px; display:flex; flex-direction:column; gap:16px; background: white;">
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:6px; display:block;">고객사 ID (영문/숫자만)</label>
+          <input type="text" id="add-client-id" class="form-input" placeholder="예: samsung, hyundai" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:6px; display:block;">고객사 공식 명칭</label>
+          <input type="text" id="add-client-name" class="form-input" placeholder="예: 삼성생명, 현대자동차" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:6px; display:block;">포털 서비스명</label>
+          <input type="text" id="add-client-service" class="form-input" placeholder="예: 삼성생명 헬스케어" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:6px; display:block;">고객센터 전화번호</label>
+          <input type="text" id="add-client-cs" class="form-input" placeholder="예: 1588-2002" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:6px; display:block;">초기 등급 목록 (쉼표로 구분)</label>
+          <input type="text" id="add-client-tiers" class="form-input" placeholder="예: 일반회원, 우수회원, VIP회원" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="btn" onclick="closeAddClientModal()">취소</button>
+          <button class="btn btn-primary" onclick="submitAddClient()">등록하기</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
+window.closeAddClientModal = function() {
+  const modal = document.getElementById("add-client-modal");
+  if (modal) modal.remove();
+};
+
+window.submitAddClient = function() {
+  const id = document.getElementById("add-client-id").value.trim().toLowerCase();
+  const name = document.getElementById("add-client-name").value.trim();
+  const serviceName = document.getElementById("add-client-service").value.trim();
+  const csNumber = document.getElementById("add-client-cs").value.trim();
+  const tiersRaw = document.getElementById("add-client-tiers").value.trim();
+  
+  if (!id || !name || !serviceName || !csNumber) {
+    alert("모든 필수 입력 필드를 채워주세요.");
+    return;
+  }
+  
+  if (!/^[a-z0-9_]+$/i.test(id)) {
+    alert("고객사 ID는 영문 소문자, 숫자, 언더바(_)만 가능합니다.");
+    return;
+  }
+  
+  if (adminClientConfigs[id]) {
+    alert("이미 존재하는 고객사 ID입니다.");
+    return;
+  }
+  
+  const tiersList = tiersRaw ? tiersRaw.split(',').map(t => t.trim()).filter(Boolean) : ["기본등급"];
+  
+  const newClient = {
+    id: id,
+    name: name,
+    serviceName: serviceName,
+    csNumber: csNumber,
+    clientLink: "",
+    dasomLink: "",
+    tiers: tiersList,
+    sites: [
+      {
+        siteId: "default",
+        siteName: "기본 사이트",
+        mappedTiers: [...tiersList],
+        logoImage: null,
+        themeColor: BRAND_DEFAULTS.themeColor,
+        themeColorRgb: BRAND_DEFAULTS.themeColorRgb,
+        menuTextColor: BRAND_DEFAULTS.menuTextColor,
+        heroText: { 
+          title: "건강한 내일을 위한 첫걸음", 
+          subtitle: `${name} 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요.` 
+        },
+        serviceName: serviceName,
+        csNumber: csNumber,
+        name: name,
+        clientLink: "",
+        providerName: BRAND_DEFAULTS.providerName,
+        providerLink: BRAND_DEFAULTS.providerLink,
+        menus: JSON.parse(JSON.stringify(defaultMenus))
+      }
+    ]
+  };
+  
+  adminClientConfigs[id] = newClient;
+  localStorage.setItem('hc_portal_data', JSON.stringify(adminClientConfigs));
+  
+  closeAddClientModal();
+  showToast(`신규 고객사 '${name}'(이)가 성공적으로 추가되었습니다.`);
+  renderView('client-management');
 };

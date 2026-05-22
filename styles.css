@@ -45,7 +45,7 @@ body {
 
 /* Utility */
 .container {
-  max-width: 1468px;
+  max-width: 1420px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -702,7 +702,6 @@ body {
   background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  min-height: 600px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
@@ -837,7 +836,7 @@ body {
 
 .history-header {
   display: grid;
-  grid-template-columns: 100px 120px 1fr 120px 120px 100px;
+  grid-template-columns: 120px 100px 120px 1fr 120px 120px 100px;
   padding: 16px 20px;
   background-color: #f8fafc;
   border-top: 2px solid #1e293b;
@@ -860,7 +859,7 @@ body {
 
 .history-row-main {
   display: grid;
-  grid-template-columns: 100px 120px 1fr 120px 120px 100px;
+  grid-template-columns: 120px 100px 120px 1fr 120px 120px 100px;
   padding: 16px 20px;
   align-items: center;
   font-size: 14px;
