@@ -37,7 +37,11 @@ const defaultMenus = [
     { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
     { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
   ] },
-  { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [] },
+  { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+    { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+    { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+    { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
+  ] },
   { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
 ];
 
@@ -63,11 +67,21 @@ let currentSiteId = "default";
 let currentView = "menu-settings";
 
 // --- Initialization ---
-document.addEventListener("DOMContentLoaded", () => {
-  loadAllData();
-  setupNavigation();
-  navigateTo(currentView);
-});
+function initializeAdmin() {
+  try {
+    loadAllData();
+    setupNavigation();
+    navigateTo(currentView);
+  } catch (error) {
+    alert("어드민 초기화 에러 감지!\n\n메시지: " + error.message + "\n스택: " + error.stack);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeAdmin);
+} else {
+  initializeAdmin();
+}
 
 function loadAllData() {
   try {
@@ -144,6 +158,51 @@ function loadAllData() {
                 { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
                 { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
               ];
+            }
+            
+            const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+            if (healthMenu) {
+              if (!healthMenu.children) healthMenu.children = [];
+              
+              // 1. Normalize IDs based on labels
+              healthMenu.children.forEach(child => {
+                const lbl = child.label || child.defaultLabel || '';
+                if (lbl.includes('분야별')) {
+                  child.id = 'categoryInfo';
+                } else if (lbl.includes('구독') || lbl.includes('콘텐츠')) {
+                  child.id = 'contentSubscribe';
+                } else if (lbl.includes('뉴스')) {
+                  child.id = 'healthNews';
+                }
+              });
+              
+              // 2. Deduplicate children by ID
+              const uniqueChildren = [];
+              const seenIds = new Set();
+              healthMenu.children.forEach(child => {
+                const targetId = child.id;
+                if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'healthNews') {
+                  if (!seenIds.has(targetId)) {
+                    seenIds.add(targetId);
+                    uniqueChildren.push(child);
+                  }
+                } else {
+                  uniqueChildren.push(child);
+                }
+              });
+              
+              // 3. Ensure standard submenus exist
+              if (!seenIds.has('categoryInfo')) {
+                uniqueChildren.push({ id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] });
+              }
+              if (!seenIds.has('contentSubscribe')) {
+                uniqueChildren.push({ id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] });
+              }
+              if (!seenIds.has('healthNews')) {
+                uniqueChildren.push({ id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] });
+              }
+              
+              healthMenu.children = uniqueChildren;
             }
           }
         });
@@ -236,7 +295,7 @@ function syncAllClientMenus(configs) {
 
   // 5. Master Items
   const savedItems = localStorage.getItem('hc_checkup_items');
-  if (savedItems) { items = JSON.parse(savedItems); masterItems = items; }
+  if (savedItems) { masterItems = JSON.parse(savedItems); }
   else {
     masterItems = [
       { id: 1, large: '기초검사', medium: '신체계측', small: '체중/신장', name: '신장, 체중, 비만도(BMI)', desc: '기본적인 신체 정보 측정' },
@@ -468,28 +527,28 @@ function renderCheckupHistoryAdmin(container) {
     ? '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">신청된 검진 내역이 없습니다.</td></tr>'
     : checkupHistories.map(chk => {
       const statusColor = chk.status === '확정' ? '#2563eb' : (chk.status === '신청' ? '#17B890' : (chk.status === '취소요청' ? '#f59e0b' : '#94a3b8'));
-      return \`
+      return `
       <tr>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.id}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">\${chk.targetName}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.applyDate}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.pkgName}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">\${chk.wishDate1} / \${chk.wishDate2 || '-'}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.id}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${chk.targetName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.applyDate}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.pkgName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.wishDate1} / ${chk.wishDate2 || '-'}</td>
         <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
-          <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:\${statusColor}22; color:\${statusColor};">\${chk.status}</span>
+          <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${statusColor}22; color:${statusColor};">${chk.status}</span>
         </td>
         <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
-          <select onchange="window.updateCheckupAdminStatus('\${chk.id}', this.value)" style="padding:4px; font-size:12px; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 4px;">
-            <option value="신청" \${chk.status === '신청' ? 'selected' : ''}>신청</option>
-            <option value="확정" \${chk.status === '확정' ? 'selected' : ''}>확정</option>
-            <option value="취소요청" \${chk.status === '취소요청' ? 'selected' : ''}>취소요청</option>
-            <option value="취소" \${chk.status === '취소' ? 'selected' : ''}>취소</option>
+          <select onchange="window.updateCheckupAdminStatus('${chk.id}', this.value)" style="padding:4px; font-size:12px; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="신청" ${chk.status === '신청' ? 'selected' : ''}>신청</option>
+            <option value="확정" ${chk.status === '확정' ? 'selected' : ''}>확정</option>
+            <option value="취소요청" ${chk.status === '취소요청' ? 'selected' : ''}>취소요청</option>
+            <option value="취소" ${chk.status === '취소' ? 'selected' : ''}>취소</option>
           </select>
         </td>
       </tr>
-    \`}).join('');
+    `}).join('');
 
-  container.innerHTML = \`
+  container.innerHTML = `
     <div class="page-header">
       <div>
         <h1 class="page-title">검진 예약 관리</h1>
@@ -499,7 +558,7 @@ function renderCheckupHistoryAdmin(container) {
     
     <div class="config-card">
       <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 class="card-title">신청 목록 (총 \${checkupHistories.length}건)</h2>
+        <h2 class="card-title">신청 목록 (총 ${checkupHistories.length}건)</h2>
       </div>
       <div class="card-body" style="padding:0; overflow-x:auto;">
         <table style="width:100%; min-width:1000px; border-collapse:collapse; text-align:left;">
@@ -515,12 +574,12 @@ function renderCheckupHistoryAdmin(container) {
             </tr>
           </thead>
           <tbody>
-            \${rowsHtml}
+            ${rowsHtml}
           </tbody>
         </table>
       </div>
     </div>
-  \`;
+  `;
 }
 
 
@@ -671,41 +730,80 @@ function renderMenuSettings(container) {
 }
 
 window.loadClientSettings = function() {
-  currentClientId = document.getElementById("client-select").value;
+  const clientSelectEl = document.getElementById("client-select");
+  if (!clientSelectEl) return;
+  currentClientId = clientSelectEl.value;
   const client = adminClientConfigs[currentClientId];
+  if (!client) {
+    console.error("Client not found for ID:", currentClientId);
+    return;
+  }
   
   // Render Site Tabs
   renderSiteTabs(client);
   
-  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const activeSite = client.sites ? (client.sites.find(s => s.siteId === currentSiteId) || client.sites[0]) : null;
+  if (!activeSite) {
+    console.error("No active site found for client:", currentClientId);
+    return;
+  }
   currentSiteId = activeSite.siteId; // Normalize
 
   const container = document.getElementById("menu-tree-container");
-  container.innerHTML = '';
-  renderMenuLevel(activeSite.menus, container, 1);
+  if (container) {
+    container.innerHTML = '';
+    if (activeSite.menus) {
+      renderMenuLevel(activeSite.menus, container, 1);
+    }
+  }
 
-  document.getElementById('input-siteName').value = activeSite.siteName || '';
-  document.getElementById('input-heroTitle').value = activeSite.heroText.title;
-  document.getElementById('input-heroSubtitle').value = activeSite.heroText.subtitle;
-  document.getElementById('input-csName').value = activeSite.serviceName || '';
-  document.getElementById('input-csNumber').value = activeSite.csNumber || '';
-  document.getElementById('input-clientName').value = activeSite.name || '';
-  document.getElementById('input-clientLink').value = activeSite.clientLink || '';
-  document.getElementById('input-providerName').value = activeSite.providerName || BRAND_DEFAULTS.providerName;
-  document.getElementById('input-providerLink').value = activeSite.providerLink || BRAND_DEFAULTS.providerLink;
+  const siteNameEl = document.getElementById('input-siteName');
+  if (siteNameEl) siteNameEl.value = activeSite.siteName || '';
+
+  const heroTitleEl = document.getElementById('input-heroTitle');
+  if (heroTitleEl) heroTitleEl.value = (activeSite.heroText && activeSite.heroText.title) || '';
+
+  const heroSubtitleEl = document.getElementById('input-heroSubtitle');
+  if (heroSubtitleEl) heroSubtitleEl.value = (activeSite.heroText && activeSite.heroText.subtitle) || '';
+
+  const csNameEl = document.getElementById('input-csName');
+  if (csNameEl) csNameEl.value = activeSite.serviceName || '';
+
+  const csNumberEl = document.getElementById('input-csNumber');
+  if (csNumberEl) csNumberEl.value = activeSite.csNumber || '';
+
+  const clientNameEl = document.getElementById('input-clientName');
+  if (clientNameEl) clientNameEl.value = activeSite.name || '';
+
+  const clientLinkEl = document.getElementById('input-clientLink');
+  if (clientLinkEl) clientLinkEl.value = activeSite.clientLink || '';
+
+  const providerNameEl = document.getElementById('input-providerName');
+  if (providerNameEl) providerNameEl.value = activeSite.providerName || BRAND_DEFAULTS.providerName;
+
+  const providerLinkEl = document.getElementById('input-providerLink');
+  if (providerLinkEl) providerLinkEl.value = activeSite.providerLink || BRAND_DEFAULTS.providerLink;
   
   // Branding settings
-  document.getElementById('input-themeColor').value = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
-  document.getElementById('preview-themeColor').style.backgroundColor = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
+  const themeColorEl = document.getElementById('input-themeColor');
+  if (themeColorEl) themeColorEl.value = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
+
+  const previewThemeColorEl = document.getElementById('preview-themeColor');
+  if (previewThemeColorEl) previewThemeColorEl.style.backgroundColor = activeSite.themeColor || BRAND_DEFAULTS.themeColor;
   
-  document.getElementById('input-menuTextColor').value = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
-  document.getElementById('preview-menuTextColor').style.backgroundColor = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
+  const menuTextColorEl = document.getElementById('input-menuTextColor');
+  if (menuTextColorEl) menuTextColorEl.value = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
+
+  const previewMenuTextColorEl = document.getElementById('preview-menuTextColor');
+  if (previewMenuTextColorEl) previewMenuTextColorEl.style.backgroundColor = activeSite.menuTextColor || BRAND_DEFAULTS.menuTextColor;
   
   const preview = document.getElementById('logo-preview');
-  if (activeSite.logoImage) {
-    preview.innerHTML = `<img src="${activeSite.logoImage}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
-  } else {
-    preview.innerHTML = `<span style="font-size:10px; color:#94a3b8;">No Logo</span>`;
+  if (preview) {
+    if (activeSite.logoImage) {
+      preview.innerHTML = `<img src="${activeSite.logoImage}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+    } else {
+      preview.innerHTML = `<span style="font-size:10px; color:#94a3b8;">No Logo</span>`;
+    }
   }
 };
 

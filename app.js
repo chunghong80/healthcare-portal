@@ -679,17 +679,32 @@ window.showScheduleModal = function(hospitalName) {
   };
 };
 
+function getTierName(tier) {
+  if (!tier) return "";
+  if (typeof tier === 'string') return tier;
+  if (typeof tier === 'object') {
+    return tier.name || tier.tierName || tier.label || tier.id || String(tier);
+  }
+  return String(tier);
+}
+
 function getSortedAccessibleSites(client, userTiers) {
   if (!client || !client.sites) return [];
   const sites = client.sites.filter(site =>
-    site.mappedTiers.some(t => userTiers.includes(t))
+    site.mappedTiers.some(t => {
+      const tStr = getTierName(t);
+      return userTiers.some(ut => getTierName(ut) === tStr);
+    })
   );
 
   sites.sort((a, b) => {
     const getMinTierIndex = (site) => {
       if (!site.mappedTiers || site.mappedTiers.length === 0) return 999;
       const indices = site.mappedTiers
-        .map(t => client.tiers ? client.tiers.indexOf(t) : -1)
+        .map(t => {
+          const tStr = getTierName(t);
+          return client.tiers ? client.tiers.map(getTierName).indexOf(tStr) : -1;
+        })
         .filter(idx => idx !== -1);
       return indices.length > 0 ? Math.min(...indices) : 999;
     };
@@ -709,10 +724,25 @@ function loadSavedConfigs() {
 
     if (parsed) {
       Object.keys(parsed).forEach(id => {
+        const client = parsed[id];
+        if (client.sites) {
+          client.sites.forEach(site => {
+            if (site.menus) {
+              const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+              if (healthMenu && healthMenu.children) {
+                const hasCustom = healthMenu.children.some(c => c.label === '분야별 건강정보' && c.id !== 'categoryInfo');
+                if (hasCustom) {
+                  healthMenu.children = healthMenu.children.filter(c => c.id !== 'categoryInfo');
+                }
+              }
+            }
+          });
+        }
         if (!clientConfigs[id]) {
           clientConfigs[id] = parsed[id];
         }
       });
+      try { localStorage.setItem('hc_portal_data', JSON.stringify(parsed)); } catch(e) {}
     }
 
     Object.keys(clientConfigs).forEach(id => {
@@ -1507,7 +1537,10 @@ function filterMenusForUser(menus, userTiers) {
     .filter(menu => {
       if (menu.isVisible === false) return false;
       if (menu.exposedTiers && menu.exposedTiers.length > 0) {
-        const hasAccess = menu.exposedTiers.some(tier => userTiers.includes(tier));
+        const hasAccess = menu.exposedTiers.some(tier => {
+          const tierStr = getTierName(tier);
+          return userTiers.some(ut => getTierName(ut) === tierStr);
+        });
         if (!hasAccess) return false;
       }
       return true;
@@ -1521,11 +1554,339 @@ function filterMenusForUser(menus, userTiers) {
     });
 }
 
+// Helper for Provided Services customized premium fallbacks
+function getProvidedServiceOrDefault(clientId, tierName) {
+  const data = JSON.parse(localStorage.getItem('hc_provided_services') || '{}');
+  const key = `${clientId}|${tierName}`;
+  
+  if (data[key] && data[key].exposureYn === 'Y' && data[key].sections) {
+    return data[key];
+  }
+
+  const client = clientConfigs[clientId] || { name: '헬스케어', csNumber: '1588-7545', themeColor: '#17B890', themeColorRgb: '23, 184, 144' };
+  const clientName = client.name.split('(')[0].trim();
+  const themeColor = client.themeColor || '#17B890';
+  const themeColorRgb = client.themeColorRgb || '23, 184, 144';
+  const csNumber = client.csNumber || '1588-7545';
+
+  const isPremiumTier = tierName.includes('VIP') || tierName.includes('우대') || tierName.includes('임원') || tierName.includes('1등급');
+
+  const introTitle = isPremiumTier 
+    ? `${clientName} 전용 프리미엄 ${tierName} 케어` 
+    : `건강할 땐 건강관리, 아플 땐 치료지원까지 꼼꼼하게`;
+  
+  const introSub = isPremiumTier
+    ? `최고의 자산인 건강을 위해, 차별화된 고품격 의학 자문 및 원스톱 VIP 에스코트 서비스를 지원합니다.`
+    : `${clientName}만의 사내복지 통합건강관리서비스로 임직원과 가족의 건강한 삶을 함께합니다.`;
+
+  const bannerBg = isPremiumTier
+    ? `linear-gradient(135deg, ${themeColor} 0%, #0f172a 100%)`
+    : `linear-gradient(135deg, ${themeColor} 0%, #1e293b 100%)`;
+
+  const introHtml = `
+    <div style="position: relative; width: 100%; min-height: 190px; background: ${bannerBg}; border-radius: 16px; padding: 32px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+      <div style="position: relative; z-index: 2; max-width: 60%;">
+        <div style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase;">HEALTHCARE SERVICE</div>
+        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -1px; line-height: 1.3;">${introTitle}</h2>
+        <p style="font-size: 14.5px; margin: 0; opacity: 0.95; line-height: 1.6; font-weight: 500;">
+          ${introSub}
+        </p>
+      </div>
+      <div style="position: relative; z-index: 2; width: 35%; display: flex; justify-content: flex-end; align-items: center; pointer-events: none;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.15);">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            <path d="M12 5v14"/>
+            <path d="M9 9h6"/>
+          </svg>
+        </div>
+      </div>
+      <div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: ${themeColor}; filter: blur(80px); top: -100px; right: -50px; opacity: 0.35; z-index: 1;"></div>
+    </div>
+  `;
+
+  const csHtml = `
+    <div style="position: relative; width: 100%; border: 1px solid #e2e8f0; border-radius: 16px; background: white; padding: 24px 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; border-left: 5px solid ${themeColor}; transition: all 0.3s ease;">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(${themeColorRgb}, 0.1); display: flex; align-items: center; justify-content: center; color: ${themeColor}; border: 1px solid rgba(${themeColorRgb}, 0.15);">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: 0.5px;">${clientName} 헬스케어서비스 고객센터</div>
+          <div style="font-size: 26px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; display:flex; align-items:center; gap:8px;">
+            ${csNumber}
+            <span style="font-size:13.5px; font-weight:500; color:#94a3b8; margin-left: 8px;">평일 09:00 ~ 18:00 (토/일/공휴일 휴무)</span>
+          </div>
+        </div>
+      </div>
+      <a href="tel:${csNumber.replace(/-/g, '')}" style="background: ${themeColor}; color: white; padding: 12px 28px; border-radius: 10px; font-size: 15px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 14px rgba(${themeColorRgb}, 0.25); transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        고객센터 연결
+      </a>
+    </div>
+  `;
+
+  const tabs = [
+    {
+      title: "평상시 서비스",
+      html: `
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">🏠</span> 평상시 일상 속 건강케어
+            </h3>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 24px;">
+              일상의 안심을 채워드립니다. 전담 헬스케어센터를 통해 간호사 및 전문 의료진과 간편하게 건강 상담을 진행할 수 있으며, 24시간 항시 대기 응급의료지원망을 전격 지원합니다.
+            </p>
+            <div style="background: rgba(${themeColorRgb}, 0.04); border: 1px solid rgba(${themeColorRgb}, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🏥 주요 서비스 상세 혜택</div>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.8;">
+                <li><strong>24시간 상시 의료 상담</strong>: 야간 및 공휴일 긴급 질환 발생 시 전문간호사 1:1 상담</li>
+                <li><strong>맞춤 진료과 가이드</strong>: 내과, 외과, 산부인과, 안과 등 14개 전문과별 최적 진료과 추천</li>
+                <li><strong>자가관리 코칭</strong>: 일상 건강검진 수치 해설 및 영양/운동 피드백 가이드 제공</li>
+              </ul>
+            </div>
+            <div style="display: inline-flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <div style="font-size: 13.5px; color: #334155; font-weight: 700;">건강상담 문의 <span style="color:#2563eb; font-weight:800; margin-left:4px;">${csNumber}</span></div>
+            </div>
+          </div>
+          <div style="width: 40%; flex-shrink: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;">
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "주요질병 진단 시",
+      html: `
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">➕</span> 주요질병 진단 시 명의 예약 및 에스코트
+            </h3>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 24px;">
+              중대질병 진단 또는 고난도 수술 필요 시, 가장 신속하고 정확하게 치료를 받으실 수 있도록 국내 우수 의료진 연계 서비스 및 입퇴원 케어를 일체 대행해 드립니다.
+            </p>
+            <div style="background: rgba(${themeColorRgb}, 0.04); border: 1px solid rgba(${themeColorRgb}, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🏥 주요 서비스 상세 혜택</div>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.8;">
+                <li><strong>대형병원 명의 추천 및 진료예약</strong>: 국내 5대 상급종합병원 분야별 최적의 권위자 진료 추천 및 우선 예약 대행</li>
+                <li><strong>전문 간호사 병원 에스코트</strong>: 진료 당일, 전문 간호사가 동행하여 진료 접수, 수납, 약 처방 등 밀착 동행 안내 (VIP/우대 회원 혜택)</li>
+                <li><strong>해외 전문 소견 지원</strong>: 국내 난치 판정 시 글로벌 대형 의료기관 2차 정밀 판독 자문 리포트 발급 연계</li>
+              </ul>
+            </div>
+            <div style="display: inline-flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <div style="font-size: 13.5px; color: #334155; font-weight: 700;">명의 예약 문의 <span style="color:#2563eb; font-weight:800; margin-left:4px;">${csNumber}</span></div>
+            </div>
+          </div>
+          <div style="width: 40%; flex-shrink: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <img src="https://images.unsplash.com/photo-1582750433449-649350141f2f?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;">
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "건강검진",
+      html: `
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">💓</span> 건강검진 우대 예약 혜택
+            </h3>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 24px;">
+              전국 100여 개 우수 대학병원 및 검진 전문 센터 네트워크를 구축하고 있습니다. 최저 우대 요금 할인 혜택부터 위/대장 내시경 특별 우대 혜택을 제공합니다.
+            </p>
+            <div style="background: rgba(${themeColorRgb}, 0.04); border: 1px solid rgba(${themeColorRgb}, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🏥 주요 서비스 상세 혜택</div>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.8;">
+                <li><strong>검진 할인율 지원</strong>: 일반 소비자가 대비 최대 30%~50% 우대 할인된 맞춤형 건강검진 패키지 제공</li>
+                <li><strong>내시경 수면비 지원</strong>: 위 및 대장 수면 내시경 선택 시 수면 추가 비용 전액 무상 지원</li>
+                <li><strong>스마트 예약/상담 솔루션</strong>: 검진 항목 변경, 연령대별/성별 정밀 선택 가이드 및 실시간 검진 예약 대행</li>
+              </ul>
+            </div>
+            <div style="display: inline-flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <div style="font-size: 13.5px; color: #334155; font-weight: 700;">검진 예약 문의 <span style="color:#2563eb; font-weight:800; margin-left:4px;">${csNumber}</span></div>
+            </div>
+          </div>
+          <div style="width: 40%; flex-shrink: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <img src="https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;">
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "심리상담",
+      html: `
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">💬</span> 마음의 평온을 위한 심리상담
+            </h3>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 24px;">
+              보이지 않는 스트레스와 정서적 불안까지 어루만집니다. 가정, 직장, 대인 관계 등 지친 현대인을 위한 맞춤형 1:1 대면/비대면 마음 케어를 무상으로 지원합니다.
+            </p>
+            <div style="background: rgba(${themeColorRgb}, 0.04); border: 1px solid rgba(${themeColorRgb}, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🏥 주요 서비스 상세 혜택</div>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.8;">
+                <li><strong>대면 심리 상담</strong>: 전국 주요 연계 심리상담 센터(허그맘 등) 대면 심리 자문 지원 (연 2회 무료 제공)</li>
+                <li><strong>온라인/전화 자문</strong>: 대기 시간 없는 모바일 마음 힐링 서비스 및 전화 심리 코칭 프로그램</li>
+                <li><strong>정서 진단 프로그램</strong>: 스트레스 지수 자가 측정, 우울감 척도 분석 및 심도 분석 리포트 발급</li>
+              </ul>
+            </div>
+            <div style="display: inline-flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <div style="font-size: 13.5px; color: #334155; font-weight: 700;">심리상담 신청 <span style="color:#2563eb; font-weight:800; margin-left:4px;">${csNumber}</span></div>
+            </div>
+          </div>
+          <div style="width: 40%; flex-shrink: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;">
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "만성질환 관리",
+      html: `
+        <div style="display: flex; gap: 32px; align-items: center;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">🛡️</span> 만성질환 1:1 라이프케어 코칭
+            </h3>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin-bottom: 24px;">
+              고혈압, 당뇨 등 지속 관리가 필수적인 만성질환군 회원님들을 위해 IT 웨어러블 디바이스 연동 정밀 상시 추적 서비스 및 운동/식단 코칭을 무상으로 지원합니다.
+            </p>
+            <div style="background: rgba(${themeColorRgb}, 0.04); border: 1px solid rgba(${themeColorRgb}, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🏥 주요 서비스 상세 혜택</div>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.8;">
+                <li><strong>웨어러블 기기 연동 관리</strong>: 연계 전용 스마트 헬스밴드 및 혈당 측정기 제공 (대상자 한정) 및 데이터 상시 동기화</li>
+                <li><strong>전담 의료진 라이프 케어</strong>: 전담 간호사 및 임상 영양사가 매월 식생활 습관 모니터링 및 1:1 유선 해설 피드백</li>
+                <li><strong>응급 핫라인 지원</strong>: 일상 수치 이상 급변 감지 시 전담 핫라인 알람 발생 및 병원 응급 안내 연동</li>
+              </ul>
+            </div>
+            <div style="display: inline-flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <div style="font-size: 13.5px; color: #334155; font-weight: 700;">질환관리 문의 <span style="color:#2563eb; font-weight:800; margin-left:4px;">${csNumber}</span></div>
+            </div>
+          </div>
+          <div style="width: 40%; flex-shrink: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <img src="https://images.unsplash.com/photo-1510017808638-a59b571d2227?auto=format&fit=crop&q=80&w=600" style="width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;">
+          </div>
+        </div>
+      `
+    }
+  ];
+
+  return {
+    clientId,
+    tierName,
+    exposureYn: 'Y',
+    sections: {
+      intro: introHtml,
+      csGuide: csHtml,
+      tabs: tabs
+    }
+  };
+}
+
+window.switchPortalServiceTab = function(idx) {
+  state.activeServiceGuideTabIdx = idx;
+  render();
+};
+
+window.scrollPortalTabs = function(direction) {
+  const wrapper = document.querySelector('.portal-service-tab-btn-wrapper');
+  if (wrapper) {
+    wrapper.scrollBy({ left: direction * 150, behavior: 'smooth' });
+  }
+};
+
 function renderPortal() {
   const client = state.activeClient;
   const activeSite = state.activeSite || client.sites[0];
 
   const userTiers = state.currentUser ? (state.currentUser.tiers[client.id] || []) : [];
+
+  // Inject children for serviceGuide dynamically before filtering
+  const serviceGuideMenu = (activeSite.menus || []).find(m => m.id === 'serviceGuide');
+  if (serviceGuideMenu) {
+    serviceGuideMenu.children = [
+      {
+        id: "myServices",
+        label: "내가 가입한 서비스",
+        isVisible: true,
+        children: userTiers.map(tier => {
+          const tName = getTierName(tier);
+          return {
+            id: encodeURIComponent(tName),
+            label: tName,
+            isVisible: true,
+            children: []
+          };
+        })
+      },
+      {
+        id: "allServices",
+        label: "전체 서비스",
+        isVisible: true,
+        children: (client.tiers || []).map(tier => {
+          const tName = getTierName(tier);
+          return {
+            id: encodeURIComponent(tName),
+            label: tName,
+            isVisible: true,
+            children: []
+          };
+        })
+      }
+    ];
+  }
+
+  // Redirection logic for healthInfo submenus
+  if (state.activeMenuId === 'healthInfo' && !state.activeSubId) {
+    const healthMenu = (activeSite.menus || []).find(m => m.id === 'healthInfo');
+    if (healthMenu && healthMenu.children && healthMenu.children.length > 0) {
+      const firstChild = healthMenu.children.find(c => c.isVisible);
+      if (firstChild) {
+        window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/healthInfo/${firstChild.id}`;
+        return;
+      }
+    }
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/healthInfo/categoryInfo`;
+    return;
+  }
+
+  // Redirection logic for service guide submenus
+  if (state.activeMenuId === 'serviceGuide') {
+    if (!state.activeSubId) {
+      if (userTiers.length > 0) {
+        const tName = getTierName(userTiers[0]);
+        window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/serviceGuide/myServices/${encodeURIComponent(tName)}`;
+        return;
+      } else if (client.tiers && client.tiers.length > 0) {
+        const tName = getTierName(client.tiers[0]);
+        window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/serviceGuide/allServices/${encodeURIComponent(tName)}`;
+        return;
+      }
+    } else if (state.activeSubId === 'myServices' && !state.activeSubSubId) {
+      if (userTiers.length > 0) {
+        const tName = getTierName(userTiers[0]);
+        window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/serviceGuide/myServices/${encodeURIComponent(tName)}`;
+        return;
+      }
+    } else if (state.activeSubId === 'allServices' && !state.activeSubSubId) {
+      if (client.tiers && client.tiers.length > 0) {
+        const tName = getTierName(client.tiers[0]);
+        window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/serviceGuide/allServices/${encodeURIComponent(tName)}`;
+        return;
+      }
+    }
+  }
+
   const visibleMenus = filterMenusForUser(activeSite.menus || [], userTiers);
 
   // Render Site Selector dropdown if multiple accessible sites exist
@@ -1657,13 +2018,179 @@ function renderPortal() {
      `;
 
     const isConsultingGroup = state.activeMenuId === 'healthConsulting' || activeMenu?.id === 'healthConsulting' || pageTitle.includes('상담');
-    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || pageTitle.includes('상담 이력') || pageTitle.includes('문의 내역') || state.activeSubId === 'history' || activeSub?.id === 'history';
+    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || state.activeSubId === 'history' || activeSub?.id === 'history' || ((pageTitle.includes('이력') || pageTitle.includes('내역')) && !pageTitle.includes('검진'));
     const isCheckupHistoryPage = state.activeSubId === 'checkupHistory' || activeSub?.id === 'checkupHistory' || state.activeSubSubId === 'checkupHistory' || activeSubSub?.id === 'checkupHistory' || pageTitle.includes('신청이력');
     const isHospitalGuideGroup = state.activeMenuId === 'hospitalGuide' || activeMenu?.id === 'hospitalGuide' || pageTitle.includes('병원안내');
     const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
     const isCheckupGroup = state.activeMenuId === 'checkupAppt' || activeMenu?.id === 'checkupAppt' || pageTitle.includes('건강검진');
+    const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
 
-    if (isHistoryPage) {
+    const isCategoryInfoPage = state.activeSubId === 'categoryInfo' || activeSub?.label === '분야별 건강정보';
+    const isContentSubscribePage = state.activeSubId === 'contentSubscribe' || activeSub?.label === '건강콘텐츠 구독';
+
+    if (isCategoryInfoPage) {
+      detailContentHtml = renderCategoryHealthInfo();
+    } else if (isContentSubscribePage) {
+      detailContentHtml = renderContentSubscribe();
+    } else if (isServiceGuideGroup) {
+      const activeTierName = state.activeSubSubId ? decodeURIComponent(state.activeSubSubId) : '';
+      
+      // Ensure state active tab reset on tier change
+      if (state.lastServiceGuideKey !== `${client.id}|${activeTierName}`) {
+        state.activeServiceGuideTabIdx = 0;
+        state.lastServiceGuideKey = `${client.id}|${activeTierName}`;
+      }
+
+      if (typeof state.activeServiceGuideTabIdx === 'undefined') {
+        state.activeServiceGuideTabIdx = 0;
+      }
+
+      const service = getProvidedServiceOrDefault(client.id, activeTierName);
+      const serviceTabs = service.sections.tabs || [];
+      const currentTab = serviceTabs[state.activeServiceGuideTabIdx] || serviceTabs[0];
+
+      const tabStyles = `
+        <style>
+          .portal-service-tab-btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            border-bottom: none;
+            background: #f8fafc;
+            color: #475569;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: -1px;
+            height: 48px;
+            box-sizing: border-box;
+          }
+          .portal-service-tab-btn:hover {
+            background: #eff6ff;
+            color: var(--theme-color);
+            border-color: rgba(var(--theme-color-rgb), 0.3);
+            border-bottom: none;
+          }
+          .portal-service-tab-btn.active {
+            background: var(--theme-color);
+            color: white !important;
+            border: 1px solid var(--theme-color);
+            border-bottom: 1px solid var(--theme-color);
+            z-index: 3;
+            box-shadow: none;
+          }
+          .portal-service-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--theme-color);
+            z-index: 4;
+          }
+          .portal-service-tab-btn-wrapper {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 0 4px;
+            margin: 0;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            flex-grow: 1;
+          }
+          .portal-service-tab-btn-wrapper::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+          }
+        </style>
+      `;
+
+      detailContentHtml = `
+        ${tabStyles}
+        <div style="display:flex; flex-direction:column; gap:24px; animation: fadeIn 0.4s ease-out;">
+          
+          <!-- 1. Intro Banner -->
+          <div style="width:100%;">
+            ${service.sections.intro}
+          </div>
+
+          <!-- 2. CS Card -->
+          <div style="width:100%;">
+            ${service.sections.csGuide}
+          </div>
+
+          <!-- 3. Tabs Area -->
+          <div style="width:100%; margin-top: 12px;">
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-block; width:4px; height:18px; background:var(--theme-color); border-radius:100px;"></span>
+              서비스 주요내용
+            </div>
+
+            <!-- Dynamic Tab Buttons & Nav Controls -->
+            <div style="display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid #cbd5e1; margin-bottom: 0; width: 100%; position: relative; z-index: 2;">
+              <div class="portal-service-tab-btn-wrapper">
+                ${serviceTabs.map((tab, idx) => {
+                  let iconSvg = '';
+                  let iconColor = '';
+                  if (tab.title.includes('평상시') || tab.title.includes('일상')) {
+                    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+                    iconColor = '#f97316'; // Orange
+                  } else if (tab.title.includes('질병') || tab.title.includes('진단') || tab.title.includes('명의') || tab.title.includes('케어')) {
+                    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+                    iconColor = '#8b5cf6'; // Purple
+                  } else if (tab.title.includes('검진')) {
+                    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+                    iconColor = '#ec4899'; // Pink
+                  } else if (tab.title.includes('심리')) {
+                    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+                    iconColor = '#a855f7'; // Light Purple
+                  } else {
+                    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+                    iconColor = '#3b82f6'; // Blue
+                  }
+
+                  const isActive = idx === state.activeServiceGuideTabIdx;
+                  const finalIconColor = isActive ? 'white' : iconColor;
+
+                  return `
+                    <button onclick="window.switchPortalServiceTab(${idx})" class="portal-service-tab-btn ${isActive ? 'active':''}" id="portal-service-tab-btn-${idx}">
+                      <span class="portal-service-tab-icon" style="color: ${finalIconColor}; display: inline-flex; align-items: center;">${iconSvg}</span>
+                      <span>${tab.title}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+              
+              <!-- Tab Scroll Navigation Arrows -->
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; padding-bottom: 4px; flex-shrink: 0; position: relative; z-index: 10; margin-left: 16px;">
+                <button onclick="window.scrollPortalTabs(-1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: #fff; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.color='var(--theme-color)'; this.style.borderColor='rgba(var(--theme-color-rgb), 0.3)';" onmouseout="this.style.color='#94a3b8'; this.style.borderColor='#cbd5e1';">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button onclick="window.scrollPortalTabs(1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: #fff; color: #475569; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onmouseover="this.style.color='var(--theme-color)'; this.style.borderColor='rgba(var(--theme-color-rgb), 0.3)';" onmouseout="this.style.color='#475569'; this.style.borderColor='#cbd5e1';">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content Panel -->
+            <div style="background:#fff; border:1px solid #cbd5e1; border-top-left-radius: ${state.activeServiceGuideTabIdx === 0 ? '0' : '16px'}; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; padding:32px; min-height:280px; box-shadow:0 10px 25px rgba(0,0,0,0.02); position:relative; overflow:hidden; z-index:1; margin-top:-1px;">
+              ${currentTab ? currentTab.html : '<div style="padding:40px; text-align:center; color:#94a3b8;">제공 내용이 없습니다.</div>'}
+            </div>
+          </div>
+
+        </div>
+      `;
+    } else if (isHistoryPage) {
       const allInquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
 
       let currentCategory = '건강상담';
@@ -3001,7 +3528,90 @@ function renderPortal() {
 
         </div>
       `;
-      } else if (state.activeSubId === 'checkupPreferred' || decodeURIComponent(state.activeSubId || '').includes('우대예약') || pageTitle.includes('우대예약')) {
+      } else if (state.activeSubId === 'checkupPreferred' || decodeURIComponent(state.activeSubId || '').includes('우대예약') || pageTitle.includes('우대예약') || state.activeSubId === 'checkupCorporate' || state.activeSubId === 'checkupWelfare' || decodeURIComponent(state.activeSubId || '').includes('회사지원') || pageTitle.includes('회사지원')) {
+        const isCompanySupport = state.activeSubId === 'checkupCorporate' || state.activeSubId === 'checkupWelfare' || decodeURIComponent(state.activeSubId || '').includes('회사지원') || pageTitle.includes('회사지원');
+        
+        const bannerBadgeHtml = isCompanySupport ? '회사지원 건강검진' : '건강검진 우대예약';
+        const bannerTitleHtml = isCompanySupport ? `
+          <div style="font-size: 32px; font-weight: 850; color: #0f172a; line-height: 1.35; letter-spacing: -1px; margin-bottom: 16px; margin-top: 0;">
+            제휴 병원의 건강검진 프로그램을<br/><span style="color: #2F4A9A;">회사 지원 혜택과 함께 이용해보세요.</span>
+          </div>
+          <div style="font-size: 16px; color: #475569; line-height: 1.6; white-space: pre-line;">
+            기업 복지 혜택이 적용된 건강검진 서비스를 제공하며,
+            간편한 예약과 편리한 검진 이용을 지원합니다.
+          </div>
+        ` : `
+          <div style="font-size: 32px; font-weight: 850; color: #0f172a; line-height: 1.35; letter-spacing: -1px; margin-bottom: 16px; margin-top: 0;">
+            다양한 제휴 병원의<br/>건강검진 프로그램을<br/><span style="color: #2F4A9A;">우대 혜택과 함께 편리하게 이용해보세요.</span>
+          </div>
+          <div style="font-size: 16px; color: #475569; line-height: 1.6;">
+            검진 비용은 고객이 병원에 직접 결제하며,<br/>예약 및 이용 편의를 제공합니다.
+          </div>
+        `;
+
+        const hospitals = [
+          { num: 1, name: '포항세명기독병원', pkg: '기본형', price: '350,000', discount: '20%', loc: '강북구' },
+          { num: 2, name: '우리허브병원', pkg: '정밀형', price: '300,000', discount: '15%', loc: '송파구' },
+          { num: 3, name: '안동병원', pkg: '프리미엄형', price: '300,000', discount: '10%', loc: '종로구' },
+          { num: 4, name: '강남베스트병원', pkg: '기본형', price: '280,000', discount: '20%', loc: '강남구' },
+          { num: 5, name: '서울프라임검진센터', pkg: 'VIP형', price: '270,000', discount: '18%', loc: '서초구' },
+          { num: 6, name: '부산시티병원', pkg: '정밀형', price: '260,000', discount: '15%', loc: '부산진구' },
+          { num: 7, name: '대구웰니스병원', pkg: '기본형', price: '250,000', discount: '12%', loc: '수성구' },
+          { num: 8, name: '인천메디컬센터', pkg: '프리미엄형', price: '240,000', discount: '10%', loc: '연수구' }
+        ];
+
+        const hospitalGridHtml = hospitals.map(h => {
+          let displayPrice = h.price;
+          if (isCompanySupport) {
+            const originalVal = parseInt(h.price.replace(/,/g, ''), 10);
+            const newVal = Math.max(0, originalVal - 300000);
+            displayPrice = newVal.toLocaleString();
+          }
+          return `
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; position: relative; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <!-- Number Badge -->
+              <div style="position: absolute; top: 24px; left: 24px; background: #2F4A9A; color: white; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; z-index: 1;">${h.num}</div>
+              
+              <div style="display: flex; gap: 20px; margin-bottom: 24px;">
+                <!-- Image Placeholder -->
+                <div style="width: 120px; height: 120px; border-radius: 12px; background: #f1f5f9; overflow: hidden; flex-shrink: 0; position: relative;">
+                  <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1;">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+                  </div>
+                </div>
+                
+                <!-- Info -->
+                <div style="flex: 1; padding-top: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <h4 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0;">${h.name} <span style="font-size: 15px; color: #64748b; font-weight: 600;">- ${h.pkg}</span></h4>
+                  </div>
+                  
+                  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
+                    <span style="font-size: 20px; font-weight: 800; color: #2F4A9A;">${displayPrice}원</span>
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                    <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect><path d="M10 10h4v4h-4z"></path></svg> 주차가능</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${h.loc}</span>
+                  </div>
+                  
+                  <div style="margin-top: 12px; color: #2563eb; font-size: 13px; font-weight: 700; line-height: 1.5;">
+                    2026년 대장내시경 마감
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 8px;" onclick="window.handleHospitalAction(event, '${h.name}', '${h.pkg}')">
+                <button class="hospital-action-btn" data-action="info" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">병원정보</button>
+                <button class="hospital-action-btn" data-action="checkup" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">검진항목</button>
+                <button class="hospital-action-btn" data-action="schedule" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">일정보기</button>
+                <button class="hospital-action-btn" data-action="reserve" style="flex: 1; padding: 10px; background: #2F4A9A; border: 1px solid #2F4A9A; border-radius: 8px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#1e3a8a'" onmouseout="this.style.background='#2F4A9A'">검진예약</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
         detailContentHtml = `
           <div class="cp-wrapper fade-in" style="animation: fadeIn 0.4s ease;">
             
@@ -3009,17 +3619,12 @@ function renderPortal() {
             <div class="cp-hero" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border-radius: 20px; padding: 48px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; position: relative; overflow: hidden; border: 1px solid #e2e8f0;">
               <div style="flex: 1; z-index: 2;">
                 <div style="display: inline-flex; align-items: center; gap: 6px; background: white; color: #3b82f6; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 20px; margin-bottom: 16px; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                  <span style="color: #3b82f6;">★</span> 건강검진 우대예약
+                  <span style="color: #3b82f6;">★</span> ${bannerBadgeHtml}
                 </div>
-                <div style="font-size: 32px; font-weight: 850; color: #0f172a; line-height: 1.35; letter-spacing: -1px; margin-bottom: 16px; margin-top: 0;">
-                  다양한 제휴 병원의<br/>건강검진 프로그램을<br/><span style="color: #2F4A9A;">우대 혜택과 함께 편리하게 이용해보세요.</span>
-                </div>
-                <div style="font-size: 16px; color: #475569; line-height: 1.6;">
-                  검진 비용은 고객이 병원에 직접 결제하며,<br/>예약 및 이용 편의를 제공합니다.
-                </div>
+                ${bannerTitleHtml}
               </div>
               <div style="flex-shrink: 0; z-index: 2;">
-                <img src="./images/checkup_preferred_hero.png" alt="건강검진 우대예약" style="max-height: 240px; border-radius: 12px;" onerror="this.style.display='none'">
+                <img src="./images/checkup_preferred_hero.png" alt="${bannerBadgeHtml}" style="max-height: 240px; border-radius: 12px;" onerror="this.style.display='none'">
               </div>
             </div>
             <!-- Search Filter Bar (Advanced UI matching mockup) -->
@@ -3119,58 +3724,7 @@ function renderPortal() {
 
             <!-- Hospital Grid -->
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 40px;">
-              ${[
-                { num: 1, name: '포항세명기독병원', pkg: '기본형', price: '350,000', discount: '20%', loc: '강북구' },
-                { num: 2, name: '우리허브병원', pkg: '정밀형', price: '300,000', discount: '15%', loc: '송파구' },
-                { num: 3, name: '안동병원', pkg: '프리미엄형', price: '300,000', discount: '10%', loc: '종로구' },
-                { num: 4, name: '강남베스트병원', pkg: '기본형', price: '280,000', discount: '20%', loc: '강남구' },
-                { num: 5, name: '서울프라임검진센터', pkg: 'VIP형', price: '270,000', discount: '18%', loc: '서초구' },
-                { num: 6, name: '부산시티병원', pkg: '정밀형', price: '260,000', discount: '15%', loc: '부산진구' },
-                { num: 7, name: '대구웰니스병원', pkg: '기본형', price: '250,000', discount: '12%', loc: '수성구' },
-                { num: 8, name: '인천메디컬센터', pkg: '프리미엄형', price: '240,000', discount: '10%', loc: '연수구' }
-              ].map(h => `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; position: relative; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-                  <!-- Number Badge -->
-                  <div style="position: absolute; top: 24px; left: 24px; background: #2F4A9A; color: white; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; z-index: 1;">${h.num}</div>
-                  
-                  <div style="display: flex; gap: 20px; margin-bottom: 24px;">
-                    <!-- Image Placeholder -->
-                    <div style="width: 120px; height: 120px; border-radius: 12px; background: #f1f5f9; overflow: hidden; flex-shrink: 0; position: relative;">
-                      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1;">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
-                      </div>
-                    </div>
-                    
-                    <!-- Info -->
-                    <div style="flex: 1; padding-top: 4px;">
-                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <h4 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0;">${h.name} <span style="font-size: 15px; color: #64748b; font-weight: 600;">- ${h.pkg}</span></h4>
-                      </div>
-                      
-                      <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
-                        <span style="font-size: 20px; font-weight: 800; color: #2F4A9A;">${h.price}원</span>
-                      </div>
-                      
-                      <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
-                        <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"></rect><path d="M10 10h4v4h-4z"></path></svg> 주차가능</span>
-                        <span style="display: flex; align-items: center; gap: 4px;"><svg width="14" height="14" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${h.loc}</span>
-                      </div>
-                      
-                      <div style="margin-top: 12px; color: #2563eb; font-size: 13px; font-weight: 700; line-height: 1.5;">
-                        2026년 대장내시경 마감
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Action Buttons -->
-                  <div style="display: flex; gap: 8px;" onclick="window.handleHospitalAction(event, '${h.name}', '${h.pkg}')">
-                    <button class="hospital-action-btn" data-action="info" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">병원정보</button>
-                    <button class="hospital-action-btn" data-action="checkup" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">검진항목</button>
-                    <button class="hospital-action-btn" data-action="schedule" style="flex: 1; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">일정보기</button>
-                    <button class="hospital-action-btn" data-action="reserve" style="flex: 1; padding: 10px; background: #2F4A9A; border: 1px solid #2F4A9A; border-radius: 8px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#1e3a8a'" onmouseout="this.style.background='#2F4A9A'">검진예약</button>
-                  </div>
-                </div>
-              `).join('')}
+              ${hospitalGridHtml}
             </div>
 
             <!-- Footer Banner -->
@@ -4434,4 +4988,1353 @@ window.showPastHistoryModal = function() {
   updateTabs();
 };
 
+
+// ==========================================
+// 건강정보 > 분야별 건강정보 (Health Information by Category)
+// ==========================================
+
+if (!window.healthCategories) {
+  window.healthCategories = [
+    { id: 'women', label: '여성건강', icon: 'women_health' },
+    { id: 'men', label: '남성건강', icon: 'men_health' },
+    { id: 'senior', label: '노인건강', icon: 'senior_health' },
+    { id: 'child', label: '어린이건강', icon: 'child_health' },
+    { id: 'pregnancy', label: '임신과 출산', icon: 'pregnancy' },
+    { id: 'obesity', label: '비만', icon: 'obesity' },
+    { id: 'alcohol', label: '술과 담배', icon: 'alcohol' },
+    { id: 'cancer', label: '암정보', icon: 'cancer' },
+    { id: 'dementia', label: '치매예방', icon: 'dementia' }
+  ];
+}
+
+if (typeof window.activeHealthCategoryIdx === 'undefined') {
+  window.activeHealthCategoryIdx = 0;
+}
+if (typeof window.healthSortType === 'undefined') {
+  window.healthSortType = 'latest';
+}
+if (typeof window.visibleHealthPostCount === 'undefined') {
+  window.visibleHealthPostCount = 5;
+}
+if (typeof window.selectedHealthPostId === 'undefined') {
+  window.selectedHealthPostId = null;
+}
+
+window.getHealthPostImage = function(postId, categoryId) {
+  const images = {
+    women: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80",
+    men: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?auto=format&fit=crop&w=1200&q=80",
+    senior: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80",
+    child: "https://images.unsplash.com/photo-1471286174240-e729b5e79e05?auto=format&fit=crop&w=1200&q=80",
+    pregnancy: "https://images.unsplash.com/photo-1518104593124-ac2e82a5eb9d?auto=format&fit=crop&w=1200&q=80",
+    obesity: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
+    alcohol: "https://images.unsplash.com/photo-1527137341206-efe28d54d930?auto=format&fit=crop&w=1200&q=80",
+    cancer: "https://images.unsplash.com/photo-1579684389782-64d84b5e901d?auto=format&fit=crop&w=1200&q=80",
+    dementia: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1200&q=80"
+  };
+  return images[categoryId] || "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80";
+};
+
+window.getHealthPostDetailedText = function(post) {
+  if (post.details) return post.details;
+
+  const detailsMap = {
+    w1: `
+      <p>빈혈은 혈액 내 적혈구 수나 헤모글로빈 농도가 정상치보다 낮아져 몸의 각 조직에 충분한 산소를 공급하지 못하는 상태를 말합니다. 특히 가임기 여성의 약 30%가 겪을 정도로 흔한 질환입니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">빈혈이 여성에게 자주 발생하는 주된 원인</h5>
+      <p>가장 흔한 원인은 '철결핍성 빈혈'입니다. 매월 발생하는 생리로 인한 혈액 손실, 임신과 출산 과정에서의 철분 요구량 급증, 극단적인 다이어트로 인한 철분 섭취 부족 등이 주요 원인입니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">주요 증상 및 자가 진단</h5>
+      <p>피로감과 전신 쇠약감이 대표적이며, 조금만 움직여도 숨이 차거나 가슴이 두근거립니다. 피부가 창백해지고 손톱이 쉽게 갈라지거나 숟가락 모양으로 휠 수 있으며, 집중력 저하, 어지러움, 두통 등도 동반됩니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">효과적인 예방 및 식습관 수칙</h5>
+      <ol style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>철분이 풍부한 식품 섭취:</strong> 붉은 살코기, 간, 굴, 달걀노른자, 시금치, 미역 등을 자주 섭취하세요.</li>
+        <li><strong>비타민 C 동시 섭취:</strong> 비타민 C는 철분의 체내 흡수율을 2~3배 높여줍니다. 신선한 과일과 채소를 함께 드세요.</li>
+        <li><strong>식후 차/커피 제한:</strong> 차의 탄닌 성분과 커피의 카페인은 철분 흡수를 방해하므로, 식사 전후 1시간 내에는 피하는 것이 좋습니다.</li>
+      </ol>
+    `,
+    w2: `
+      <p>갱년기는 여성의 난소 기능이 노화되면서 여성호르몬 분비가 급격히 감소하고, 이로 인해 생리 폐경을 전후한 수년간의 과도기를 뜻합니다. 보통 40대 중후반에 시작하여 신체적, 정신적으로 급격한 변화를 겪게 됩니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">주요 신체 및 심리 증상</h5>
+      <p>가장 흔한 급성 증상은 '안면홍조'와 '발한'입니다. 갑자기 얼굴과 상체가 화끈거리며 땀이 비 오듯 쏟아집니다. 또한 호르몬 변화로 인한 자율신경 불균형으로 불면증, 감정 변화(우울감, 짜증), 기억력 감퇴 등을 겪게 되며, 장기적으로는 골다공증과 심혈관 질환 위험이 증가합니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">명쾌한 관리 가이드</h5>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>규칙적인 유산소 및 근력 운동:</strong> 뼈 건강을 지키고 우울감을 낮추는 데 걷기, 자전거, 요가가 훌륭한 대안입니다.</li>
+        <li><strong>식습관 개선:</strong> 콩, 석류 등 천연 식물성 에스트로겐이 풍부한 식품과 칼슘, 비타민D를 충분히 섭취하세요.</li>
+        <li><strong>적절한 수면 환경:</strong> 방을 시원하게 유지하고 얇은 옷을 여러 겹 입어 체온 변화에 대처하세요.</li>
+      </ul>
+    `,
+    p1: `
+      <p>임신 기간 동안 엄마와 태아의 건강 상태를 모니터링하고 발생할 수 있는 위험 요소를 사전에 예방하기 위해 주기적인 산전 검사는 필수적입니다. 임신 주수별로 받아야 하는 주요 검사 항목들을 정리했습니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">초기 (1주 ~ 11주)</h5>
+      <p>임신 사실을 확인하고 태아의 착상태를 확인하는 시기입니다. 초음파 검사를 통해 아기집의 위치와 태아 심장박동을 관찰하며, 산모의 건강 상태 분석을 위한 기초 혈액검사, 소변검사, 자궁경부암 검사 등이 이루어집니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">중기 (12주 ~ 28주)</h5>
+      <p>태아가 안정적으로 자라는 시기로 기형아 검사가 중점적으로 진행됩니다. 11~13주경 입체초음파로 목덜미 투명대를 측정하고, 15~20주경 2차 기형아 검사(쿼드 검사 등)를 진행합니다. 또한 24~28주 사이에는 산모에게 위험할 수 있는 임신성 당뇨 검사(임당 검사)를 받게 됩니다.</p>
+      
+      <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">후기 (29주 ~ 출산)</h5>
+      <p>출산을 대비하여 태아의 위치와 크기, 양수의 양을 수시로 체크하며 태동 검사를 실시합니다. 임신 중독증 발병 여부를 감시하기 위해 방문 시마다 혈압과 단백뇨를 검사합니다.</p>
+    `
+  };
+
+  const defaultDetail = `
+    <p>${post.summary}</p>
+    <p>본 정보는 독자들의 이해를 돕기 위해 작성된 일반적인 건강 관리 가이드라인입니다. 개개인의 고유한 체질과 기존 기저 질환, 현재의 신체 상태에 따라 효과적인 관리법과 영양 섭취 기준은 크게 다를 수 있습니다.</p>
+    <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">일상에서의 주요 수칙</h5>
+    <p>균형 잡힌 식단과 하루 30분 이상의 가벼운 유산소 운동을 실천하고, 스트레스를 조절하며 규칙적으로 수면을 취하는 것은 모든 건강 관리의 가장 기본적이고 강력한 기초입니다.</p>
+    <p>만약 일상생활에 지장을 줄 정도의 심한 통증이나 갑작스러운 이상 증상이 지속된다면, 민간요법이나 인터넷 검색에만 의존하지 마시고 즉시 가까운 병원을 찾아 전문 의료진의 진료와 정밀 검사를 받으시길 권장합니다.</p>
+  `;
+
+  return detailsMap[post.id] || defaultDetail;
+};
+
+window.viewHealthPost = function(postId) {
+  const allPosts = [];
+  Object.keys(window.healthPosts).forEach(catId => {
+    allPosts.push(...window.healthPosts[catId]);
+  });
+  const post = allPosts.find(p => p.id === postId);
+  if (post) {
+    post.views = (post.views || 0) + 1;
+  }
+  window.selectedHealthPostId = postId;
+  render();
+};
+
+window.backToHealthList = function() {
+  window.selectedHealthPostId = null;
+  render();
+};
+
+if (!window.healthPosts) {
+  window.healthPosts = {
+    women: [
+      { id: 'w1', title: '여성에게 자주 발생하는 빈혈, 원인과 예방법', summary: '빈혈은 여성에게 흔하게 나타나는 질환 중 하나입니다. 특히 생리, 임신, 출산 등으로 인해 철분이 부족해지기 쉬우며, 피로감, 어지러움, 두통 등의 증상을 유발할 수 있습니다. 균형 잡힌 식사와 적절한 철분 섭취가 중요합니다.', date: '2024.05.20', views: 1254 },
+      { id: 'w2', title: '갱년기 증상, 이렇게 관리해보세요', summary: '갱년기는 여성의 삶에서 자연스러운 변화 과정입니다. 안면홍조, 불면, 우울감 등이 나타날 수 있으며, 규칙적인 운동과 건강한 식습관, 스트레스 관리가 증상 완화에 도움이 됩니다.', date: '2024.05.18', views: 982 },
+      { id: 'w3', title: '자궁경부암 예방접종, 언제 맞아야 할까요?', summary: '자궁경부암은 예방이 가능한 대표적인 암입니다. HPV 예방접종은 성 경험 전 접종이 가장 효과적이며, 정기적인 검진도 매우 중요합니다.', date: '2024.05.15', views: 1102 },
+      { id: 'w4', title: '여성 건강을 위한 필수 영양소', summary: '여성의 건강 유지를 위해서는 철분, 칼슘, 비타민D, 엽산 등의 섭취가 중요합니다. 연령대별로 필요한 영양소를 확인하고, 식단을 통해 골고루 섭취하세요.', date: '2024.05.12', views: 843 },
+      { id: 'w5', title: '생리통 완화에 도움이 되는 생활습관', summary: '생리통은 많은 여성들이 겪는 불편함입니다. 따뜻한 찜질, 가벼운 스트레칭, 카페인 줄이기 등의 생활습관 개선으로 통증을 완화할 수 있습니다.', date: '2024.05.10', views: 732 },
+      { id: 'w6', title: '여성 유방 건강과 자가 진단법', summary: '유방암은 유방 건강을 해치는 주된 원인 중 하나입니다. 한 달에 한 번 생리가 끝난 후 3~5일 사이에 유방을 만져보며 멍울이 있는지 정기적으로 확인하는 습관이 필요합니다.', date: '2024.05.05', views: 612 }
+    ],
+    men: [
+      { id: 'm1', title: '남성 갱년기 극복을 위한 생활 수칙', summary: '남성도 나이가 들면서 테스토스테론 호르몬 감소로 갱년기를 겪을 수 있습니다. 무기력감, 근력 저하 등이 나타나며 규칙적인 근력 운동과 충분한 수면이 예방에 필수적입니다.', date: '2024.05.19', views: 884 },
+      { id: 'm2', title: '전립선비대증, 방치하면 안 되는 이유', summary: '전립선비대증은 50대 이상 남성에게 흔한 질환으로, 소변 줄기가 약해지거나 자주 마려운 증상을 보입니다. 초기 치료를 통해 요폐 등의 합병증을 막아야 합니다.', date: '2024.05.16', views: 941 },
+      { id: 'm3', title: '젊은 탈모 환자 급증, 원인과 치료법은?', summary: '탈모는 유전적 요인 외에도 스트레스, 영양 불균형 등으로 발생합니다. 조기 진단과 치료약 복용이 가장 효과적이며 자가 치료에 의존하지 말아야 합니다.', date: '2024.05.14', views: 1205 },
+      { id: 'm4', title: '남성의 심장 건강을 지키는 식습관', summary: '심혈관 질환은 남성 사망 원인의 큰 비중을 차지합니다. 포화지방 섭취를 줄이고 오메가-3가 풍부한 생선과 채소 위주의 식단을 구성하는 것이 도움이 됩니다.', date: '2024.05.11', views: 654 }
+    ],
+    senior: [
+      { id: 's1', title: '어르신 낙상 사고 예방을 위한 가정 내 환경 개선', summary: '노년기 낙상은 단순한 골절을 넘어 심각한 합병증으로 이어질 수 있습니다. 화장실 미끄럼 방지 매트 설치, 문턱 제거, 야간 조명 설치가 필수적입니다.', date: '2024.05.21', views: 1109 },
+      { id: 's2', title: '근감소증 예방을 위한 단백질 섭취 가이드', summary: '나이가 들면서 근육량이 급격히 감소하는 근감소증은 낙상과 대사질환의 원인이 됩니다. 매끼 단백질을 섭취하고 가벼운 저항성 운동을 병행해야 합니다.', date: '2024.05.17', views: 823 },
+      { id: 's3', title: '노년기 외로움과 우울증 대처 방법', summary: '음퇴와 사회적 관계 축소는 노인 우울증의 주원인입니다. 주기적인 야외 활동과 지역 커뮤니티 참여, 가족들과의 대화가 정신 건강을 지켜줍니다.', date: '2024.05.13', views: 592 }
+    ],
+    child: [
+      { id: 'c1', title: '우리 아이 면역력 키우는 5가지 습관', summary: '환절기마다 감기에 걸리는 아이를 위해 충분한 수면, 균형 잡힌 영양 섭취, 실내 습도 조절, 주기적인 야외 활동 등으로 기초 면역력을 높여주어야 합니다.', date: '2024.05.20', views: 1045 },
+      { id: 'c2', title: '소아 비만 예방을 위한 가족 식습관 개선', summary: '소아 비만은 성인 비만으로 이어질 확률이 매우 높습니다. 패스트푸드를 줄이고 온 가족이 함께 식사하며 천천히 먹는 습관을 기르는 것이 좋습니다.', date: '2024.05.15', views: 765 },
+      { id: 'c3', title: '어린이 스마트폰 증후군과 눈 건강 지키기', summary: '과도한 스마트폰 사용은 소아 약시나 안구건조증의 원인이 됩니다. 20분 사용 후 20초간 먼 곳을 바라보게 하고, 하루 사용 시간을 제한해야 합니다.', date: '2024.05.10', views: 912 }
+    ],
+    pregnancy: [
+      { id: 'p1', title: '임신 주수별 필수 검사 리스트', summary: '건강한 출산을 위해 주수별 기형아 검사, 정밀 초음파, 임신성 당뇨 검사 등을 제때 받아야 합니다. 시기별 필수 검사 일정을 미리 체크해보세요.', date: '2024.05.22', views: 1354 },
+      { id: 'p2', title: '임산부에게 좋은 음식과 피해야 할 음식', summary: '엽산이 풍부한 녹색 채소, 철분이 많은 붉은 고기는 임산부에게 유익합니다. 반면 날생선, 익히지 않은 고기, 과도한 카페인은 주의가 필요합니다.', date: '2024.05.18', views: 1102 },
+      { id: 'p3', title: '산후 우울증 극복을 위한 가족의 역할', summary: '급격한 호르몬 변화와 육아 스트레스로 많은 산모들이 산후 우울증을 겪습니다. 남편의 적극적인 육아 참여와 정서적 지지가 가장 큰 약입니다.', date: '2024.05.14', views: 832 }
+    ],
+    obesity: [
+      { id: 'o1', title: '요요 현상 없는 지속 가능한 다이어트 비법', summary: '무리한 굶기 다이어트는 기초대사량을 떨어뜨려 요요를 유발합니다. 주당 0.5kg 감량을 목표로 규칙적인 삼시 세끼와 근력 운동을 유지하는 것이 핵심입니다.', date: '2024.05.20', views: 1421 },
+      { id: 'o2', title: '마른 비만의 위험성과 자가 진단법', summary: '몸무게는 정상이지만 체지방률이 높은 마른 비만은 고혈압, 당뇨 등 대사질환의 위험이 더 큽니다. 근육량 부족이 원인이므로 근력 운동이 필수적입니다.', date: '2024.05.16', views: 1184 },
+      { id: 'o3', title: '식욕을 조절하는 호르몬 다스리기', summary: '포만감을 느끼게 하는 렙틴과 식욕을 돋우는 그렐린 호르몬은 수면 부족과 스트레스 시 균형이 깨집니다. 하루 7시간 이상 숙면하는 것이 중요합니다.', date: '2024.05.11', views: 954 }
+    ],
+    alcohol: [
+      { id: 'a1', title: '금연 성공률을 높이는 실천 가이드', summary: '금연은 혼자 힘으로 성공하기 어렵습니다. 금연클리닉 방문, 니코틴 대체요법 사용, 물 자주 마시기 등 구체적인 계획을 세우고 주변에 선언하세요.', date: '2024.05.21', views: 978 },
+      { id: 'a2', title: '숙취 해소에 좋은 음식과 잘못된 상식', summary: '숙취 해소에는 아스파라긴산이 풍부한 콩나물국이나 북어국이 좋습니다. 꿀물도 수분과 당분을 공급해 주지만, 해장술이나 매운 짬뽕은 위벽을 자극하므로 피해야 합니다.', date: '2024.05.17', views: 1120 },
+      { id: 'a3', title: '알코올이 뇌 건강에 미치는 악영향', summary: '지속적인 과음은 뇌 세포를 손상시켜 기억력 저하와 알코올성 치매를 유발할 수 있습니다. 건강을 지키기 위한 주당 적정 음주량을 알아봅니다.', date: '2024.05.12', views: 812 }
+    ],
+    cancer: [
+      { id: 'can1', title: '국가 5대 암 검진 주기와 대상자 확인하기', summary: '위암, 대장암, 간암, 유방암, 자궁경부암은 조기에 발견하면 완치율이 매우 높습니다. 연령별, 성별 검진 주기를 놓치지 말고 신청하세요.', date: '2024.05.22', views: 1532 },
+      { id: 'can2', title: '항암 치료 중 식사 요령과 영양 관리', summary: '항암 치료 중에는 구토, 입맛 변화 등으로 영양 결핍이 오기 쉽습니다. 조금씩 자주 섭취하고, 고단백·고칼로리 식단으로 체력을 유지하는 것이 최우선입니다.', date: '2024.05.19', views: 994 },
+      { id: 'can3', title: '암을 예방하는 건강한 생활 습관 10계명', summary: '암 예방의 첫걸음은 생활습관 개선입니다. 금연, 절주, 싱겁게 먹기, 주 5회 운동, 정기 검진 등 일상에서 실천 가능한 예방 수칙을 소개합니다.', date: '2024.05.15', views: 1204 }
+    ],
+    dementia: [
+      { id: 'd1', title: '초로기 치매란? 젊다고 안심할 수 없는 이유', summary: '65세 미만에 발병하는 초로기 치매는 진행 속도가 빠르고 인지장애 외에도 성격 변화가 먼저 나타날 수 있습니다. 조기 발견을 위한 자가진단 항목을 소개합니다.', date: '2024.05.20', views: 1402 },
+      { id: 'd2', title: '치매 예방에 좋은 \'뇌 훈련\' 생활 습관', summary: '독서, 일기 쓰기, 새로운 언어 배우기 등 뇌를 끊임없이 자극하는 활동은 인지 예비능을 높여 치매 발병을 늦춰줍니다. 매일 실천할 수 있는 훈련법을 알아봅니다.', date: '2024.05.17', views: 1245 },
+      { id: 'd3', title: '치매를 예방하는 지중해식 식단의 효과', summary: '올리브유, 견과류, 신선한 야채와 생선 위주의 지중해식 식단은 뇌 혈관 건강을 지키고 치매 위험을 30% 이상 낮춰준다는 연구 결과가 있습니다.', date: '2024.05.13', views: 1025 }
+    ]
+  };
+}
+
+window.getHealthIcon = function(iconType) {
+  if (iconType && iconType.length <= 4) {
+    return `
+      <div style="
+        width: 48px; 
+        height: 48px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 28px; 
+        background: rgba(var(--theme-color-rgb), 0.08); 
+        border-radius: 50%;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+      ">
+        ${iconType}
+      </div>
+    `;
+  }
+
+  switch(iconType) {
+    case 'women_health':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="18" r="10" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/>
+          <path d="M24 28V42M18 35H30" stroke="#f472b6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 18C12 11.3726 17.3726 6 24 6" stroke="#ec4899" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      `;
+    case 'men_health':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="28" r="10" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+          <path d="M27 21L38 10M30 10H38V18" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 18C25.5228 18 30 22.4772 30 28" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      `;
+    case 'senior_health':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 28C16 22 20.5 17 24 17C27.5 17 32 22 32 28" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="17" cy="30" r="4" stroke="#a78bfa" stroke-width="2"/>
+          <circle cx="31" cy="30" r="4" stroke="#a78bfa" stroke-width="2"/>
+          <path d="M21 30H27" stroke="#8b5cf6" stroke-width="2"/>
+          <path d="M24 8V17M20 11H28" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      `;
+    case 'child_health':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="20" r="9" stroke="#10b981" stroke-width="3"/>
+          <path d="M14 36C14 30.5 18.5 29 24 29C29.5 29 34 30.5 34 36" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+          <path d="M20 16C20 16 22 18 24 18C26 18 28 16 28 16" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="16" cy="10" r="2" fill="#10b981"/>
+          <circle cx="32" cy="10" r="2" fill="#10b981"/>
+        </svg>
+      `;
+    case 'pregnancy':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 8C20 11 18 13 18 15C18 19 25 21 25 27C25 32 20 37 20 40" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M25 21C29.4183 21 33 24.5817 33 29C33 33.4183 29.4183 37 25 37" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M23 29C23 27.9 23.9 27 25 27C26.1 27 27 27.9 27 29C27 30.1 26.1 31 25 31" fill="#f97316"/>
+        </svg>
+      `;
+    case 'obesity':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="10" width="32" height="28" rx="6" stroke="#06b6d4" stroke-width="3"/>
+          <circle cx="24" cy="24" r="8" stroke="#06b6d4" stroke-width="3"/>
+          <path d="M24 24L28 18" stroke="#0891b2" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 10V14M34 10V14" stroke="#06b6d4" stroke-width="2"/>
+        </svg>
+      `;
+    case 'alcohol':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 10H24V28H16V10Z" stroke="#f59e0b" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M20 10V6H20" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+          <path d="M28 24H38V28H28" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+          <path d="M38 24L38 32" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+          <line x1="33" y1="28" x2="33" y2="34" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+    case 'cancer':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 40C16 30 20 22 24 14C28 22 32 30 32 40" stroke="#a855f7" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M14 30C18 30 21 22 24 14C27 22 30 30 34 30" stroke="#a855f7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    case 'dementia':
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 40C17.5 40 14 36 14 29C14 26 15 24 17 22C16 18 19 12 24 12C29 12 32 18 31 22C33 24 34 26 34 29C34 36 30.5 40 24 40Z" stroke="#ec4899" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M24 12V40" stroke="#ec4899" stroke-width="2"/>
+          <path d="M19 28H29" stroke="#db2777" stroke-width="2"/>
+        </svg>
+      `;
+    case 'plus':
+      return `
+        <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 10V38M10 24H38" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    default:
+      return `
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="14" width="28" height="24" rx="4" stroke="var(--theme-color)" stroke-width="3"/>
+          <path d="M24 8V14M18 10H30" stroke="var(--theme-color)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M24 20V32M18 26H30" stroke="var(--theme-color)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      `;
+  }
+};
+
+window.renderCategoryHealthInfo = function() {
+  const currentCategory = window.healthCategories[window.activeHealthCategoryIdx];
+  if (!currentCategory) return '<div>선택된 카테고리가 없습니다.</div>';
+
+  if (window.selectedHealthPostId) {
+    const allPosts = [];
+    Object.keys(window.healthPosts).forEach(catId => {
+      allPosts.push(...window.healthPosts[catId]);
+    });
+    const post = allPosts.find(p => p.id === window.selectedHealthPostId);
+    if (post) {
+      let postCategory = window.healthCategories.find(cat => {
+        const posts = window.healthPosts[cat.id] || [];
+        return posts.some(p => p.id === post.id);
+      }) || currentCategory;
+
+      const imgUrl = window.getHealthPostImage(post.id, postCategory.id);
+      const detailBodyHtml = window.getHealthPostDetailedText(post);
+
+      return `
+        <div class="health-post-detail-container" style="animation: fadeIn 0.4s ease-out; background: #fff; padding: 0;">
+          <!-- Breadcrumbs and Back Button -->
+          <div style="margin-bottom: 24px;">
+            <button onclick="window.backToHealthList()" style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: none;
+              border: none;
+              color: var(--theme-color);
+              font-size: 15px;
+              font-weight: 700;
+              cursor: pointer;
+              padding: 0;
+              transition: transform 0.2s ease;
+            "
+            onmouseover="this.style.transform='translateX(-4px)';"
+            onmouseout="this.style.transform='none';">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              목록으로 돌아가기
+            </button>
+          </div>
+
+          <!-- Article Header -->
+          <div style="margin-bottom: 24px; border-bottom: 2px solid #0f172a; padding-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+              <span style="
+                background: rgba(var(--theme-color-rgb), 0.1);
+                color: var(--theme-color);
+                font-size: 12px;
+                font-weight: 800;
+                padding: 4px 10px;
+                border-radius: 20px;
+                letter-spacing: -0.3px;
+              ">${postCategory.label}</span>
+            </div>
+            <h2 style="
+              margin: 0 0 16px 0;
+              font-size: 28px;
+              font-weight: 850;
+              color: #0f172a;
+              line-height: 1.35;
+              letter-spacing: -0.8px;
+            ">${post.title}</h2>
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              font-size: 14px;
+              color: #94a3b8;
+              font-weight: 600;
+            ">
+              <span>작성일 ${post.date}</span>
+              <span style="width: 1px; height: 12px; background: #cbd5e1;"></span>
+              <span>조회수 ${post.views.toLocaleString()}회</span>
+            </div>
+          </div>
+
+          <!-- Feature Image -->
+          <div style="
+            width: 100%;
+            height: 380px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+          ">
+            <img src="${imgUrl}" alt="${post.title}" style="
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            ">
+          </div>
+
+          <!-- Article Body -->
+          <div style="
+            font-size: 16px;
+            color: #334155;
+            line-height: 1.8;
+            letter-spacing: -0.3px;
+            word-break: keep-all;
+            margin-bottom: 40px;
+          ">
+            ${detailBodyHtml}
+          </div>
+
+          <!-- Bottom Actions -->
+          <div style="
+            border-top: 1px solid #e2e8f0;
+            padding-top: 24px;
+            display: flex;
+            justify-content: center;
+          ">
+            <button onclick="window.backToHealthList()" style="
+              padding: 12px 32px;
+              background: #0f172a;
+              color: #fff;
+              border: none;
+              border-radius: 8px;
+              font-size: 15px;
+              font-weight: 700;
+              cursor: pointer;
+              transition: opacity 0.2s ease;
+            "
+            onmouseover="this.style.opacity='0.9';"
+            onmouseout="this.style.opacity='1';">목록으로</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  let categoryPosts = window.healthPosts[currentCategory.id] || [];
+
+  if (window.healthSortType === 'latest') {
+    categoryPosts.sort((a, b) => b.date.localeCompare(a.date));
+  } else if (window.healthSortType === 'popular') {
+    categoryPosts.sort((a, b) => b.views - a.views);
+  } else if (window.healthSortType === 'alphabet') {
+    categoryPosts.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  const totalPosts = categoryPosts.length;
+  const visiblePosts = categoryPosts.slice(0, window.visibleHealthPostCount);
+
+  const cardsHtml = window.healthCategories.map((cat, idx) => {
+    const isActive = idx === window.activeHealthCategoryIdx;
+    const cardBorderColor = isActive ? 'var(--theme-color)' : '#cbd5e1';
+    const cardBgColor = isActive ? 'rgba(var(--theme-color-rgb), 0.04)' : '#fff';
+    const cardTextColor = isActive ? 'var(--theme-color)' : '#334155';
+    const activeClass = isActive ? 'active-health-card' : '';
+
+    return `
+      <div class="health-category-card ${activeClass}" 
+           onclick="window.selectHealthCategory(${idx})" 
+           style="
+             border: 1.5px solid ${cardBorderColor};
+             background-color: ${cardBgColor};
+             color: ${cardTextColor};
+             border-radius: 16px;
+             padding: 24px;
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             justify-content: center;
+             gap: 12px;
+             cursor: pointer;
+             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+             min-height: 140px;
+             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+           "
+           onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(var(--theme-color-rgb), 0.15)';"
+           onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+        <div class="health-category-icon" style="transition: transform 0.25s ease;">
+          ${window.getHealthIcon(cat.icon)}
+        </div>
+        <div style="font-weight: 700; font-size: 15px; letter-spacing: -0.3px; text-align: center;">${cat.label}</div>
+      </div>
+    `;
+  }).join('');
+
+  const gridHtml = `
+    <div style="
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    ">
+      ${cardsHtml}
+    </div>
+  `;
+
+  const latestSelected = window.healthSortType === 'latest' ? 'selected' : '';
+  const popularSelected = window.healthSortType === 'popular' ? 'selected' : '';
+  const alphabetSelected = window.healthSortType === 'alphabet' ? 'selected' : '';
+
+  const postsHtml = visiblePosts.map(post => {
+    return `
+      <div class="health-post-row" style="
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        border-bottom: 1.5px solid #e2e8f0;
+        padding: 24px;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+        cursor: pointer;
+      "
+      onclick="window.viewHealthPost('${post.id}')"
+      onmouseover="this.style.backgroundColor='#fafafa';"
+      onmouseout="this.style.backgroundColor='#fff';">
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        ">
+          <h4 style="
+            margin: 0;
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+          ">${post.title}</h4>
+          <div style="
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          ">
+            <span>${post.date}</span>
+            <span style="width: 1px; height: 12px; background: #e2e8f0;"></span>
+            <span style="color: #64748b;">조회수 ${post.views.toLocaleString()}</span>
+          </div>
+        </div>
+        <p style="
+          margin: 0;
+          font-size: 14px;
+          color: #475569;
+          line-height: 1.6;
+          word-break: keep-all;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        ">${post.summary}</p>
+      </div>
+    `;
+  }).join('');
+
+  const hasMore = totalPosts > window.visibleHealthPostCount;
+  const showMoreBtnHtml = hasMore ? `
+    <div style="display: flex; justify-content: center; margin-top: 24px;">
+      <button onclick="window.showMorePosts()" style="
+        width: 100%;
+        padding: 16px;
+        background: #fff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+      "
+      onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8';"
+      onmouseout="this.style.background='#fff'; this.style.borderColor='#cbd5e1';">
+        더보기 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+  ` : '';
+
+  return `
+    <div class="health-info-container" style="animation: fadeIn 0.4s ease-out;">
+      
+      <style>
+        .health-category-card.active-health-card {
+          border-color: var(--theme-color) !important;
+          background-color: rgba(var(--theme-color-rgb), 0.03) !important;
+          box-shadow: 0 8px 16px -4px rgba(var(--theme-color-rgb), 0.12) !important;
+        }
+        .health-category-card.active-health-card .health-category-icon {
+          transform: scale(1.08);
+        }
+      </style>
+
+      <p style="color: #64748b; font-size: 15px; margin: -20px 0 24px 0; line-height: 1.5; font-weight: 500;">다양한 건강정보를 분야별로 확인하실 수 있습니다.</p>
+
+      <div style="
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+        margin-bottom: 32px;
+      ">
+        <div style="display: flex; justify-content: flex-end; font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 16px;">
+          원하는 분야를 선택하시면 관련 정보를 확인하실 수 있습니다.
+        </div>
+        ${gridHtml}
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0 16px 0;
+          border-bottom: 2px solid #0f172a;
+          margin-bottom: 0px;
+        ">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="width: 4px; height: 18px; background: var(--theme-color); border-radius: 10px; display: inline-block;"></span>
+            <span style="font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">${currentCategory.label}</span>
+            <span style="font-size: 14px; font-weight: 600; color: #64748b; margin-left: 6px;">총 ${totalPosts}건</span>
+          </div>
+
+          <div>
+            <select onchange="window.sortHealthPosts(this.value)" style="
+              padding: 8px 16px;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              font-size: 13px;
+              font-weight: 700;
+              color: #475569;
+              background: #fff;
+              outline: none;
+              cursor: pointer;
+            ">
+              <option value="latest" ${latestSelected}>최신순</option>
+              <option value="popular" ${popularSelected}>인기순</option>
+              <option value="alphabet" ${alphabetSelected}>가나다순</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden; border: 1px solid #e2e8f0; border-top: none;">
+          ${postsHtml || `
+            <div style="padding: 60px; text-align: center; color: #94a3b8; font-weight: 600; font-size: 15px;">
+              등록된 건강정보가 없습니다.
+            </div>
+          `}
+        </div>
+
+        ${showMoreBtnHtml}
+      </div>
+
+      <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 8px; color: #94a3b8; font-size: 12px; font-weight: 500; line-height: 1.5;">
+        <span>*</span>
+        <div>제공되는 건강정보는 참고용이며, 질병의 진단 및 치료를 대체할 수 없습니다.</div>
+      </div>
+
+    </div>
+  `;
+};
+
+window.selectHealthCategory = function(index) {
+  window.activeHealthCategoryIdx = index;
+  window.visibleHealthPostCount = 5;
+  window.selectedHealthPostId = null;
+  render();
+};
+
+window.sortHealthPosts = function(sortType) {
+  window.healthSortType = sortType;
+  render();
+};
+
+window.showMorePosts = function() {
+  window.visibleHealthPostCount += 5;
+  render();
+};
+
+// ==========================================
+// 건강콘텐츠 구독 기능 (Health Content Subscriptions)
+// ==========================================
+
+const SUBSCRIBE_DATA = {
+  disease_prevention: {
+    title: "질병예방관리 프로그램",
+    desc: "고혈압, 당뇨 등 주요 질환의 예방과 관리를 위한 정보와 생활 습관 개선 가이드를 제공합니다.",
+    icon: "🌱",
+    color: "#16a34a",
+    colorRgb: "22, 163, 74",
+    cycleDesc: "주 1회 / 월 1회",
+    contents: [
+      { id: "dp_hyper", name: "고혈압 예방과 관리", desc: "혈압 관리의 중요성과 생활 습관 개선 방법, 식단·운동 가이드를 제공합니다.", cycle: "주 1회", duration: "4주", premium: false },
+      { id: "dp_diab", name: "당뇨병 예방과 관리", desc: "혈당 관리의 핵심 정보와 식습관, 운동, 합변증 예방 방법을 안내합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "dp_lipid", name: "이상지질혈증 관리", desc: "콜레스테롤과 중성지방 관리 방법 및 심혈관 질환 예방 정보를 제공합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "dp_obesity", name: "비만 관리 프로그램", desc: "체중 관리의 원칙과 식사·운동 가이드, 체중 감량 팁을 제공합니다.", cycle: "주 1회", duration: "12주", premium: false },
+      { id: "dp_liver", name: "간 건강 관리", desc: "간 기능 보호와 지방간 예방, 간에 좋은 식습관과 생활 습관을 안내합니다.", cycle: "월 1회", duration: "6개월", premium: true },
+      { id: "dp_smoke", name: "금연 프로그램", desc: "금연의 필요성과 금연 성공 전략, 흡연이 건강에 미치는 영향 정보를 제공합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "dp_stress", name: "스트레스 관리", desc: "스트레스의 원인과 관리법, 마음 건강을 위한 실천 가이드를 제공합니다.", cycle: "주 1회", duration: "4주", premium: false }
+    ]
+  },
+  pregnancy: {
+    title: "임신/출산 정보 알림 & 맞춤관리",
+    desc: "임신 및 출산에 필요한 맞춤 정보와 주기별 관리 가이드를 제공합니다.",
+    icon: "🤰",
+    color: "#22c55e",
+    colorRgb: "34, 197, 94",
+    cycleDesc: "주 1회 / 월 1회",
+    contents: [
+      { id: "preg_guide", name: "임신 주차별 맞춤 알림", desc: "임신 주차별 태아 발달과 모체의 변화, 필수 영양소 정보를 가이드합니다.", cycle: "주 1회", duration: "40주", premium: false },
+      { id: "preg_recovery", name: "출산 조리 & 신체 회복", desc: "산후 신체 회복을 돕는 영양 식단, 산후 우울증 극복과 가벼운 운동법을 소개합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "preg_baby", name: "신생아 돌보기 및 모유수유", desc: "초보 부모를 위한 신생아 수면, 목욕, 예방접종 및 모유수유 실전 팁을 안내합니다.", cycle: "주 1회", duration: "12주", premium: false },
+      { id: "preg_child", name: "영유아 시기별 건강관리", desc: "만 5세까지 영유아의 시기별 신체적, 정서적 발달 체크리스트를 제공합니다.", cycle: "월 1회", duration: "60개월", premium: true }
+    ]
+  },
+  health_promotion: {
+    title: "건강증진 프로그램",
+    desc: "피부관리, 금연, 스트레스 관리, 체중관리 등 건강한 삶을 위한 다양한 정보를 제공합니다.",
+    icon: "💙",
+    color: "#3b82f6",
+    colorRgb: "59, 130, 246",
+    cycleDesc: "주 1회 / 월 1회",
+    contents: [
+      { id: "hp_immunity", name: "환절기 면역력 강화 코칭", desc: "면역력 저하 자가 진단 및 체온 유지법, 면역력에 탁월한 제철 보양 식단을 추천합니다.", cycle: "주 1회", duration: "4주", premium: false },
+      { id: "hp_sleep", name: "꿀잠 솔루션 (수면 케어)", desc: "불면증 원인 분석, 올바른 수면 위생 및 수면 환경 개선을 위한 힐링 스트레칭을 제공합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "hp_skin", name: "디톡스 및 피부 건강 케어", desc: "노화 예방, 피부 장벽 보호를 위한 식습관과 홈케어 마사지 및 체내 독소 배출 가이드를 제안합니다.", cycle: "주 1회", duration: "6주", premium: false },
+      { id: "hp_fatigue", name: "만성 피로 타파 가이드", desc: "만성 피로의 원인 진단과 생체 리듬 회복, 활력 충전을 위한 에너지 영양 요법을 처방합니다.", cycle: "주 1회", duration: "8주", premium: true }
+    ]
+  },
+  checkup_guide: {
+    title: "검진/사후관리 가이드",
+    desc: "건강검진 결과 활용법과 사후관리 방법을 안내하여 건강한 삶을 유지하도록 도와드립니다.",
+    icon: "☑",
+    color: "#8b5cf6",
+    colorRgb: "139, 92, 246",
+    cycleDesc: "주 1회 / 월 1회",
+    contents: [
+      { id: "cg_result", name: "건강검진 결과 백서", desc: "복잡한 검진 수치들을 일반인의 눈높이에 맞추어 핵심 설명과 질환 위험도를 안내합니다.", cycle: "주 1회", duration: "4주", premium: false },
+      { id: "cg_scope", name: "위/대장 내시경 사후 관리", desc: "용종 제거 후 자극 없는 식사 가이드 및 일상 생활 주의사항을 설명합니다.", cycle: "주 1회", duration: "4주", premium: false },
+      { id: "cg_metabolic", name: "대사증후군 탈출 프로그램", desc: "복부비만, 고혈압, 당뇨 등 대사증후군 위험 인자를 해소하기 위한 핏 트레이닝 가이드입니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "cg_joint", name: "관절 자가 재활 프로그램", desc: "인공관절 수술 또는 관절 통증 후 집에서 안전하게 수행할 수 있는 재활 스트레칭을 코칭합니다.", cycle: "주 1회", duration: "4주", premium: true }
+    ]
+  },
+  exercise_nutrition: {
+    title: "운동/영양/생활습관 관리",
+    desc: "운동, 영양, 생활습관 개선을 위한 실천 가이드와 팁을 제공합니다.",
+    icon: "🏃",
+    color: "#f97316",
+    colorRgb: "249, 115, 22",
+    cycleDesc: "주 1회 / 월 1회",
+    contents: [
+      { id: "en_core", name: "하루 10분 홈트레이닝 코어 운동", desc: "기초 체력을 단련하고 자세를 바로잡는 무리 없는 전신 근력 운동 루틴을 코칭합니다.", cycle: "주 1회", duration: "8주", premium: false },
+      { id: "en_joint", name: "어깨/고관절/무릎 관절 강화", desc: "3대 관절 부위를 부드럽고 튼튼하게 만들어 통증을 예방하는 5분 관절 체조입니다.", cycle: "주 1회", duration: "4주", premium: false },
+      { id: "en_recipe", name: "저염/저당 식단 레시피", desc: "성인병 예방을 위해 나트륨과 당분을 줄인 맛있는 건강 밥상 조리법을 공유합니다.", cycle: "주 1회", duration: "12주", premium: false },
+      { id: "en_stretching", name: "직장인을 위한 오피스 스트레칭", desc: "거북목, 허리 통증을 예방할 수 있는 사무실 밀착형 스트레칭을 매일 가이드합니다.", cycle: "주 1회", duration: "6주", premium: false },
+      { id: "en_gut", name: "소화기 힐링 및 장 건강 요법", desc: "만성 소화불량 및 변비 개선에 탁월한 식이섬유 섭취 가이드와 장 마사지 요법을 제공합니다.", cycle: "월 1회", duration: "6개월", premium: true }
+    ]
+  }
+};
+
+function getSubscribedContents() {
+  try {
+    return JSON.parse(localStorage.getItem('hc_subscribed_contents') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function setSubscribedContents(subs) {
+  try {
+    localStorage.setItem('hc_subscribed_contents', JSON.stringify(subs));
+  } catch (e) {}
+}
+
+function isPremiumUser() {
+  const client = state.activeClient;
+  const userTiers = state.currentUser ? (state.currentUser.tiers[client.id] || []) : [];
+  return userTiers.some(t => {
+    const tName = typeof t === 'object' ? (t.name || t.label || t.id || '') : String(t);
+    return tName.includes('VIP') || tName.includes('우대') || tName.includes('임원') || tName.includes('프리미어') || tName.includes('프레스티지') || tName.includes('플래티넘');
+  });
+}
+
+function getRequiredPremiumTierName(clientId) {
+  if (clientId === 'kyobo') return 'VIP플랜';
+  if (clientId === 'dasom') return '우대등급';
+  if (clientId === 'other') return '임원급';
+  return 'VIP 등급';
+}
+
+window.toggleSubscribe = function(contentId) {
+  const subs = getSubscribedContents();
+  if (!subs.includes(contentId)) {
+    subs.push(contentId);
+    setSubscribedContents(subs);
+    showToast('구독 신청이 완료되었습니다.');
+    render();
+  }
+};
+
+window.cancelSubscribe = function(contentId) {
+  const subs = getSubscribedContents();
+  const idx = subs.indexOf(contentId);
+  if (idx !== -1) {
+    if (confirm('구독을 취소하시겠습니까?')) {
+      subs.splice(idx, 1);
+      setSubscribedContents(subs);
+      showToast('구독이 취소되었습니다.');
+      render();
+    }
+  }
+};
+
+window.renderContentSubscribe = function() {
+  const client = state.activeClient;
+  const activeSite = state.activeSite || client.sites[0];
+  const topicKey = state.activeSubSubId;
+  const isPremium = isPremiumUser();
+  const premiumTierLabel = getRequiredPremiumTierName(client.id);
+
+  // Dynamic Styles injection (Scoped with .portal-subscribe- namespace)
+  const stylesHtml = `
+    <style>
+      .portal-subscribe-container {
+        animation: fadeIn 0.4s ease-out;
+      }
+      .portal-subscribe-title-section {
+        text-align: center;
+        padding: 40px 0 32px 0;
+      }
+      .portal-subscribe-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -1.0px;
+      }
+      .portal-subscribe-subtitle {
+        font-size: 15px;
+        color: #64748b;
+        margin-top: 16px;
+        line-height: 1.6;
+        font-weight: 500;
+      }
+      .portal-subscribe-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.005);
+      }
+      .portal-subscribe-card:hover {
+        transform: translateY(-2.5px);
+        box-shadow: 0 12px 24px -6px rgba(0,0,0,0.06);
+        border-color: rgba(var(--theme-color-rgb), 0.25);
+      }
+      .portal-subscribe-card-left {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+      .portal-subscribe-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
+      }
+      .portal-subscribe-card:hover .portal-subscribe-icon-wrapper {
+        transform: scale(1.08);
+      }
+      .portal-subscribe-info {
+        margin-left: 24px;
+        text-align: left;
+      }
+      .portal-subscribe-card-title {
+        font-size: 19px;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+        letter-spacing: -0.5px;
+      }
+      .portal-subscribe-card-desc {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 6px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+      .portal-subscribe-card-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .portal-subscribe-badge-pill {
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .portal-subscribe-chevron {
+        font-size: 20px;
+        font-weight: 800;
+        color: #94a3b8;
+        transition: transform 0.2s;
+      }
+      .portal-subscribe-card:hover .portal-subscribe-chevron {
+        transform: translateX(4px);
+        color: var(--theme-color);
+      }
+      
+      /* Detail Table Styles */
+      .portal-subscribe-table-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+        overflow: hidden;
+        margin-top: 16px;
+      }
+      .portal-subscribe-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      .portal-subscribe-table th {
+        background: #f8fafc;
+        padding: 18px 24px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .portal-subscribe-table td {
+        padding: 22px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+      }
+      .portal-subscribe-table tr:last-child td {
+        border-bottom: none;
+      }
+      .portal-subscribe-content-title {
+        font-size: 15.5px;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+        letter-spacing: -0.3px;
+      }
+      .portal-subscribe-content-desc {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 5px;
+        line-height: 1.55;
+        font-weight: 500;
+      }
+      
+      /* Buttons */
+      .portal-subscribe-btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 108px;
+        height: 38px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+      }
+      .portal-subscribe-btn-action.btn-apply {
+        border: 1.5px solid var(--theme-color);
+        color: var(--theme-color);
+        background: #ffffff;
+      }
+      .portal-subscribe-btn-action.btn-apply:hover {
+        background: var(--theme-color);
+        color: #ffffff;
+      }
+      .portal-subscribe-btn-action.btn-active {
+        background: #22c55e;
+        color: #ffffff;
+        border: none;
+        cursor: default;
+      }
+      .portal-subscribe-btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 108px;
+        height: 30px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid #cbd5e1;
+        color: #64748b;
+        background: #ffffff;
+        margin-top: 6px;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+        text-decoration: none;
+      }
+      .portal-subscribe-btn-cancel:hover {
+        border-color: #f43f5e;
+        color: #f43f5e;
+        background: #fff1f2;
+      }
+      .portal-subscribe-lock-badge {
+        background: #fee2e2;
+        color: #ef4444;
+        border: 1px solid #fecaca;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin-bottom: 6px;
+      }
+      .portal-subscribe-btn-action.btn-disabled {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #94a3b8;
+        cursor: not-allowed;
+      }
+      
+      /* Bottom Banner */
+      .portal-subscribe-notice-banner {
+        background: rgba(var(--theme-color-rgb), 0.03);
+        border: 1px solid rgba(var(--theme-color-rgb), 0.12);
+        border-radius: 14px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-top: 32px;
+      }
+      .portal-subscribe-notice-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--theme-color);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .portal-subscribe-notice-text {
+        font-size: 13.5px;
+        color: #475569;
+        font-weight: 600;
+        line-height: 1.6;
+        text-align: left;
+      }
+    </style>
+  `;
+
+  // Check if viewing a specific topic detail
+  if (topicKey && SUBSCRIBE_DATA[topicKey]) {
+    const topicData = SUBSCRIBE_DATA[topicKey];
+    const subscribed = getSubscribedContents();
+
+    // Render breadcrumbs
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          Home
+        </span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>건강정보</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="cursor: pointer;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthInfo/contentSubscribe'">건강콘텐츠 구독</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">${topicData.title}</span>
+      </div>
+    `;
+
+    // Detail Header
+    const detailHeaderHtml = `
+      <div style="
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+        margin-bottom: 32px;
+        text-align: left;
+      ">
+        <div style="
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: rgba(${topicData.colorRgb}, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 40px;
+          flex-shrink: 0;
+        ">${topicData.icon}</div>
+        <div style="margin-left: 28px;">
+          <h1 style="font-size: 26px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px;">${topicData.title}</h1>
+          <p style="font-size: 15px; color: #64748b; margin-top: 8px; line-height: 1.5; font-weight: 500; letter-spacing: -0.2px;">${topicData.desc}</p>
+        </div>
+      </div>
+    `;
+
+    // Filter contents based on premium grade eligibility
+    const eligibleContents = topicData.contents.filter(item => {
+      // If it's a premium item, only show it to premium users
+      if (item.premium && !isPremium) return false;
+      return true;
+    });
+
+    // Build Contents Rows
+    const rowsHtml = eligibleContents.map(item => {
+      const isSubscribed = subscribed.includes(item.id);
+      const isPremiumLock = item.premium && !isPremium;
+
+      let btnCellHtml = '';
+      if (isPremiumLock) {
+        btnCellHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <span class="portal-subscribe-lock-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 11V7a5 5 0 0 0-10 0v4"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M12 15v3"></path></svg>
+              ${premiumTierLabel} 전용
+            </span>
+            <button class="portal-subscribe-btn-action btn-disabled" disabled>구독 신청</button>
+          </div>
+        `;
+      } else if (isSubscribed) {
+        btnCellHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <button class="portal-subscribe-btn-action btn-active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              구독중
+            </button>
+            <button onclick="window.cancelSubscribe('${item.id}')" class="portal-subscribe-btn-cancel">취소</button>
+          </div>
+        `;
+      } else {
+        btnCellHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <button onclick="window.toggleSubscribe('${item.id}')" class="portal-subscribe-btn-action btn-apply">구독 신청</button>
+          </div>
+        `;
+      }
+
+      return `
+        <tr>
+          <td>
+            <div style="display: flex; align-items: flex-start; gap: 14px; text-align: left;">
+              <div style="
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba(${topicData.colorRgb}, 0.05);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                flex-shrink: 0;
+                margin-top: 2px;
+              ">${topicData.icon}</div>
+              <div>
+                <h3 class="portal-subscribe-content-title">${item.name}</h3>
+                <p class="portal-subscribe-content-desc">${item.desc}</p>
+              </div>
+            </div>
+          </td>
+          <td style="text-align: center; font-size: 14px; color: #475569; font-weight: 700;">${item.cycle}</td>
+          <td style="text-align: center; font-size: 14px; color: #475569; font-weight: 700;">${item.duration}</td>
+          <td style="text-align: center; width: 140px;">${btnCellHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const tableHtml = `
+      <div style="text-align: left; margin-top: 32px; margin-bottom: 8px;">
+        <h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px;">콘텐츠 목록</h2>
+        <p style="font-size: 13.5px; color: #64748b; margin-top: 4px; font-weight: 500;">원하시는 콘텐츠를 선택하여 구독 신청하실 수 있습니다.</p>
+      </div>
+      <div class="portal-subscribe-table-card">
+        <table class="portal-subscribe-table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">콘텐츠명</th>
+              <th style="text-align: center; width: 120px;">발송 주기</th>
+              <th style="text-align: center; width: 120px;">총 발송 기간</th>
+              <th style="text-align: center; width: 140px;">신청</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // Bottom notice banner
+    const bannerHtml = `
+      <div class="portal-subscribe-notice-banner">
+        <div class="portal-subscribe-notice-icon">i</div>
+        <div class="portal-subscribe-notice-text">
+          구독 신청하신 콘텐츠는 선택한 주기와 기간에 맞춰 정기적으로 발송됩니다.<br>
+          여러 콘텐츠를 동시에 구독하실 수 있으며, 언제든지 취소하실 수 있습니다.
+        </div>
+      </div>
+    `;
+
+    return `
+      ${stylesHtml}
+      <div class="portal-subscribe-container">
+        ${breadcrumbHtml}
+        ${detailHeaderHtml}
+        ${tableHtml}
+        ${bannerHtml}
+        
+        <!-- 목록 버튼 (좌측하단) -->
+        <div style="margin-top: 32px; display: flex; justify-content: flex-start;">
+          <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthInfo/contentSubscribe'" style="
+            padding: 12px 32px;
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+          "
+          onmouseover="this.style.opacity='0.9';"
+          onmouseout="this.style.opacity='1';">목록</button>
+        </div>
+      </div>
+    `;
+  } else {
+    // 1단계: 주제 선택 메인 화면 (First Image Layout)
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          Home
+        </span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>건강정보</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">건강콘텐츠 구독</span>
+      </div>
+    `;
+
+    const titleSectionHtml = `
+      <div class="portal-subscribe-title-section">
+        <h1 class="portal-subscribe-title">건강콘텐츠 구독</h1>
+        <p class="portal-subscribe-subtitle">
+          건강한 생활을 위한 맞춤형 정보를 구독해 보세요.<br>
+          관심 있는 프로그램을 선택하시면, 정기적으로 유용한 정보를 받아보실 수 있습니다.
+        </p>
+      </div>
+    `;
+
+    // Render 5 categories cards
+    const cardsHtml = Object.keys(SUBSCRIBE_DATA).map(key => {
+      const topic = SUBSCRIBE_DATA[key];
+      
+      // Card click hash navigation
+      const clickHash = `#/portal/${client.id}/${activeSite.siteId}/healthInfo/contentSubscribe/${key}`;
+      
+      // Dynamic inline styles for card pills based on theme
+      const pillStyle = `
+        border: 1px solid rgba(${topic.colorRgb}, 0.2);
+        background: rgba(${topic.colorRgb}, 0.04);
+        color: ${topic.color};
+      `;
+
+      const iconStyle = `
+        background: rgba(${topic.colorRgb}, 0.07);
+        border: 1px solid rgba(${topic.colorRgb}, 0.15);
+      `;
+
+      return `
+        <div onclick="window.location.hash='${clickHash}'" class="portal-subscribe-card">
+          <div class="portal-subscribe-card-left">
+            <div class="portal-subscribe-icon-wrapper" style="${iconStyle}">
+              ${topic.icon}
+            </div>
+            <div class="portal-subscribe-info">
+              <h2 class="portal-subscribe-card-title">${topic.title}</h2>
+              <p class="portal-subscribe-card-desc">${topic.desc}</p>
+            </div>
+          </div>
+          <div class="portal-subscribe-card-right">
+            <span class="portal-subscribe-badge-pill" style="${pillStyle}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:-1px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              ${topic.cycleDesc}
+            </span>
+            <span class="portal-subscribe-chevron">&gt;</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const bannerHtml = `
+      <div class="portal-subscribe-notice-banner">
+        <div class="portal-subscribe-notice-icon">i</div>
+        <div class="portal-subscribe-notice-text">
+          구독을 신청하시면 선택한 주기와 기간에 맞춰 콘텐츠가 정기적으로 발송됩니다.<br>
+          여러 프로그램을 동시에 구독하실 수 있으며, 언제든지 변경 또는 해지하실 수 있습니다.
+        </div>
+      </div>
+    `;
+
+    return `
+      ${stylesHtml}
+      <div class="portal-subscribe-container">
+        ${breadcrumbHtml}
+        ${titleSectionHtml}
+        <div style="margin-top: 16px;">
+          ${cardsHtml}
+        </div>
+        ${bannerHtml}
+      </div>
+    `;
+  }
+};
+
 render();
+
+
