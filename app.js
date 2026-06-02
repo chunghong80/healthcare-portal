@@ -18,31 +18,38 @@ const clientConfigs = {
 };
 
 const defaultMenus = [
-  { id: "serviceGuide", label: "서비스 안내", isVisible: true, children: [] },
+  { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
   {
-    id: "healthConsulting", label: "건강상담", isVisible: true, children: [
-      { id: "consultApply", label: "건강상담 신청", isVisible: true, children: [] },
-      { id: "consultHistory", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
+    id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
+      { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: true, children: [] },
+      { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
     ]
   },
   {
-    id: "hospitalGuide", label: "병원안내", isVisible: true, children: [
-      { id: "search", label: "병원검색", isVisible: true, children: [] },
-      { id: "expert", label: "명의안내", isVisible: true, children: [] }
+    id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
+      { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
+      { id: "expert", defaultLabel: "명의안내", label: "명의안내", isVisible: true, children: [] }
     ]
   },
   {
-    id: "medicalAppt", label: "진료예약", isVisible: true, children: [
-      { id: "history", label: "상담 신청 이력", isVisible: true, children: [] }
+    id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
+      { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
     ]
   },
   {
-    id: "checkupAppt", label: "건강검진 예약", isVisible: true, children: [
-      { id: "checkupHistory", label: "건강검진 신청이력", isVisible: true, children: [] }
+    id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+      { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
     ]
   },
-  { id: "healthInfo", label: "건강정보", isVisible: true, children: [] },
-  { id: "psyCare", label: "심리케어", isVisible: true, children: [] }
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
+    ]
+  },
+  { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
 ];
 
 const BRAND_DEFAULTS = {
@@ -816,11 +823,63 @@ function loadSavedConfigs() {
       client.sites.forEach(site => {
         if (site.menus) {
           const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
-          if (checkupApptMenu) {
-            if (!checkupApptMenu.children) checkupApptMenu.children = [];
-            if (checkupApptMenu.children.length === 0) {
+          if (checkupApptMenu && (!checkupApptMenu.children || checkupApptMenu.children.length === 0)) {
+            checkupApptMenu.children = [
+              { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+              { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+            ];
+          } else if (checkupApptMenu && checkupApptMenu.children) {
+            if (!checkupApptMenu.children.some(c => c.id === 'checkupPreferred')) {
               checkupApptMenu.children.push({ id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] });
             }
+            if (!checkupApptMenu.children.some(c => c.id === 'checkupHistory')) {
+              checkupApptMenu.children.push({ id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] });
+            }
+          }
+
+          const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+          if (healthMenu) {
+            if (!healthMenu.children) healthMenu.children = [];
+            
+            // 1. Normalize IDs based on labels
+            healthMenu.children.forEach(child => {
+              const lbl = child.label || child.defaultLabel || '';
+              if (lbl.includes('분야별')) {
+                child.id = 'categoryInfo';
+              } else if (lbl.includes('구독') || lbl.includes('콘텐츠')) {
+                child.id = 'contentSubscribe';
+              } else if (lbl.includes('뉴스')) {
+                child.id = 'healthNews';
+              }
+            });
+            
+            // 2. Deduplicate children by ID
+            const uniqueChildren = [];
+            const seenIds = new Set();
+            healthMenu.children.forEach(child => {
+              const targetId = child.id;
+              if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'healthNews') {
+                if (!seenIds.has(targetId)) {
+                  seenIds.add(targetId);
+                  uniqueChildren.push(child);
+                }
+              } else {
+                uniqueChildren.push(child);
+              }
+            });
+            
+            // 3. Ensure standard submenus exist
+            if (!seenIds.has('categoryInfo')) {
+              uniqueChildren.push({ id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] });
+            }
+            if (!seenIds.has('contentSubscribe')) {
+              uniqueChildren.push({ id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] });
+            }
+            if (!seenIds.has('healthNews')) {
+              uniqueChildren.push({ id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] });
+            }
+            
+            healthMenu.children = uniqueChildren;
           }
         }
       });
