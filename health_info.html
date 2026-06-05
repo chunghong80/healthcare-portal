@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사무포털 - 분야별 건강정보 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2317B890' d='M16 4C9.37 4 4 9.37 4 16c0 4.42 2.4 8.28 6 10.32V16c0-3.31 2.69-6 6-6s6 2.69 6 6c0 1.66-.67 3.16-1.76 4.24L24.49 24.5C26.66 22.31 28 19.31 28 16 28 9.37 22.63 4 16 4z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="admin.css">
+  
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success-color: #17B890;
+      --theme-color-rgb: 37, 99, 235;
+    }
+
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    /* Premium Tab System */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    
+    .tab-btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: #1e293b;
+      background: #f1f5f9;
+    }
+
+    .tab-btn.active {
+      color: var(--primary-color);
+      background: #eff6ff;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Premium stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: #eff6ff;
+      color: var(--primary-color);
+    }
+
+    /* Custom Category management layout */
+    .category-mgmt-layout {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Search panel inside stat log */
+    .search-panel {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Table styles */
+    .premium-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .premium-table th {
+      background: #f8fafc;
+      padding: 14px 16px;
+      font-weight: 700;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .premium-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .premium-table tr:hover {
+      background-color: #fafbfd;
+    }
+
+    /* Visual Editor Layout overrides */
+    .canvas-editor-wrapper {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .editor-btn {
+      height: 30px;
+      padding: 0 10px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .editor-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .editor-btn.active {
+      background: #eff6ff;
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    /* Draggable/Resizable shape elements in Visual Canvas */
+    .canvas-element {
+      box-sizing: border-box;
+      transition: border 0.15s;
+    }
+    .canvas-element.selected {
+      outline: none;
+    }
+
+    .resize-knob {
+      display: none;
+    }
+    .canvas-element.selected .resize-knob {
+      display: block;
+    }
+
+    .roundness-knob {
+      display: none;
+    }
+    .canvas-element.selected .roundness-knob {
+      display: block;
+    }
+
+    /* Badge tags */
+    .badge-premium {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 100px;
+      text-align: center;
+    }
+
+    .badge-primary {
+      background: #eff6ff;
+      color: var(--primary-color);
+      border: 1px solid #bfdbfe;
+    }
+
+    .badge-success {
+      background: #e6fcf5;
+      color: #0ca678;
+      border: 1px solid #c3fae8;
+    }
+
+    .badge-warning {
+      background: #fff9db;
+      color: #f08c00;
+      border: 1px solid #ffe3e3;
+    }
+    
+    .badge-gray {
+      background: #f1f3f5;
+      color: #495057;
+      border: 1px solid #e9ecef;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+
+    <!-- Sidebar Frame -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon" style="background:#2563eb;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        </div>
+        <span class="logo-text">통합 사무포털</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-group expanded">
+          <div class="nav-group-title">대시보드</div>
+          <a href="admin.html?view=dashboard" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            종합 현황
+          </a>
+          <a href="admin.html?view=location-logs" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+            위치정보 동의 로그
+          </a>
+          <a href="admin.html?view=checkup-consent-logs" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            건강검진 동의 이력
+          </a>
+        </div>
+        
+        <div class="nav-group expanded">
+          <div class="nav-group-title">헬스케어포털 관리</div>
+          <a href="admin.html?view=menu-settings" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+            헬스케어 포털 메뉴설정
+          </a>
+          <a href="admin.html?view=client-management" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            고객사 및 등급 관리
+          </a>
+          <a href="health_info.html" class="nav-item active" id="sidebar-health-info-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            건강정보 관리
+          </a>
+          <a href="admin.html?view=online-inquiry" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            온라인 문의 관리
+          </a>
+          <a href="provided_services.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z"></path></svg>
+            제공서비스 관리
+          </a>
+        </div>
+
+        <div class="nav-group expanded">
+          <div class="nav-group-title">건강검진 관리</div>
+          <a href="admin.html?view=hospitals" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            제휴 병원 관리
+          </a>
+          <a href="admin.html?view=checkup-history" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            검진 예약 관리
+          </a>
+          <a href="admin.html?view=packages" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            검진 패키지 관리
+          </a>
+          <a href="admin.html?view=items" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+            검진 항목 관리
+          </a>
+          <a href="checkup_policy.html" class="nav-item" id="sidebar-checkup-policy-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            검진정책관리
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Frame -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="breadcrumb">
+          사무포털 <span class='separator'>></span> 헬스케어포털 관리 <span class='separator'>></span> <strong>건강정보 관리</strong>
+        </div>
+        <div class="user-controls">
+          <div class="profile-circle" style="background:#2563eb;">A</div>
+          <span>Admin 님</span>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+        
+        <!-- Tab navigation -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="switchMainTab('categories')">
+            <span>📂</span> 카테고리 관리
+          </button>
+          <button class="tab-btn" onclick="switchMainTab('articles')">
+            <span>📝</span> 건강정보 콘텐츠 관리
+          </button>
+          <button class="tab-btn" onclick="switchMainTab('statistics')">
+            <span>📈</span> 일자별 조회수 통계
+          </button>
+        </div>
+
+        <!-- Tab 1: Category Management -->
+        <div id="tab-categories" class="tab-content active">
+          <!-- Injected dynamically via health_info.js -->
+        </div>
+
+        <!-- Tab 2: Articles Management -->
+        <div id="tab-articles" class="tab-content">
+          <!-- Injected dynamically via health_info.js -->
+        </div>
+
+        <!-- Tab 3: Statistics / Click logs -->
+        <div id="tab-statistics" class="tab-content">
+          <!-- Injected dynamically via health_info.js -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Loaded standalone JS modules -->
+  <script src="health_info.js"></script>
+</body>
+</html>

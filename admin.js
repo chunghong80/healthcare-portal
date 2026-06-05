@@ -71,6 +71,17 @@ function initializeAdmin() {
   try {
     loadAllData();
     setupNavigation();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    if (viewParam) {
+      currentView = viewParam;
+    }
+    
+    if (currentView === 'health-info') {
+      window.location.href = 'health_info.html';
+      return;
+    }
     navigateTo(currentView);
   } catch (error) {
     alert("어드민 초기화 에러 감지!\n\n메시지: " + error.message + "\n스택: " + error.stack);
@@ -372,19 +383,19 @@ function renderLocationLogs(container) {
   const logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
   
   let rowsHtml = logs.length === 0 
-    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">저장된 로그 내역이 없습니다.</td></tr>'
+    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b; font-size:14px;">저장된 로그 내역이 없습니다.</td></tr>'
     : logs.map(log => `
       <tr>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.LOG_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${log.MEMBER_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CONSENT_DATETIME}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SERVICE_TYPE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SCREEN_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.PURPOSE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CLIENT_IP}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:12px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CREATED_AT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.LOG_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; font-weight:600;">${log.MEMBER_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:13px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CONSENT_DATETIME}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SERVICE_TYPE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SCREEN_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.PURPOSE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CLIENT_IP}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CREATED_AT}</td>
       </tr>
     `).join('');
 
@@ -403,7 +414,7 @@ function renderLocationLogs(container) {
       <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h2 class="card-title">로그 목록 (총 ${logs.length}건)</h2>
         <div style="display:flex; gap:8px;">
-          <select class="form-input" style="width: 150px;">
+          <select class="form-input" style="width: 150px; font-size:14px; height:40px;">
             <option value="ALL">전체 상태</option>
             <option value="Y">동의(Y)</option>
             <option value="N">거부(N)</option>
@@ -414,16 +425,16 @@ function renderLocationLogs(container) {
         <table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:left;">
           <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
             <tr>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">LOG_ID</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">MEMBER_ID</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">동의/거부일시</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">서비스 구분</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">요청 화면</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">이용 목적</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">CLIENT_IP</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">USER_AGENT</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">생성일시</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">LOG_ID</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">MEMBER_ID</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">동의/거부일시</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">서비스 구분</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">요청 화면</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">이용 목적</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">CLIENT_IP</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">USER_AGENT</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">생성일시</th>
             </tr>
           </thead>
           <tbody>
@@ -440,19 +451,19 @@ function renderCheckupConsentLogs(container) {
   const logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
   
   let rowsHtml = logs.length === 0 
-    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">저장된 로그 내역이 없습니다.</td></tr>'
+    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b; font-size:14px;">저장된 로그 내역이 없습니다.</td></tr>'
     : logs.map(log => `
       <tr>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.LOG_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${log.MEMBER_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CONSENT_DATETIME}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SERVICE_TYPE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.SCREEN_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.PURPOSE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CLIENT_IP}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:12px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${log.CREATED_AT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.LOG_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; font-weight:600;">${log.MEMBER_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:13px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CONSENT_DATETIME}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SERVICE_TYPE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SCREEN_ID}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.PURPOSE}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CLIENT_IP}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CREATED_AT}</td>
       </tr>
     `).join('');
 
@@ -471,7 +482,7 @@ function renderCheckupConsentLogs(container) {
       <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h2 class="card-title">로그 목록 (총 ${logs.length}건)</h2>
         <div style="display:flex; gap:8px;">
-          <select class="form-input" style="width: 150px;">
+          <select class="form-input" style="width: 150px; font-size:14px; height:40px;">
             <option value="ALL">전체 상태</option>
             <option value="Y">동의(Y)</option>
             <option value="N">거부(N)</option>
@@ -482,16 +493,16 @@ function renderCheckupConsentLogs(container) {
         <table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:left;">
           <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
             <tr>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">LOG_ID</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">MEMBER_ID</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">동의/거부일시</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">서비스 구분</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">요청 화면</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">이용 목적</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">CLIENT_IP</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">USER_AGENT</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">생성일시</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">LOG_ID</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">MEMBER_ID</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">동의/거부일시</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">서비스 구분</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">요청 화면</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">이용 목적</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">CLIENT_IP</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">USER_AGENT</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">생성일시</th>
             </tr>
           </thead>
           <tbody>
@@ -524,21 +535,21 @@ function renderCheckupHistoryAdmin(container) {
   };
 
   let rowsHtml = checkupHistories.length === 0 
-    ? '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">신청된 검진 내역이 없습니다.</td></tr>'
+    ? '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b; font-size:14px;">신청된 검진 내역이 없습니다.</td></tr>'
     : checkupHistories.map(chk => {
       const statusColor = chk.status === '확정' ? '#2563eb' : (chk.status === '신청' ? '#17B890' : (chk.status === '취소요청' ? '#f59e0b' : '#94a3b8'));
       return `
       <tr>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.id}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:600;">${chk.targetName}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.applyDate}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.pkgName}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px;">${chk.wishDate1} / ${chk.wishDate2 || '-'}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
-          <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:12px; background:${statusColor}22; color:${statusColor};">${chk.status}</span>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${chk.id}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; font-weight:600;">${chk.targetName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${chk.applyDate}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${chk.pkgName}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${chk.wishDate1} / ${chk.wishDate2 || '-'}</td>
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; text-align:center;">
+          <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:13px; background:${statusColor}22; color:${statusColor};">${chk.status}</span>
         </td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center;">
-          <select onchange="window.updateCheckupAdminStatus('${chk.id}', this.value)" style="padding:4px; font-size:12px; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 4px;">
+        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; text-align:center;">
+          <select onchange="window.updateCheckupAdminStatus('${chk.id}', this.value)" style="padding:4px; font-size:13px; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 4px; height: 32px;">
             <option value="신청" ${chk.status === '신청' ? 'selected' : ''}>신청</option>
             <option value="확정" ${chk.status === '확정' ? 'selected' : ''}>확정</option>
             <option value="취소요청" ${chk.status === '취소요청' ? 'selected' : ''}>취소요청</option>
@@ -564,13 +575,13 @@ function renderCheckupHistoryAdmin(container) {
         <table style="width:100%; min-width:1000px; border-collapse:collapse; text-align:left;">
           <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
             <tr>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">신청ID</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">대상자</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">신청일</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">검진패키지</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569;">희망일 1/2</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">상태</th>
-              <th style="padding:12px; font-size:13px; font-weight:600; color:#475569; text-align:center;">상태변경</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">신청ID</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">대상자</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">신청일</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">검진패키지</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">희망일 1/2</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569; text-align:center;">상태</th>
+              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569; text-align:center;">상태변경</th>
             </tr>
           </thead>
           <tbody>
@@ -1118,14 +1129,14 @@ window.openEditSiteModal = function(siteId) {
   modal.id = "edit-site-modal";
   modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
   modal.innerHTML = `
-    <div class="config-card" style="width:100%; max-width:640px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+    <div class="config-card" style="width:100%; max-width:700px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
       <div class="card-header">
         <h2 class="card-title">사이트 정보 및 등급 수정</h2>
       </div>
       <div class="card-body">
         <div class="form-group" style="margin-bottom:16px;">
           <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">사이트명</label>
-          <input type="text" id="edit-site-name" class="form-input" value="${site.siteName}" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+          <input type="text" id="edit-site-name" class="form-input" value="${site.siteName}" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
         </div>
         <div class="form-group" style="margin-bottom:24px;">
           <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">접근 허용 등급 선택 (Shuttle Box)</label>
@@ -1133,11 +1144,11 @@ window.openEditSiteModal = function(siteId) {
           <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
             <!-- Left List Panel -->
             <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
                 전체 서비스 등급 목록
               </div>
               <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
-                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteLeft(this.value)">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteLeft(this.value)">
               </div>
               <div id="edit-site-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
                 <!-- Dynamic left items -->
@@ -1146,21 +1157,21 @@ window.openEditSiteModal = function(siteId) {
 
             <!-- Middle Action Buttons -->
             <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
-              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('add')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
+              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('add')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
                 추가 ▶
               </button>
-              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('remove')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+              <button type="button" class="btn btn-sm" onclick="moveEditSiteTiers('remove')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
                 ◀ 제거
               </button>
             </div>
 
             <!-- Right List Panel -->
             <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
                 접속 허용할 등급 목록
               </div>
               <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
-                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteRight(this.value)">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterEditSiteRight(this.value)">
               </div>
               <div id="edit-site-shuttle-right" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
                 <!-- Dynamic right items -->
@@ -1357,14 +1368,14 @@ window.openAddSiteModal = function() {
   modal.id = "add-site-modal";
   modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
   modal.innerHTML = `
-    <div class="config-card" style="width:100%; max-width:640px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+    <div class="config-card" style="width:100%; max-width:700px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
       <div class="card-header">
         <h2 class="card-title">신규 사이트 추가</h2>
       </div>
       <div class="card-body">
         <div class="form-group" style="margin-bottom:16px;">
           <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">사이트명</label>
-          <input type="text" id="new-site-name" class="form-input" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px;">
+          <input type="text" id="new-site-name" class="form-input" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
         </div>
         <div class="form-group" style="margin-bottom:24px;">
           <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">접근 허용 등급 선택 (Shuttle Box)</label>
@@ -1372,11 +1383,11 @@ window.openAddSiteModal = function() {
           <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
             <!-- Left List Panel -->
             <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
                 전체 서비스 등급 목록
               </div>
               <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
-                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteLeft(this.value)">
+                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteLeft(this.value)">
               </div>
               <div id="add-site-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
                 <!-- Dynamic left items -->
@@ -1385,17 +1396,17 @@ window.openAddSiteModal = function() {
 
             <!-- Middle Action Buttons -->
             <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
-              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('add')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
+              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('add')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
                 추가 ▶
               </button>
-              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('remove')" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('remove')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
                 ◀ 제거
               </button>
             </div>
 
             <!-- Right List Panel -->
             <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 13px; color: #334155;">
+              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
                 접속 허용할 등급 목록
               </div>
               <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
@@ -1447,7 +1458,7 @@ window.renderAddSiteShuttle = function() {
   );
   filteredActiveLeft.forEach(t => {
     leftHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
         <input type="checkbox" class="add-site-left-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
         <span style="font-weight:500;">${t.name}</span>
       </label>
@@ -1460,16 +1471,16 @@ window.renderAddSiteShuttle = function() {
   );
   filteredUsedLeft.forEach(t => {
     leftHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#94a3b8; cursor:not-allowed; margin:0; background:#f8fafc; border-radius:4px; border:1px dashed #cbd5e1; opacity:0.75; user-select:none;">
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#94a3b8; cursor:not-allowed; margin:0; background:#f8fafc; border-radius:4px; border:1px dashed #cbd5e1; opacity:0.75; user-select:none;">
         <input type="checkbox" disabled checked style="width:14px; height:14px; cursor:not-allowed; opacity:0.5;">
         <span style="text-decoration:line-through; font-weight:500;">${t.name}</span>
-        <span style="font-size:10px; color:#f97316; background:#fff7ed; padding:1px 6px; border-radius:4px; margin-left:auto; border:1px solid #ffedd5;">다른 사이트 지정됨</span>
+        <span style="font-size:11px; color:#f97316; background:#fff7ed; padding:1px 6px; border-radius:4px; margin-left:auto; border:1px solid #ffedd5;">다른 사이트 지정됨</span>
       </label>
     `;
   });
 
   if (leftHtml === "") {
-    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
+    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
   }
   leftContainer.innerHTML = leftHtml;
 
@@ -1480,7 +1491,7 @@ window.renderAddSiteShuttle = function() {
   );
   filteredRight.forEach(t => {
     rightHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
         <input type="checkbox" class="add-site-right-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
         <span style="font-weight:500;">${t.name}</span>
       </label>
@@ -1488,7 +1499,7 @@ window.renderAddSiteShuttle = function() {
   });
 
   if (rightHtml === "") {
-    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
+    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
   }
   rightContainer.innerHTML = rightHtml;
 };

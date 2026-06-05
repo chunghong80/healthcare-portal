@@ -5053,17 +5053,23 @@ window.showPastHistoryModal = function() {
 // ==========================================
 
 if (!window.healthCategories) {
-  window.healthCategories = [
-    { id: 'women', label: '여성건강', icon: 'women_health' },
-    { id: 'men', label: '남성건강', icon: 'men_health' },
-    { id: 'senior', label: '노인건강', icon: 'senior_health' },
-    { id: 'child', label: '어린이건강', icon: 'child_health' },
-    { id: 'pregnancy', label: '임신과 출산', icon: 'pregnancy' },
-    { id: 'obesity', label: '비만', icon: 'obesity' },
-    { id: 'alcohol', label: '술과 담배', icon: 'alcohol' },
-    { id: 'cancer', label: '암정보', icon: 'cancer' },
-    { id: 'dementia', label: '치매예방', icon: 'dementia' }
-  ];
+  const savedCategories = localStorage.getItem('hc_health_categories');
+  if (savedCategories) {
+    window.healthCategories = JSON.parse(savedCategories);
+  } else {
+    window.healthCategories = [
+      { id: 'women', label: '여성건강', icon: 'women_health' },
+      { id: 'men', label: '남성건강', icon: 'men_health' },
+      { id: 'senior', label: '노인건강', icon: 'senior_health' },
+      { id: 'child', label: '어린이건강', icon: 'child_health' },
+      { id: 'pregnancy', label: '임신과 출산', icon: 'pregnancy' },
+      { id: 'obesity', label: '비만', icon: 'obesity' },
+      { id: 'alcohol', label: '술과 담배', icon: 'alcohol' },
+      { id: 'cancer', label: '암정보', icon: 'cancer' },
+      { id: 'dementia', label: '치매예방', icon: 'dementia' }
+    ];
+    localStorage.setItem('hc_health_categories', JSON.stringify(window.healthCategories));
+  }
 }
 
 if (typeof window.activeHealthCategoryIdx === 'undefined') {
@@ -5160,6 +5166,52 @@ window.viewHealthPost = function(postId) {
   const post = allPosts.find(p => p.id === postId);
   if (post) {
     post.views = (post.views || 0) + 1;
+    
+    // Save updated posts back to localStorage
+    localStorage.setItem('hc_health_posts_by_cat', JSON.stringify(window.healthPosts));
+
+    // Find the category label
+    let postCategory = window.healthCategories.find(cat => {
+      const posts = window.healthPosts[cat.id] || [];
+      return posts.some(p => p.id === post.id);
+    });
+    const catLabel = postCategory ? postCategory.label : '기타';
+    
+    // Record click log
+    try {
+      const logs = JSON.parse(localStorage.getItem('hc_health_clicks_log') || '[]');
+      const now = new Date();
+      
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const clickDate = `${yyyy}-${mm}-${dd}`;
+      
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const clickTime = `${hh}:${min}:${ss}`;
+
+      const clientName = state.activeClient ? (state.activeClient.name || state.activeClient.id) : '일반고객';
+      const clientId = state.activeClient ? state.activeClient.id : 'unknown';
+      const userName = state.currentUser ? state.currentUser.name : '비회원';
+
+      logs.push({
+        id: 'click_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        clickDate: clickDate,
+        clickTime: clickTime,
+        postId: postId,
+        postTitle: post.title,
+        categoryId: postCategory ? postCategory.id : 'unknown',
+        categoryLabel: catLabel,
+        clientId: clientId,
+        clientName: clientName,
+        userName: userName
+      });
+      localStorage.setItem('hc_health_clicks_log', JSON.stringify(logs));
+    } catch(e) {
+      console.error('Failed to log health post click:', e);
+    }
   }
   window.selectedHealthPostId = postId;
   render();
@@ -5171,57 +5223,63 @@ window.backToHealthList = function() {
 };
 
 if (!window.healthPosts) {
-  window.healthPosts = {
-    women: [
-      { id: 'w1', title: '여성에게 자주 발생하는 빈혈, 원인과 예방법', summary: '빈혈은 여성에게 흔하게 나타나는 질환 중 하나입니다. 특히 생리, 임신, 출산 등으로 인해 철분이 부족해지기 쉬우며, 피로감, 어지러움, 두통 등의 증상을 유발할 수 있습니다. 균형 잡힌 식사와 적절한 철분 섭취가 중요합니다.', date: '2024.05.20', views: 1254 },
-      { id: 'w2', title: '갱년기 증상, 이렇게 관리해보세요', summary: '갱년기는 여성의 삶에서 자연스러운 변화 과정입니다. 안면홍조, 불면, 우울감 등이 나타날 수 있으며, 규칙적인 운동과 건강한 식습관, 스트레스 관리가 증상 완화에 도움이 됩니다.', date: '2024.05.18', views: 982 },
-      { id: 'w3', title: '자궁경부암 예방접종, 언제 맞아야 할까요?', summary: '자궁경부암은 예방이 가능한 대표적인 암입니다. HPV 예방접종은 성 경험 전 접종이 가장 효과적이며, 정기적인 검진도 매우 중요합니다.', date: '2024.05.15', views: 1102 },
-      { id: 'w4', title: '여성 건강을 위한 필수 영양소', summary: '여성의 건강 유지를 위해서는 철분, 칼슘, 비타민D, 엽산 등의 섭취가 중요합니다. 연령대별로 필요한 영양소를 확인하고, 식단을 통해 골고루 섭취하세요.', date: '2024.05.12', views: 843 },
-      { id: 'w5', title: '생리통 완화에 도움이 되는 생활습관', summary: '생리통은 많은 여성들이 겪는 불편함입니다. 따뜻한 찜질, 가벼운 스트레칭, 카페인 줄이기 등의 생활습관 개선으로 통증을 완화할 수 있습니다.', date: '2024.05.10', views: 732 },
-      { id: 'w6', title: '여성 유방 건강과 자가 진단법', summary: '유방암은 유방 건강을 해치는 주된 원인 중 하나입니다. 한 달에 한 번 생리가 끝난 후 3~5일 사이에 유방을 만져보며 멍울이 있는지 정기적으로 확인하는 습관이 필요합니다.', date: '2024.05.05', views: 612 }
-    ],
-    men: [
-      { id: 'm1', title: '남성 갱년기 극복을 위한 생활 수칙', summary: '남성도 나이가 들면서 테스토스테론 호르몬 감소로 갱년기를 겪을 수 있습니다. 무기력감, 근력 저하 등이 나타나며 규칙적인 근력 운동과 충분한 수면이 예방에 필수적입니다.', date: '2024.05.19', views: 884 },
-      { id: 'm2', title: '전립선비대증, 방치하면 안 되는 이유', summary: '전립선비대증은 50대 이상 남성에게 흔한 질환으로, 소변 줄기가 약해지거나 자주 마려운 증상을 보입니다. 초기 치료를 통해 요폐 등의 합병증을 막아야 합니다.', date: '2024.05.16', views: 941 },
-      { id: 'm3', title: '젊은 탈모 환자 급증, 원인과 치료법은?', summary: '탈모는 유전적 요인 외에도 스트레스, 영양 불균형 등으로 발생합니다. 조기 진단과 치료약 복용이 가장 효과적이며 자가 치료에 의존하지 말아야 합니다.', date: '2024.05.14', views: 1205 },
-      { id: 'm4', title: '남성의 심장 건강을 지키는 식습관', summary: '심혈관 질환은 남성 사망 원인의 큰 비중을 차지합니다. 포화지방 섭취를 줄이고 오메가-3가 풍부한 생선과 채소 위주의 식단을 구성하는 것이 도움이 됩니다.', date: '2024.05.11', views: 654 }
-    ],
-    senior: [
-      { id: 's1', title: '어르신 낙상 사고 예방을 위한 가정 내 환경 개선', summary: '노년기 낙상은 단순한 골절을 넘어 심각한 합병증으로 이어질 수 있습니다. 화장실 미끄럼 방지 매트 설치, 문턱 제거, 야간 조명 설치가 필수적입니다.', date: '2024.05.21', views: 1109 },
-      { id: 's2', title: '근감소증 예방을 위한 단백질 섭취 가이드', summary: '나이가 들면서 근육량이 급격히 감소하는 근감소증은 낙상과 대사질환의 원인이 됩니다. 매끼 단백질을 섭취하고 가벼운 저항성 운동을 병행해야 합니다.', date: '2024.05.17', views: 823 },
-      { id: 's3', title: '노년기 외로움과 우울증 대처 방법', summary: '음퇴와 사회적 관계 축소는 노인 우울증의 주원인입니다. 주기적인 야외 활동과 지역 커뮤니티 참여, 가족들과의 대화가 정신 건강을 지켜줍니다.', date: '2024.05.13', views: 592 }
-    ],
-    child: [
-      { id: 'c1', title: '우리 아이 면역력 키우는 5가지 습관', summary: '환절기마다 감기에 걸리는 아이를 위해 충분한 수면, 균형 잡힌 영양 섭취, 실내 습도 조절, 주기적인 야외 활동 등으로 기초 면역력을 높여주어야 합니다.', date: '2024.05.20', views: 1045 },
-      { id: 'c2', title: '소아 비만 예방을 위한 가족 식습관 개선', summary: '소아 비만은 성인 비만으로 이어질 확률이 매우 높습니다. 패스트푸드를 줄이고 온 가족이 함께 식사하며 천천히 먹는 습관을 기르는 것이 좋습니다.', date: '2024.05.15', views: 765 },
-      { id: 'c3', title: '어린이 스마트폰 증후군과 눈 건강 지키기', summary: '과도한 스마트폰 사용은 소아 약시나 안구건조증의 원인이 됩니다. 20분 사용 후 20초간 먼 곳을 바라보게 하고, 하루 사용 시간을 제한해야 합니다.', date: '2024.05.10', views: 912 }
-    ],
-    pregnancy: [
-      { id: 'p1', title: '임신 주수별 필수 검사 리스트', summary: '건강한 출산을 위해 주수별 기형아 검사, 정밀 초음파, 임신성 당뇨 검사 등을 제때 받아야 합니다. 시기별 필수 검사 일정을 미리 체크해보세요.', date: '2024.05.22', views: 1354 },
-      { id: 'p2', title: '임산부에게 좋은 음식과 피해야 할 음식', summary: '엽산이 풍부한 녹색 채소, 철분이 많은 붉은 고기는 임산부에게 유익합니다. 반면 날생선, 익히지 않은 고기, 과도한 카페인은 주의가 필요합니다.', date: '2024.05.18', views: 1102 },
-      { id: 'p3', title: '산후 우울증 극복을 위한 가족의 역할', summary: '급격한 호르몬 변화와 육아 스트레스로 많은 산모들이 산후 우울증을 겪습니다. 남편의 적극적인 육아 참여와 정서적 지지가 가장 큰 약입니다.', date: '2024.05.14', views: 832 }
-    ],
-    obesity: [
-      { id: 'o1', title: '요요 현상 없는 지속 가능한 다이어트 비법', summary: '무리한 굶기 다이어트는 기초대사량을 떨어뜨려 요요를 유발합니다. 주당 0.5kg 감량을 목표로 규칙적인 삼시 세끼와 근력 운동을 유지하는 것이 핵심입니다.', date: '2024.05.20', views: 1421 },
-      { id: 'o2', title: '마른 비만의 위험성과 자가 진단법', summary: '몸무게는 정상이지만 체지방률이 높은 마른 비만은 고혈압, 당뇨 등 대사질환의 위험이 더 큽니다. 근육량 부족이 원인이므로 근력 운동이 필수적입니다.', date: '2024.05.16', views: 1184 },
-      { id: 'o3', title: '식욕을 조절하는 호르몬 다스리기', summary: '포만감을 느끼게 하는 렙틴과 식욕을 돋우는 그렐린 호르몬은 수면 부족과 스트레스 시 균형이 깨집니다. 하루 7시간 이상 숙면하는 것이 중요합니다.', date: '2024.05.11', views: 954 }
-    ],
-    alcohol: [
-      { id: 'a1', title: '금연 성공률을 높이는 실천 가이드', summary: '금연은 혼자 힘으로 성공하기 어렵습니다. 금연클리닉 방문, 니코틴 대체요법 사용, 물 자주 마시기 등 구체적인 계획을 세우고 주변에 선언하세요.', date: '2024.05.21', views: 978 },
-      { id: 'a2', title: '숙취 해소에 좋은 음식과 잘못된 상식', summary: '숙취 해소에는 아스파라긴산이 풍부한 콩나물국이나 북어국이 좋습니다. 꿀물도 수분과 당분을 공급해 주지만, 해장술이나 매운 짬뽕은 위벽을 자극하므로 피해야 합니다.', date: '2024.05.17', views: 1120 },
-      { id: 'a3', title: '알코올이 뇌 건강에 미치는 악영향', summary: '지속적인 과음은 뇌 세포를 손상시켜 기억력 저하와 알코올성 치매를 유발할 수 있습니다. 건강을 지키기 위한 주당 적정 음주량을 알아봅니다.', date: '2024.05.12', views: 812 }
-    ],
-    cancer: [
-      { id: 'can1', title: '국가 5대 암 검진 주기와 대상자 확인하기', summary: '위암, 대장암, 간암, 유방암, 자궁경부암은 조기에 발견하면 완치율이 매우 높습니다. 연령별, 성별 검진 주기를 놓치지 말고 신청하세요.', date: '2024.05.22', views: 1532 },
-      { id: 'can2', title: '항암 치료 중 식사 요령과 영양 관리', summary: '항암 치료 중에는 구토, 입맛 변화 등으로 영양 결핍이 오기 쉽습니다. 조금씩 자주 섭취하고, 고단백·고칼로리 식단으로 체력을 유지하는 것이 최우선입니다.', date: '2024.05.19', views: 994 },
-      { id: 'can3', title: '암을 예방하는 건강한 생활 습관 10계명', summary: '암 예방의 첫걸음은 생활습관 개선입니다. 금연, 절주, 싱겁게 먹기, 주 5회 운동, 정기 검진 등 일상에서 실천 가능한 예방 수칙을 소개합니다.', date: '2024.05.15', views: 1204 }
-    ],
-    dementia: [
-      { id: 'd1', title: '초로기 치매란? 젊다고 안심할 수 없는 이유', summary: '65세 미만에 발병하는 초로기 치매는 진행 속도가 빠르고 인지장애 외에도 성격 변화가 먼저 나타날 수 있습니다. 조기 발견을 위한 자가진단 항목을 소개합니다.', date: '2024.05.20', views: 1402 },
-      { id: 'd2', title: '치매 예방에 좋은 \'뇌 훈련\' 생활 습관', summary: '독서, 일기 쓰기, 새로운 언어 배우기 등 뇌를 끊임없이 자극하는 활동은 인지 예비능을 높여 치매 발병을 늦춰줍니다. 매일 실천할 수 있는 훈련법을 알아봅니다.', date: '2024.05.17', views: 1245 },
-      { id: 'd3', title: '치매를 예방하는 지중해식 식단의 효과', summary: '올리브유, 견과류, 신선한 야채와 생선 위주의 지중해식 식단은 뇌 혈관 건강을 지키고 치매 위험을 30% 이상 낮춰준다는 연구 결과가 있습니다.', date: '2024.05.13', views: 1025 }
-    ]
-  };
+  const savedPosts = localStorage.getItem('hc_health_posts_by_cat');
+  if (savedPosts) {
+    window.healthPosts = JSON.parse(savedPosts);
+  } else {
+    window.healthPosts = {
+      women: [
+        { id: 'w1', title: '여성에게 자주 발생하는 빈혈, 원인과 예방법', summary: '빈혈은 여성에게 흔하게 나타나는 질환 중 하나입니다. 특히 생리, 임신, 출산 등으로 인해 철분이 부족해지기 쉬우며, 피로감, 어지러움, 두통 등의 증상을 유발할 수 있습니다. 균형 잡힌 식사와 적절한 철분 섭취가 중요합니다.', date: '2024.05.20', views: 1254 },
+        { id: 'w2', title: '갱년기 증상, 이렇게 관리해보세요', summary: '갱년기는 여성의 삶에서 자연스러운 변화 과정입니다. 안면홍조, 불면, 우울감 등이 나타날 수 있으며, 규칙적인 운동과 건강한 식습관, 스트레스 관리가 증상 완화에 도움이 됩니다.', date: '2024.05.18', views: 982 },
+        { id: 'w3', title: '자궁경부암 예방접종, 언제 맞아야 할까요?', summary: '자궁경부암은 예방이 가능한 대표적인 암입니다. HPV 예방접종은 성 경험 전 접종이 가장 효과적이며, 정기적인 검진도 매우 중요합니다.', date: '2024.05.15', views: 1102 },
+        { id: 'w4', title: '여성 건강을 위한 필수 영양소', summary: '여성의 건강 유지를 위해서는 철분, 칼슘, 비타민D, 엽산 등의 섭취가 중요합니다. 연령대별로 필요한 영양소를 확인하고, 식단을 통해 골고루 섭취하세요.', date: '2024.05.12', views: 843 },
+        { id: 'w5', title: '생리통 완화에 도움이 되는 생활습관', summary: '생리통은 많은 여성들이 겪는 불편함입니다. 따뜻한 찜질, 가벼운 스트레칭, 카페인 줄이기 등의 생활습관 개선으로 통증을 완화할 수 있습니다.', date: '2024.05.10', views: 732 },
+        { id: 'w6', title: '여성 유방 건강과 자가 진단법', summary: '유방암은 유방 건강을 해치는 주된 원인 중 하나입니다. 한 달에 한 번 생리가 끝난 후 3~5일 사이에 유방을 만져보며 멍울이 있는지 정기적으로 확인하는 습관이 필요합니다.', date: '2024.05.05', views: 612 }
+      ],
+      men: [
+        { id: 'm1', title: '남성 갱년기 극복을 위한 생활 수칙', summary: '남성도 나이가 들면서 테스토스테론 호르몬 감소로 갱년기를 겪을 수 있습니다. 무기력감, 근력 저하 등이 나타나며 규칙적인 근력 운동과 충분한 수면이 예방에 필수적입니다.', date: '2024.05.19', views: 884 },
+        { id: 'm2', title: '전립선비대증, 방치하면 안 되는 이유', summary: '전립선비대증은 50대 이상 남성에게 흔한 질환으로, 소변 줄기가 약해지거나 자주 마려운 증상을 보입니다. 초기 치료를 통해 요폐 등의 합병증을 막아야 합니다.', date: '2024.05.16', views: 941 },
+        { id: 'm3', title: '젊은 탈모 환자 급증, 원인과 치료법은?', summary: '탈모는 유전적 요인 외에도 스트레스, 영양 불균형 등으로 발생합니다. 조기 진단과 치료약 복용이 가장 효과적이며 자가 치료에 의존하지 말아야 합니다.', date: '2024.05.14', views: 1205 },
+        { id: 'm4', title: '남성의 심장 건강을 지키는 식습관', summary: '심혈관 질환은 남성 사망 원인의 큰 비중을 차지합니다. 포화지방 섭취를 줄이고 오메가-3가 풍부한 생선과 채소 위주의 식단을 구성하는 것이 도움이 됩니다.', date: '2024.05.11', views: 654 }
+      ],
+      senior: [
+        { id: 's1', title: '어르신 낙상 사고 예방을 위한 가정 내 환경 개선', summary: '노년기 낙상은 단순한 골절을 넘어 심각한 합병증으로 이어질 수 있습니다. 화장실 미끄럼 방지 매트 설치, 문턱 제거, 야간 조명 설치가 필수적입니다.', date: '2024.05.21', views: 1109 },
+        { id: 's2', title: '근감소증 예방을 위한 단백질 섭취 가이드', summary: '나이가 들면서 근육량이 급격히 감소하는 근감소증은 낙상과 대사질환의 원인이 됩니다. 매끼 단백질을 섭취하고 가벼운 저항성 운동을 병행해야 합니다.', date: '2024.05.17', views: 823 },
+        { id: 's3', title: '노년기 외로움과 우울증 대처 방법', summary: '음퇴와 사회적 관계 축소는 노인 우울증의 주원인입니다. 주기적인 야외 활동과 지역 커뮤니티 참여, 가족들과의 대화가 정신 건강을 지켜줍니다.', date: '2024.05.13', views: 592 }
+      ],
+      child: [
+        { id: 'c1', title: '우리 아이 면역력 키우는 5가지 습관', summary: '환절기마다 감기에 걸리는 아이를 위해 충분한 수면, 균형 잡힌 영양 섭취, 실내 습도 조절, 주기적인 야외 활동 등으로 기초 면역력을 높여주어야 합니다.', date: '2024.05.20', views: 1045 },
+        { id: 'c2', title: '소아 비만 예방을 위한 가족 식습관 개선', summary: '소아 비만은 성인 비만으로 이어질 확률이 매우 높습니다. 패스트푸드를 줄이고 온 가족이 함께 식사하며 천천히 먹는 습관을 기르는 것이 좋습니다.', date: '2024.05.15', views: 765 },
+        { id: 'c3', title: '어린이 스마트폰 증후군과 눈 건강 지키기', summary: '과도한 스마트폰 사용은 소아 약시나 안구건조증의 원인이 됩니다. 20분 사용 후 20초간 먼 곳을 바라보게 하고, 하루 사용 시간을 제한해야 합니다.', date: '2024.05.10', views: 912 }
+      ],
+      pregnancy: [
+        { id: 'p1', title: '임신 주수별 필수 검사 리스트', summary: '건강한 출산을 위해 주수별 기형아 검사, 정밀 초음파, 임신성 당뇨 검사 등을 제때 받아야 합니다. 시기별 필수 검사 일정을 미리 체크해보세요.', date: '2024.05.22', views: 1354 },
+        { id: 'p2', title: '임산부에게 좋은 음식과 피해야 할 음식', summary: '엽산이 풍부한 녹색 채소, 철분이 많은 붉은 고기는 임산부에게 유익합니다. 반면 날생선, 익히지 않은 고기, 과도한 카페인은 주의가 필요합니다.', date: '2024.05.18', views: 1102 },
+        { id: 'p3', title: '산후 우울증 극복을 위한 가족의 역할', summary: '급격한 호르몬 변화와 육아 스트레스로 많은 산모들이 산후 우울증을 겪습니다. 남편의 적극적인 육아 참여와 정서적 지지가 가장 큰 약입니다.', date: '2024.05.14', views: 832 }
+      ],
+      obesity: [
+        { id: 'o1', title: '요요 현상 없는 지속 가능한 다이어트 비법', summary: '무리한 굶기 다이어트는 기초대사량을 떨어뜨려 요요를 유발합니다. 주당 0.5kg 감량을 목표로 규칙적인 삼시 세끼와 근력 운동을 유지하는 것이 핵심입니다.', date: '2024.05.20', views: 1421 },
+        { id: 'o2', title: '마른 비만의 위험성과 자가 진단법', summary: '몸무게는 정상이지만 체지방률이 높은 마른 비만은 고혈압, 당뇨 등 대사질환의 위험이 더 큽니다. 근육량 부족이 원인이므로 근력 운동이 필수적입니다.', date: '2024.05.16', views: 1184 },
+        { id: 'o3', title: '식욕을 조절하는 호르몬 다스리기', summary: '포만감을 느끼게 하는 렙틴과 식욕을 돋우는 그렐린 호르몬은 수면 부족과 스트레스 시 균형이 깨집니다. 하루 7시간 이상 숙면하는 것이 중요합니다.', date: '2024.05.11', views: 954 }
+      ],
+      alcohol: [
+        { id: 'a1', title: '금연 성공률을 높이는 실천 가이드', summary: '금연은 혼자 힘으로 성공하기 어렵습니다. 금연클리닉 방문, 니코틴 대체요법 사용, 물 자주 마시기 등 구체적인 계획을 세우고 주변에 선언하세요.', date: '2024.05.21', views: 978 },
+        { id: 'a2', title: '숙취 해소에 좋은 음식과 잘못된 상식', summary: '숙취 해소에는 아스파라긴산이 풍부한 콩나물국이나 북어국이 좋습니다. 꿀물도 수분과 당분을 공급해 주지만, 해장술이나 매운 짬뽕은 위벽을 자극하므로 피해야 합니다.', date: '2024.05.17', views: 1120 },
+        { id: 'a3', title: '알코올이 뇌 건강에 미치는 악영향', summary: '지속적인 과음은 뇌 세포를 손상시켜 기억력 저하와 알코올성 치매를 유발할 수 있습니다. 건강을 지키기 위한 주당 적정 음주량을 알아봅니다.', date: '2024.05.12', views: 812 }
+      ],
+      cancer: [
+        { id: 'can1', title: '국가 5대 암 검진 주기와 대상자 확인하기', summary: '위암, 대장암, 간암, 유방암, 자궁경부암은 조기에 발견하면 완치율이 매우 높습니다. 연령별, 성별 검진 주기를 놓치지 말고 신청하세요.', date: '2024.05.22', views: 1532 },
+        { id: 'can2', title: '항암 치료 중 식사 요령과 영양 관리', summary: '항암 치료 중에는 구토, 입맛 변화 등으로 영양 결핍이 오기 쉽습니다. 조금씩 자주 섭취하고, 고단백·고칼로리 식단으로 체력을 유지하는 것이 최우선입니다.', date: '2024.05.19', views: 994 },
+        { id: 'can3', title: '암을 예방하는 건강한 생활 습관 10계명', summary: '암 예방의 첫걸음은 생활습관 개선입니다. 금연, 절주, 싱겁게 먹기, 주 5회 운동, 정기 검진 등 일상에서 실천 가능한 예방 수칙을 소개합니다.', date: '2024.05.15', views: 1204 }
+      ],
+      dementia: [
+        { id: 'd1', title: '초로기 치매란? 젊다고 안심할 수 없는 이유', summary: '65세 미만에 발병하는 초로기 치매는 진행 속도가 빠르고 인지장애 외에도 성격 변화가 먼저 나타날 수 있습니다. 조기 발견을 위한 자가진단 항목을 소개합니다.', date: '2024.05.20', views: 1402 },
+        { id: 'd2', title: '치매 예방에 좋은 \'뇌 훈련\' 생활 습관', summary: '독서, 일기 쓰기, 새로운 언어 배우기 등 뇌를 끊임없이 자극하는 활동은 인지 예비능을 높여 치매 발병을 늦춰줍니다. 매일 실천할 수 있는 훈련법을 알아봅니다.', date: '2024.05.17', views: 1245 },
+        { id: 'd3', title: '치매를 예방하는 지중해식 식단의 효과', summary: '올리브유, 견과류, 신선한 야채와 생선 위주의 지중해식 식단은 뇌 혈관 건강을 지키고 치매 위험을 30% 이상 낮춰준다는 연구 결과가 있습니다.', date: '2024.05.13', views: 1025 }
+      ]
+    };
+    localStorage.setItem('hc_health_posts_by_cat', JSON.stringify(window.healthPosts));
+  }
 }
 
 window.getHealthIcon = function(iconType) {
