@@ -33,7 +33,7 @@ const defaultMenus = [
   { id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
     { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
   ] },
-  { id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+  { id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
     { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
     { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
   ] },
@@ -44,7 +44,7 @@ const defaultMenus = [
     { id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] },
     { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
   ] },
-  { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+  { id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
     { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
   ] }
 ];
