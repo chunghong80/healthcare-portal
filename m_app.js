@@ -3,7 +3,7 @@ const clientConfigs = {
   kyobo: {
     id: "kyobo", name: "교보생명", serviceName: "교보생명", csNumber: "1588-1001", clientLink: "", dasomLink: "", themeColor: "#2F4A9A", themeColorRgb: "47, 74, 154", logoText: "교보생명 헬스케어",
     tiers: ["기본플랜", "VIP플랜"],
-    heroText: { title: "건강한 내일을 위한 첫걸음", subtitle: "교보생명 전용 헬스케어 포털에서 제공하는 프리미엄 건강 관리 서비스를 지금 바로 경험해보세요.", csNumber: "1588-1001" }, menus: []
+    heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요.", csNumber: "1588-1001" }, menus: []
   },
   dasom: {
     id: "dasom", name: "교보다솜케어", serviceName: "교보다솜케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", themeColor: "#17B890", themeColorRgb: "23, 184, 144", logoText: "교보다솜케어",
