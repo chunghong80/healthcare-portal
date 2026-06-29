@@ -1,9 +1,9 @@
 // Data Models (Default/Fallback)
 const clientConfigs = {
   kyobo: {
-    id: "kyobo", name: "교보생명", serviceName: "교보생명", csNumber: "1588-1001", clientLink: "", dasomLink: "", themeColor: "#2F4A9A", themeColorRgb: "47, 74, 154", logoText: "교보생명 헬스케어",
-    tiers: ["기본플랜", "VIP플랜"],
-    heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요.", csNumber: "1588-1001" }, menus: []
+    id: "kyobo", name: "교보생명 ", serviceName: "교보헬스케어", csNumber: "1588-7524", clientLink: "https://www.kyobo.com", dasomLink: "", themeColor: "#2F4A9A", themeColorRgb: "47, 74, 154", logoText: "교보생명 헬스케어",
+    tiers: ["종합등급 1호", "헬스케어서비스", "헬스케어Ⅱ", "New헬스케어서비스", "New헬스케어 건강특화형"],
+    heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요.", csNumber: "1588-7524" }, menus: []
   },
   dasom: {
     id: "dasom", name: "교보다솜케어", serviceName: "교보다솜케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", themeColor: "#17B890", themeColorRgb: "23, 184, 144", logoText: "교보다솜케어",
@@ -21,14 +21,16 @@ const defaultMenus = [
   { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
   {
     id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
-      { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: true, children: [] },
+      { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: false, children: [] },
       { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
     ]
   },
   {
     id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
       { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
-      { id: "expert", defaultLabel: "명의안내", label: "명의안내", isVisible: true, children: [] }
+      { id: "expert", defaultLabel: "명의안내", label: "병원 및 명의안내", isVisible: true, children: [
+        { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+      ] }
     ]
   },
   {
@@ -39,6 +41,7 @@ const defaultMenus = [
   {
     id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
       { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: true, children: [] },
       { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
     ]
   },
@@ -46,13 +49,19 @@ const defaultMenus = [
     id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
       { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
       { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
-      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
-      { id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] },
-      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
     ]
   },
   {
     id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
       { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
     ]
   }

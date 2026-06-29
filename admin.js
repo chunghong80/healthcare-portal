@@ -15,7 +15,7 @@ const BRAND_DEFAULTS = {
 
 // --- Global State ---
 let adminClientConfigs = {
-  kyobo: { id: "kyobo", name: "교보생명 (kyobo)", serviceName: "교보생명", csNumber: "1588-1001", clientLink: "", dasomLink: "", tiers: ["기본플랜", "VIP플랜"], heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요." }, menus: [] },
+  kyobo: { id: "kyobo", name: "교보생명 ", serviceName: "교보헬스케어", csNumber: "1588-7524", clientLink: "https://www.kyobo.com", dasomLink: "", tiers: ["종합등급 1호", "헬스케어서비스", "헬스케어Ⅱ", "New헬스케어서비스", "New헬스케어 건강특화형"], heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요." }, menus: [] },
   dasom: { id: "dasom", name: "교보다솜케어 (dasom)", serviceName: "교보다솜케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", tiers: ["통합등급", "우대등급"], heroText: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다." }, menus: [] },
   other: { id: "other", name: "A기업 (제휴사)", serviceName: "A기업", csNumber: "1588-1003", clientLink: "", dasomLink: "", tiers: ["임직원 1등급", "임원급"], heroText: { title: "임직원 복지 라운지", subtitle: "A기업 임직원만을 위한 프리미엄 건강 관리 혜택을 만나보세요." }, menus: [] }
 };
@@ -23,7 +23,7 @@ let adminClientConfigs = {
 const defaultMenus = [
   { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
   { id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
-    { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: true, children: [] },
+    { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: false, children: [] },
     { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
   ] },
   { id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
@@ -35,16 +35,23 @@ const defaultMenus = [
   ] },
   { id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
     { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+    { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: true, children: [] },
     { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
   ] },
   { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
     { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
     { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
-    { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
-    { id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] },
-    { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
+    { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+    { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
   ] },
   { id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
+    { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+    { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+      { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+      { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+      { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+      { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+    ] },
     { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
   ] }
 ];
