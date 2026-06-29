@@ -799,58 +799,146 @@
       </div>
       
       <nav class="sidebar-nav">
-        <!-- Dashboard Group -->
         <div class="nav-group">
           <div class="nav-group-title">대시보드</div>
-          <a href="javascript:void(0)" class="nav-item" onclick="window.showToast('종합 현황 화면은 데모 준비 중입니다.')">
+          <a href="admin.html?view=dashboard" class="nav-item" id="sidebar-dashboard">
              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             종합 현황
           </a>
+          <a href="admin.html?view=location-logs" class="nav-item" id="sidebar-location-logs">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+            위치정보 동의 로그
+          </a>
+          <a href="admin.html?view=checkup-consent-logs" class="nav-item" id="sidebar-checkup-consent-logs">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            건강검진 동의 이력
+          </a>
         </div>
         
-        <!-- Subscription Group (Main Focus) -->
-        <div class="nav-group expanded" id="sidebar-subscription-group">
-          <div class="nav-group-header" onclick="window.toggleSidebarGroup('sidebar-subscription-group')">
-            <span style="display:flex; align-items:center;">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px; margin-right:12px; opacity:0.7;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-              구독콘텐츠 관리
-            </span>
-            <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        <div class="nav-group expanded">
+          <div class="nav-group-title">헬스케어포털 관리</div>
+          <a href="admin.html?view=menu-settings" class="nav-item" id="sidebar-menu-settings">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+            헬스케어 포털 메뉴설정
+          </a>
+          <a href="admin.html?view=client-management" class="nav-item" id="sidebar-client-management">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            고객사 및 등급 관리
+          </a>
+          <a href="health_info.html" class="nav-item" id="sidebar-health-info-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            건강정보 관리
+          </a>
+          <div class="nav-tree-container" id="sidebar-health-archive-tree">
+            <a href="javascript:void(0)" class="nav-item" id="sidebar-health-archive-btn" onclick="toggleSidebarTree(event)" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:12px; width:18px; height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"></path></svg>
+                건강정보 자료실
+              </span>
+              <svg id="sidebar-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px; height:14px; margin-right:0; transition: transform 0.2s; transform: rotate(0deg);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </a>
+            <div class="nav-tree-children" id="sidebar-archive-children" style="padding-left:16px; display:none;">
+              <a href="health_archive.html?view=category" class="nav-item" id="sidebar-archive-category" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                카테고리 관리
+              </a>
+              <a href="health_archive.html?view=archive" class="nav-item" id="sidebar-archive-posts" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                자료실
+              </a>
+              <a href="health_archive.html?view=video" class="nav-item" id="sidebar-archive-video" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                동영상 자료관리
+              </a>
+            </div>
           </div>
-          <div class="nav-group-items">
-            <a href="javascript:void(0)" class="nav-item nav-item-sub active" id="menu-setting-btn" onclick="window.navigateToSubscriptionView('setting')">
-              구독용 콘텐츠 설정
+
+          <!-- 구독콘텐츠 관리 -->
+          <div class="nav-tree-container" id="sidebar-health-subscription-tree">
+            <a href="javascript:void(0)" class="nav-item" id="sidebar-health-subscription-btn" onclick="toggleSubscriptionSidebarTree(event)" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:12px; width:18px; height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                구독콘텐츠 관리
+              </span>
+              <svg id="sidebar-sub-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px; height:14px; margin-right:0; transition: transform 0.2s; transform: rotate(0deg);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </a>
-            <a href="javascript:void(0)" class="nav-item nav-item-sub" id="menu-status-btn" onclick="window.navigateToSubscriptionView('status')">
-              구독 신청 현황
-            </a>
-            <a href="javascript:void(0)" class="nav-item nav-item-sub" id="menu-stats-btn" onclick="window.navigateToSubscriptionView('stats')">
-              이용 통계
-            </a>
+            <div class="nav-tree-children" id="sidebar-subscription-children" style="padding-left:16px; display:none;">
+              <a href="subscription.html?view=setting" class="nav-item" id="sidebar-sub-setting" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                구독용 콘텐츠 설정
+              </a>
+              <a href="subscription.html?view=status" class="nav-item" id="sidebar-sub-status" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                구독 신청 현황
+              </a>
+              <a href="subscription.html?view=stats" class="nav-item" id="sidebar-sub-stats" style="font-size:13.5px; padding-left:20px;">
+                <span style="display:inline-block; width:5px; height:5px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>
+                이용 통계
+              </a>
+            </div>
           </div>
+
+          <script>
+            function toggleSidebarTree(event) {
+              if (event) event.preventDefault();
+              const children = document.getElementById('sidebar-archive-children');
+              const arrow = document.getElementById('sidebar-arrow');
+              if (children.style.display === 'none') {
+                children.style.display = 'block';
+                arrow.style.transform = 'rotate(90deg)';
+              } else {
+                children.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+              }
+            }
+            function toggleSubscriptionSidebarTree(event) {
+              if (event) event.preventDefault();
+              const children = document.getElementById('sidebar-subscription-children');
+              const arrow = document.getElementById('sidebar-sub-arrow');
+              if (children.style.display === 'none') {
+                children.style.display = 'block';
+                arrow.style.transform = 'rotate(90deg)';
+              } else {
+                children.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+              }
+            }
+          </script>
+          <a href="admin.html?view=online-inquiry" class="nav-item" id="sidebar-online-inquiry">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            온라인 문의 관리
+          </a>
+          <a href="provided_services.html" class="nav-item" id="sidebar-provided-services-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138z"></path></svg>
+            제공서비스 관리
+          </a>
         </div>
 
-        <!-- System Group -->
-        <div class="nav-group" id="sidebar-system-group">
-          <div class="nav-group-header" onclick="window.toggleSidebarGroup('sidebar-system-group')">
-            <span style="display:flex; align-items:center;">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px; margin-right:12px; opacity:0.7;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-              시스템 관리
-            </span>
-            <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-          </div>
-          <div class="nav-group-items">
-            <a href="javascript:void(0)" class="nav-item nav-item-sub" onclick="window.showToast('권한 관리 메뉴는 데모 준비 중입니다.')">권한 설정</a>
-            <a href="javascript:void(0)" class="nav-item nav-item-sub" onclick="window.showToast('코드 관리 메뉴는 데모 준비 중입니다.')">코드 설정</a>
-          </div>
-        </div>
-
-        <!-- Notices -->
-        <div class="nav-group">
-          <div class="nav-group-title">공지사항</div>
-          <a href="javascript:void(0)" class="nav-item" onclick="window.showToast('공지사항 목록은 데모 준비 중입니다.')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            공지사항 목록
+        <div class="nav-group expanded">
+          <div class="nav-group-title">건강검진 관리</div>
+          <a href="admin.html?view=hospitals" class="nav-item" id="sidebar-hospitals">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            제휴 병원 관리
+          </a>
+          <a href="hospital_schedule.html" class="nav-item" id="sidebar-hospital-schedule-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            병원별 일정/마감 관리
+          </a>
+          <a href="admin.html?view=checkup-history" class="nav-item" id="sidebar-checkup-history">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            검진 예약 관리
+          </a>
+          <a href="admin.html?view=packages" class="nav-item" id="sidebar-packages">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            검진 패키지 관리
+          </a>
+          <a href="admin.html?view=items" class="nav-item" id="sidebar-items">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+            검진 항목 관리
+          </a>
+          <a href="checkup_policy.html" class="nav-item" id="sidebar-checkup-policy">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            검진정책관리
           </a>
         </div>
       </nav>
@@ -1115,16 +1203,33 @@
   
   <script src="subscription.js"></script>
   <script>
-    // Expand the subscription LNB on load
+    // Expand the LNB on load
     document.addEventListener("DOMContentLoaded", () => {
-      const subGroup = document.getElementById('sidebar-subscription-group');
-      if (subGroup) {
-        subGroup.classList.add('expanded');
+      // Expand both health-archive-tree and subscription-children
+      const archiveChildren = document.getElementById('sidebar-archive-children');
+      const archiveArrow = document.getElementById('sidebar-arrow');
+      if (archiveChildren) {
+        archiveChildren.style.display = 'block';
+      }
+      if (archiveArrow) {
+        archiveArrow.style.transform = 'rotate(90deg)';
       }
       
-      // Initialize view rendering
+      const subChildren = document.getElementById('sidebar-subscription-children');
+      const subArrow = document.getElementById('sidebar-sub-arrow');
+      if (subChildren) {
+        subChildren.style.display = 'block';
+      }
+      if (subArrow) {
+        subArrow.style.transform = 'rotate(90deg)';
+      }
+
+      // Initialize view rendering based on query param
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view') || 'setting';
+      
       if (window.navigateToSubscriptionView) {
-        window.navigateToSubscriptionView('setting');
+        window.navigateToSubscriptionView(viewParam);
       }
     });
 

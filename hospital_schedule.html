@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사무포털 - 병원별 일정/마감 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2317B890' d='M16 4C9.37 4 4 9.37 4 16c0 4.42 2.4 8.28 6 10.32V16c0-3.31 2.69-6 6-6s6 2.69 6 6c0 1.66-.67 3.16-1.76 4.24L24.49 24.5C26.66 22.31 28 19.31 28 16 28 9.37 22.63 4 16 4z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="admin.css">
+  
+  <style>
+    /* Premium style overrides for split screen & layout */
+    .sandbox-banner {
+      background: linear-gradient(90deg, #eff6ff 0%, #f5f3ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    }
+    .sandbox-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Layout split container */
+    .split-container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: start;
+    }
+    
+    @media (max-width: 1400px) {
+      .split-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Left pane style */
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      transition: var(--transition);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-box {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+    }
+    
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 4px;
+    }
+    
+    .stat-lbl {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    
+    /* Dropdowns/Inputs styling */
+    .filter-bar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid #e2e8f0;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .form-select, .form-input {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background-color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      color: #1e293b;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+    
+    .form-select:focus, .form-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    
+    /* Admin Calendar Grid */
+    .admin-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      user-select: none;
+    }
+    
+    .calendar-day-header {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 0;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .calendar-day-header.sun { color: #ef4444; }
+    .calendar-day-header.sat { color: #3b82f6; }
+    
+    .admin-day-cell {
+      aspect-ratio: 1 / 0.95;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      background: #ffffff;
+      transition: var(--transition);
+      min-height: 85px;
+    }
+    
+    .admin-day-cell:hover {
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+      z-index: 2;
+    }
+    
+    .admin-day-cell.other-month {
+      background-color: #f8fafc;
+      color: #cbd5e1;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    /* Airbnb style Range selection highlights */
+    .admin-day-cell.range-start {
+      background-color: #3b82f6 !important;
+      border-color: #2563eb !important;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    
+    .admin-day-cell.range-start .day-num,
+    .admin-day-cell.range-start .day-status-badge {
+      color: #ffffff !important;
+    }
+    
+    .admin-day-cell.range-end {
+      background-color: #3b82f6 !important;
+      border-color: #2563eb !important;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    
+    .admin-day-cell.range-end .day-num,
+    .admin-day-cell.range-end .day-status-badge {
+      color: #ffffff !important;
+    }
+    
+    .admin-day-cell.range-mid {
+      background-color: #eff6ff !important;
+      border-color: #93c5fd !important;
+    }
+    
+    .day-num-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .admin-day-cell.sun .day-num { color: #ef4444; }
+    .admin-day-cell.sat .day-num { color: #3b82f6; }
+    
+    /* When range start/end is Sunday/Saturday, we want text to remain readable (white) */
+    .admin-day-cell.range-start .day-num, 
+    .admin-day-cell.range-end .day-num {
+      color: #ffffff !important;
+    }
+    
+    .day-status-badge {
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-align: center;
+      display: inline-block;
+    }
+    
+    .day-status-badge.avail { background: #dcfce7; color: #166534; }
+    .day-status-badge.closed { background: #f1f5f9; color: #475569; }
+    .day-status-badge.holiday { background: #fee2e2; color: #991b1b; }
+    
+    /* When active range selection, keep badges legible or style them */
+    .admin-day-cell.range-start .day-status-badge,
+    .admin-day-cell.range-end .day-status-badge {
+      background-color: rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+    }
+    
+    .closed-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    
+    .closed-item-tag {
+      font-size: 9px;
+      color: #ef4444;
+      background: #fee2e2;
+      padding: 1px 4px;
+      border-radius: 2px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      font-weight: 500;
+    }
+    
+    /* Period Config Console */
+    .period-config-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .date-range-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid #e2e8f0;
+    }
+    
+    .date-range-separator {
+      font-weight: bold;
+      color: #64748b;
+      font-size: 16px;
+    }
+    
+    /* Premium Option Cards (Hotel booking style) */
+    .option-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    
+    .option-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: var(--transition);
+      background-color: #fff;
+    }
+    
+    .option-card:hover {
+      border-color: #94a3b8;
+      background-color: #f8fafc;
+    }
+    
+    .option-card.selected {
+      border-color: #2563eb;
+      background-color: #f0f7ff;
+      box-shadow: 0 0 0 1px #2563eb;
+    }
+    
+    .option-radio {
+      margin-top: 4px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .option-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .option-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    .option-desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    
+    /* Accordion checkboxes for Option 2 */
+    .accordion-closed-tests {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #cbd5e1;
+      display: none; /* Controlled by JS */
+    }
+    
+    .accordion-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      font-size: 13px;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .checkbox-item input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
+    /* Right Preview styling: Mobile device mockup */
+    .preview-panel {
+      position: sticky;
+      top: 24px;
+    }
+    
+    .phone-mockup {
+      width: 100%;
+      max-width: 450px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 12px solid #1e293b;
+      border-radius: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      aspect-ratio: 1 / 1.15;
+      font-family: 'Pretendard', sans-serif;
+    }
+    
+    .phone-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f3f4f6;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    
+    /* Mock Customer Calendar Styles */
+    .mock-popup {
+      background: #ffffff;
+      border-radius: 16px 16px 0 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+    
+    .mock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 16px;
+    }
+    
+    .mock-header h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+    
+    .mock-close-btn {
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 300;
+    }
+    
+    .mock-month-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .mock-month-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #f1f5f9;
+      background: #ffffff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: #475569;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .mock-current-month {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      min-width: 100px;
+      text-align: center;
+    }
+    
+    .mock-info-text {
+      font-size: 11px;
+      color: #475569;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    
+    .mock-info-text span {
+      color: #2563eb;
+      font-weight: 700;
+    }
+    
+    .mock-legend {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .legend-dot.avail { background-color: #2563eb; }
+    .legend-dot.closed { background-color: #94a3b8; }
+    .legend-dot.holiday { background-color: #ef4444; }
+    
+    .mock-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-top: 2px solid #2563eb;
+      background: #ffffff;
+    }
+    
+    .mock-day-header {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 0;
+      color: #1e293b;
+      border-bottom: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+    
+    .mock-day-header.sun { color: #ef4444; }
+    .mock-day-header.sat { color: #3b82f6; }
+    
+    .mock-day-cell {
+      border-right: 1px solid #e8eff6;
+      border-bottom: 1px solid #e8eff6;
+      padding: 8px 2px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+      background: #ffffff;
+    }
+    
+    .mock-day-cell:nth-child(7n) {
+      border-right: none;
+    }
+    
+    .mock-day-cell.other-month {
+      background-color: #ffffff;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    
+    .mock-day-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 4px;
+      padding-left: 6px;
+    }
+    
+    .mock-day-cell.sun .mock-day-num { color: #ef4444; }
+    .mock-day-cell.sat .mock-day-num { color: #3b82f6; }
+    
+    .mock-badge {
+      background-color: #2563eb;
+      color: #ffffff;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: inline-block;
+      align-self: center;
+    }
+    
+    .mock-closed-desc {
+      font-size: 8.5px;
+      color: #64748b;
+      line-height: 1.3;
+      padding-left: 4px;
+      width: 100%;
+      word-break: keep-all;
+      text-align: left;
+    }
+    
+    .mock-text-closed {
+      color: #94a3b8;
+      font-size: 11.5px;
+      font-weight: 500;
+      align-self: center;
+      margin-top: 10px;
+    }
+    
+    .mock-text-holiday {
+      color: #ef4444;
+      font-size: 11.5px;
+      font-weight: 500;
+      align-self: center;
+      margin-top: 10px;
+    }
+    
+    /* Button styles */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 0;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      outline: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      border: 1px solid #2563eb;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+    
+    .btn-secondary {
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    .btn-success {
+      background: #10b981;
+      color: white;
+      border: 1px solid #10b981;
+    }
+    .btn-success:hover {
+      background: #059669;
+    }
+    
+    /* Toast styles */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .toast {
+      background: #0f172a;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    /* --- NEW OVERHAULED RESERVATION DASHBOARD STYLES --- */
+    
+    /* Layout */
+    .split-container {
+      display: grid;
+      grid-template-columns: 380px 1fr !important;
+      gap: 24px;
+      align-items: start;
+    }
+    
+    /* Top Filter Bar */
+    .top-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-end;
+      padding: 16px 24px;
+      margin-bottom: 20px;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .filter-group label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+    
+    .filter-group label .sub-label {
+      font-weight: normal;
+      color: #64748b;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    
+    .period-group {
+      flex: 1.5;
+      min-width: 280px;
+    }
+    
+    .period-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .period-inputs .form-input {
+      width: 140px;
+      height: 38px;
+      font-size: 13px;
+    }
+    
+    .range-separator {
+      color: #94a3b8;
+      font-weight: bold;
+    }
+    
+    .quick-buttons {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    
+    .btn-quick {
+      padding: 4px 8px;
+      font-size: 11px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      color: #475569;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    
+    .btn-quick:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    .btn-quick.active {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #2563eb;
+    }
+    
+    .weekday-group {
+      flex: 2;
+      min-width: 320px;
+    }
+    
+    .weekday-buttons {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .btn-weekday {
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .btn-weekday:hover:not(:disabled) {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+    
+    .btn-weekday.active {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+    
+    .btn-weekday[data-day="0"] {
+      color: #ef4444; /* Sunday */
+    }
+    
+    .btn-weekday[data-day="0"].active {
+      background: #fee2e2;
+      border-color: #f87171;
+      color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+    
+    .btn-weekday[data-day="6"] {
+      color: #3b82f6; /* Saturday */
+    }
+    
+    .btn-weekday[data-day="6"].active {
+      background: #eff6ff;
+      border-color: #60a5fa;
+      color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+    
+    .btn-weekday[data-day="all"] {
+      width: auto;
+      padding: 0 12px;
+    }
+    
+    .btn-weekday:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #f1f5f9;
+      color: #94a3b8;
+      border-color: #e2e8f0;
+    }
+    
+    /* Disabled helper tooltip indicator */
+    .btn-weekday:disabled::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #334155;
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      margin-bottom: 6px;
+      z-index: 10;
+    }
+    
+    .btn-weekday:disabled:hover::after {
+      opacity: 0.9;
+    }
+    
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .top-actions .btn {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+    }
+    
+    /* Left Panel: 마감 설정 */
+    .card-info-text {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: -12px;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    
+    .status-btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .btn-status {
+      padding: 10px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .btn-status.btn-avail {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+    
+    .btn-status.btn-avail:hover {
+      background-color: #1d4ed8;
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.15);
+    }
+    
+    .btn-status.btn-closed {
+      background-color: #e2e8f0;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+    }
+    
+    .btn-status.btn-closed:hover {
+      background-color: #cbd5e1;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-status.btn-holiday {
+      background-color: #ef4444;
+      color: #ffffff;
+    }
+    
+    .btn-status.btn-holiday:hover {
+      background-color: #dc2626;
+      box-shadow: 0 4px 6px rgba(239, 68, 68, 0.15);
+    }
+    
+    .search-box-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    .search-box-wrapper .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    
+    .search-box-wrapper .search-input {
+      padding-left: 36px;
+      height: 38px;
+      font-size: 13px;
+      width: 100%;
+    }
+    
+    .tree-wrapper {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+      background-color: #f8fafc;
+    }
+    
+    .tree-node {
+      margin-bottom: 10px;
+    }
+    
+    .tree-node:last-child {
+      margin-bottom: 0;
+    }
+    
+    .tree-node-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 4px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    
+    .tree-node-row:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .tree-caret {
+      cursor: pointer;
+      font-size: 10px;
+      color: #64748b;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+    
+    .tree-caret.collapsed {
+      transform: rotate(-90deg);
+    }
+    
+    .tree-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      width: 100%;
+      user-select: none;
+    }
+    
+    .tree-children {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 28px;
+      margin-top: 4px;
+      border-left: 1px dashed #cbd5e1;
+      margin-left: 11px;
+      transition: max-height 0.2s ease;
+    }
+    
+    .tree-child-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: var(--transition);
+      user-select: none;
+    }
+    
+    .tree-child-row:hover {
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+    
+    .tree-cb {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
+    .tree-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .selected-count-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    /* Calendar Area Adjustments */
+    .calendar-legend-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .calendar-legend-group .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 8px;
+    }
+    .calendar-legend-group .legend-dot:first-child {
+      margin-left: 0;
+    }
+    .calendar-legend-group .legend-dot.avail { background-color: #2563eb; }
+    .calendar-legend-group .legend-dot.closed { background-color: #94a3b8; }
+    .calendar-legend-group .legend-dot.holiday { background-color: #ef4444; }
+    
+    .calendar-legend-group .legend-lbl {
+      font-size: 12px;
+      margin-left: 4px;
+    }
+    
+    .calendar-navigation {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .nav-arrow-btn {
+      width: 28px;
+      height: 28px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: #475569;
+      transition: var(--transition);
+      outline: none;
+    }
+    
+    .nav-arrow-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    .current-month-lbl {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      min-width: 110px;
+      text-align: center;
+    }
+    
+    .view-selector-group {
+      display: flex;
+      align-items: center;
+    }
+    
+    .view-mode-select {
+      width: 110px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-color: #cbd5e1;
+    }
+    
+    /* Yearly Calendar View */
+    .yearly-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 12px;
+    }
+    
+    @media (max-width: 1400px) {
+      .yearly-calendar-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 1100px) {
+      .yearly-calendar-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .mini-month-box {
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .mini-month-box:hover {
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .mini-month-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      text-align: center;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    
+    .mini-month-days-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .mini-month-days-header .sun { color: #ef4444; }
+    .mini-month-days-header .sat { color: #3b82f6; }
+    
+    .mini-month-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    
+    .mini-day-cell {
+      aspect-ratio: 1;
+      font-size: 9.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: #334155;
+      position: relative;
+    }
+    
+    .mini-day-cell.other-month {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .mini-day-cell.avail {
+      background-color: #2563eb;
+      color: #ffffff !important;
+    }
+    
+    .mini-day-cell.closed {
+      background-color: #e2e8f0;
+      color: #64748b;
+    }
+    
+    .mini-day-cell.holiday {
+      background-color: #fee2e2;
+      color: #ef4444 !important;
+    }
+    
+    /* Tooltip styling for mini cells */
+    .mini-day-cell::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      font-size: 10px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 100;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid #475569;
+    }
+    
+    .mini-day-cell:hover::after {
+      opacity: 1;
+    }
+    
+    /* Info Banner Styling */
+    .info-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #1e40af;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+
+    <!-- Sidebar Frame -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon" style="background:#2563eb;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        </div>
+        <span class="logo-text">독립 개발 포털</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-group expanded">
+          <div class="nav-group-title">헬스케어포털 관리</div>
+          <a href="admin.html?view=menu-settings" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+            헬스케어 포털 메뉴설정
+          </a>
+          <a href="admin.html?view=client-management" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            고객사 및 등급 관리
+          </a>
+          <a href="provided_services.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138z"></path></svg>
+            제공서비스 관리
+          </a>
+          <a href="health_info.html" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            건강정보 관리
+          </a>
+        </div>
+        
+        <div class="nav-group expanded">
+          <div class="nav-group-title">건강검진 관리</div>
+          <a href="admin.html?view=hospitals" class="nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            제휴 병원 관리
+          </a>
+          <a href="hospital_schedule.html" class="nav-item active" id="sidebar-hospital-schedule-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            병원별 일정/마감 관리
+          </a>
+          <a href="checkup_policy.html" class="nav-item" id="sidebar-checkup-policy-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            검진정책관리
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Frame -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="breadcrumb">
+          사무포털 <span class='separator'>></span> 건강검진 관리 <span class='separator'>></span> <strong>병원별 일정/마감 관리</strong>
+        </div>
+        <div class="user-controls">
+          <div class="profile-circle" style="background:#2563eb;">A</div>
+          <span>Admin 님</span>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+        
+        <!-- Top Filter Bar -->
+        <div class="card top-filter-bar">
+          <div class="filter-group" style="flex: 1; min-width: 200px;">
+            <label for="hosp-select">병원 선택</label>
+            <select id="hosp-select" class="form-select">
+              <option value="pohang" selected>포항세명기독병원</option>
+              <option value="green-gn">GC녹십자아이메드 강남센터</option>
+              <option value="kmi-yyd">KMI 한국의학연구소 여의도</option>
+            </select>
+          </div>
+          
+          <div class="filter-group period-group">
+            <label>기간 설정</label>
+            <div class="period-inputs">
+              <input type="date" id="start-date-input" class="form-input">
+              <span class="range-separator">~</span>
+              <input type="date" id="end-date-input" class="form-input">
+            </div>
+            <div class="quick-buttons">
+              <button type="button" class="btn-quick" data-range="today">오늘</button>
+              <button type="button" class="btn-quick" data-range="1m">1개월</button>
+              <button type="button" class="btn-quick" data-range="3m">3개월</button>
+              <button type="button" class="btn-quick" data-range="6m">6개월</button>
+              <button type="button" class="btn-quick" data-range="1y">1년</button>
+            </div>
+          </div>
+
+          <div class="filter-group weekday-group">
+            <label>요일 필터 <span class="sub-label">(매주 반복 적용)</span></label>
+            <div class="weekday-buttons">
+              <button type="button" class="btn-weekday" data-day="0" disabled data-tooltip="기간 설정 후 선택 가능">일</button>
+              <button type="button" class="btn-weekday" data-day="1" disabled data-tooltip="기간 설정 후 선택 가능">월</button>
+              <button type="button" class="btn-weekday" data-day="2" disabled data-tooltip="기간 설정 후 선택 가능">화</button>
+              <button type="button" class="btn-weekday" data-day="3" disabled data-tooltip="기간 설정 후 선택 가능">수</button>
+              <button type="button" class="btn-weekday" data-day="4" disabled data-tooltip="기간 설정 후 선택 가능">목</button>
+              <button type="button" class="btn-weekday" data-day="5" disabled data-tooltip="기간 설정 후 선택 가능">금</button>
+              <button type="button" class="btn-weekday" data-day="6" disabled data-tooltip="기간 설정 후 선택 가능">토</button>
+              <button type="button" class="btn-weekday" data-day="all" disabled data-tooltip="기간 설정 후 선택 가능">전체</button>
+            </div>
+          </div>
+
+          <div class="top-actions">
+            <button type="button" id="btn-view-history" class="btn btn-secondary">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+              적용 내역 보기
+            </button>
+            <button type="button" id="btn-save-all" class="btn btn-primary" style="background:#2563eb;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+              설정 저장
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Split Panel Grid -->
+        <div class="split-container">
+          
+          <!-- LEFT: Admin Control Panel (마감 설정 트리) -->
+          <div class="control-panel">
+            <div class="card">
+              <div class="card-header" style="padding-bottom:12px; margin-bottom:16px;">
+                <div class="card-title">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                  마감 설정
+                </div>
+                <div class="btn-group">
+                  <button type="button" id="btn-copy-prev" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">전월 복사</button>
+                  <button type="button" id="btn-reset-tree" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">초기화</button>
+                </div>
+              </div>
+              
+              <p class="card-info-text">마감할 항목을 선택하고 날짜의 상태를 설정하세요.</p>
+              
+              <!-- 3-Color Status Action Buttons -->
+              <div class="status-btn-group">
+                <button type="button" id="btn-apply-avail" class="btn-status btn-avail">예약가능</button>
+                <button type="button" id="btn-apply-closed" class="btn-status btn-closed">마감</button>
+                <button type="button" id="btn-apply-holiday" class="btn-status btn-holiday">휴일</button>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="search-box-wrapper">
+                <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="tree-search-input" class="form-input search-input" placeholder="검사 항목 검색">
+              </div>
+
+              <!-- Collapsible Checkbox Tree -->
+              <div class="tree-wrapper" id="checkup-tree-container">
+                
+                <!-- 대장내시경 Group -->
+                <div class="tree-node tree-parent" data-category="colon">
+                  <div class="tree-node-row">
+                    <span class="tree-caret">▼</span>
+                    <label class="tree-label">
+                      <input type="checkbox" class="tree-cb parent-cb" data-target="colon">
+                      <span class="tree-text">대장내시경</span>
+                    </label>
+                  </div>
+                  <div class="tree-children">
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="colon" value="colon_all">
+                      <span class="tree-text">대장내시경 전체</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="colon" value="colon_sleep">
+                      <span class="tree-text">대장내시경 (수면)</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="colon" value="colon_nonsleep">
+                      <span class="tree-text">대장내시경 (비수면)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 위내시경 Group -->
+                <div class="tree-node tree-parent" data-category="stomach">
+                  <div class="tree-node-row">
+                    <span class="tree-caret">▼</span>
+                    <label class="tree-label">
+                      <input type="checkbox" class="tree-cb parent-cb" data-target="stomach">
+                      <span class="tree-text">위내시경</span>
+                    </label>
+                  </div>
+                  <div class="tree-children">
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="stomach" value="stomach_all">
+                      <span class="tree-text">위내시경 전체</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="stomach" value="stomach_sleep">
+                      <span class="tree-text">위내시경 (수면)</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="stomach" value="stomach_nonsleep">
+                      <span class="tree-text">위내시경 (비수면)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- MRI Group -->
+                <div class="tree-node tree-parent" data-category="mri">
+                  <div class="tree-node-row">
+                    <span class="tree-caret">▼</span>
+                    <label class="tree-label">
+                      <input type="checkbox" class="tree-cb parent-cb" data-target="mri">
+                      <span class="tree-text">MRI</span>
+                    </label>
+                  </div>
+                  <div class="tree-children">
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="mri" value="mri_all">
+                      <span class="tree-text">MRI 전체</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="mri" value="mri_brain">
+                      <span class="tree-text">뇌 MRI</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="mri" value="mri_liver">
+                      <span class="tree-text">간 MRI</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="mri" value="mri_neck">
+                      <span class="tree-text">경추 MRI</span>
+                    </label>
+                    <label class="tree-child-row">
+                      <input type="checkbox" class="tree-cb child-cb" data-parent="mri" value="mri_spine">
+                      <span class="tree-text">요추 MRI</span>
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Tree Footer Info -->
+              <div class="tree-footer">
+                <span class="selected-count-label">선택 항목 <strong id="selected-items-count">0</strong>개</span>
+                <button type="button" id="btn-confirm-selection" class="btn btn-secondary" style="padding: 6px 12px; font-size:12px; border-color: #cbd5e1;">선택 항목 확인</button>
+              </div>
+
+            </div>
+          </div>
+          
+          <!-- RIGHT: Calendar Display Panel -->
+          <div class="calendar-panel">
+            <div class="card">
+              <div class="card-header">
+                <!-- Legend -->
+                <div class="calendar-legend-group">
+                  <span class="legend-dot avail"></span>
+                  <span class="legend-lbl">예약가능</span>
+                  <span class="legend-dot closed"></span>
+                  <span class="legend-lbl">마감</span>
+                  <span class="legend-dot holiday"></span>
+                  <span class="legend-lbl">휴일</span>
+                </div>
+                
+                <!-- Month selector navigation -->
+                <div class="calendar-navigation">
+                  <button type="button" id="btn-prev-month" class="nav-arrow-btn">&lt;</button>
+                  <span id="calendar-month-label" class="current-month-lbl">2026년 6월</span>
+                  <button type="button" id="btn-next-month" class="nav-arrow-btn">&gt;</button>
+                </div>
+                
+                <!-- View selector dropdown -->
+                <div class="view-selector-group">
+                  <select id="view-mode-select" class="form-select view-mode-select">
+                    <option value="month" selected>월별 보기</option>
+                    <option value="year">연별 보기</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Month View Grid -->
+              <div class="admin-calendar" id="admin-calendar-grid">
+                <!-- Filled dynamically by JavaScript -->
+              </div>
+              
+              <!-- Year View Grid -->
+              <div class="yearly-calendar-grid" id="admin-calendar-yearly-grid" style="display: none;">
+                <!-- Filled dynamically by JavaScript -->
+              </div>
+              
+              <!-- Info Banner -->
+              <div class="info-banner">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>선택한 검사 항목에 대해 설정된 상태가 달력에 표시됩니다. 기간 및 요일 필터를 변경하면 달력에 자동 적용됩니다.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="hospital_schedule.js"></script>
+  
+  <style>
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</body>
+</html>

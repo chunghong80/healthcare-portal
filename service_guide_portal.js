@@ -5,6 +5,115 @@
  * and renders a high-quality responsive page with dynamic tabs and styled layouts.
  */
 
+// Render Customer Center plain text (or HTML) in the designated premium card layout
+if (!window.renderCSGuideDesign) {
+  window.renderCSGuideDesign = function(text, clientName) {
+    if (!text) return '';
+    if (text.trim().startsWith('<')) {
+      return text; // Backward compatibility: already HTML
+    }
+
+    // Parse lines
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    let phone = '';
+    let title = '';
+    let subtitle = '';
+    let extraLine = '';
+
+    // Extract phone number from lines (look for digits and hyphens)
+    const phoneRegex = /([\d\-]{4,15})/;
+    let phoneLineIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(phoneRegex);
+      if (match) {
+        phone = match[1];
+        phoneLineIdx = i;
+        break;
+      }
+    }
+
+    const otherLines = lines.filter((_, idx) => idx !== phoneLineIdx);
+
+    if (!phone) {
+      phone = '1588-7545'; // fallback
+    }
+
+    // Clean phone number for tel: link (remove non-digits)
+    const phoneClean = phone.replace(/[^0-9]/g, '');
+
+    if (otherLines.length > 0) {
+      title = otherLines[0];
+    } else {
+      title = `${clientName || '교보생명'} 고객센터`;
+    }
+
+    if (otherLines.length > 1) {
+      subtitle = otherLines[1];
+    } else {
+      subtitle = '헬스케어서비스 콜센터';
+    }
+
+    if (otherLines.length > 2) {
+      extraLine = otherLines.slice(2).join(' | ');
+    }
+
+    // Return premium design using client-specific CSS variable or default blue
+    return `
+      <div class="cs-guide-card-premium" style="position: relative; width: 100%; border: 1px solid #cbd5e1; border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 22px 28px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02), 0 4px 6px -2px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; transition: transform 0.2s, box-shadow 0.2s;">
+        <style>
+          .cs-guide-card-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -3px rgba(0,0,0,0.04), 0 4px 12px -2px rgba(0,0,0,0.02);
+          }
+          .cs-call-btn {
+            background: var(--theme-color, #2563eb);
+            color: white !important;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(var(--theme-color-rgb, 37, 99, 235), 0.2);
+            transition: all 0.2s ease;
+          }
+          .cs-call-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px -1px rgba(var(--theme-color-rgb, 37, 99, 235), 0.3);
+          }
+        </style>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(var(--theme-color-rgb, 37, 99, 235), 0.1); display: flex; align-items: center; justify-content: center; color: var(--theme-color, #2563eb); flex-shrink: 0;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: -0.2px;">${subtitle}</div>
+            <div style="font-size: 20px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">${title}</div>
+            ${extraLine ? `<div style="font-size: 12.5px; color: #64748b; font-weight: 500; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+              <span style="display:inline-block; width:4px; height:4px; border-radius:50%; background:#94a3b8;"></span>
+              ${extraLine}
+            </div>` : ''}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div style="text-align: right;">
+            <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">전화 상담 번호</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--theme-color, #2563eb); letter-spacing: -0.5px;">${phone}</div>
+          </div>
+          <a href="tel:${phoneClean}" class="cs-call-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            전화 연결
+          </a>
+        </div>
+      </div>
+    `;
+  };
+}
+
 window.renderServiceGuidePortal = function(container) {
   if (!container) return;
 
@@ -173,7 +282,7 @@ window.renderServiceGuidePortal = function(container) {
 
       <!-- 2. 고객센터 안내 Card -->
       <div id="portal-service-cs-container" style="width:100%;">
-        ${matchedService.sections.csGuide}
+        ${window.renderCSGuideDesign(matchedService.sections.csGuide, client.name)}
       </div>
 
       <!-- 3. 서비스 주요내용 Tabbed Area -->

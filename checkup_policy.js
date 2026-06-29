@@ -368,7 +368,11 @@ window.filterPoliciesList = function() {
   const filtered = policies.filter(p => {
     if (partner !== 'all' && p.partnerName !== partner) return false;
     if (method !== 'all' && p.supportMethod !== method) return false;
-    if (keyword && !p.tierName.toLowerCase().includes(keyword)) return false;
+    if (keyword) {
+      const matchTierName = p.tierName && p.tierName.toLowerCase().includes(keyword);
+      const matchSelectedTiers = p.selectedTiers && p.selectedTiers.some(t => t.toLowerCase().includes(keyword));
+      if (!matchTierName && !matchSelectedTiers) return false;
+    }
     if (year !== 'all' && !p.applyYear.includes(year)) return false;
     if (status !== 'all' && p.status !== status) return false;
     
@@ -413,11 +417,22 @@ window.filterPoliciesList = function() {
       voucherBadge = `<span style="background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #bfdbfe; font-weight:700;">사용</span>`;
     }
 
+    let tierNameDisplay = p.tierName;
+    let tooltipTitle = '';
+    if (p.selectedTiers && p.selectedTiers.length > 0) {
+      tooltipTitle = p.selectedTiers.join(', ');
+      if (p.selectedTiers.length > 1) {
+        tierNameDisplay = `${p.selectedTiers[0]} 외 ${p.selectedTiers.length - 1}건`;
+      } else {
+        tierNameDisplay = p.selectedTiers[0];
+      }
+    }
+
     return `
       <tr style="border-bottom: 1px solid #e2e8f0; text-align: center;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
         <td style="padding: 16px 20px;"><input type="checkbox" class="policy-row-chk" data-id="${p.id}" onclick="event.stopPropagation()"></td>
         <td style="padding: 16px 8px; text-align: left; font-weight: 700; color:#1e293b;">${p.partnerName}</td>
-        <td style="padding: 16px 8px; text-align: left; font-weight: 600; color:#334155;">${p.tierName}</td>
+        <td style="padding: 16px 8px; text-align: left; font-weight: 600; color:#334155;" title="${tooltipTitle}">${tierNameDisplay}</td>
         <td style="padding: 16px 8px; text-align: left;"><span style="${methodBadgeColor} padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight:700;">${methodText}</span></td>
         <td style="padding: 16px 8px; font-weight:500;">${p.applyYear}</td>
         <td style="padding: 16px 8px; font-size:12px; color:#64748b;">${p.reserveStart} ~<br>${p.reserveEnd}</td>
@@ -660,10 +675,6 @@ window.renderSupportPolicyCreate = function(container) {
               <option value="현대자동차"></option>
             </datalist>
           </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-weight: 600; font-size: 14px; width: 100px;">정책/등급명</span>
-          <input type="text" id="policy-tier-name" class="form-input" placeholder="예) 임직원 기본검진" value="${pTierName}" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 350px;">
         </div>
 
         <div style="display: flex; gap: 12px; align-items: flex-start;">
@@ -938,10 +949,12 @@ window.toggleFamilyRelation = function() {
 // -------------------------------------------------------------
 window.savePolicyForm = function(alertMsg) {
   const partner = document.getElementById('policy-partner').value.trim();
-  const tierName = document.getElementById('policy-tier-name').value.trim();
   
   if (!partner) { alert("제휴사를 입력하세요."); return; }
-  if (!tierName) { alert("정책/등급명을 입력하세요."); return; }
+  if (tempSelectedTiers.length === 0) { alert("대상 등급을 하나 이상 선택해 주세요 (등급 상세 선택)."); return; }
+
+  // 대표 등급명은 선택한 대상 등급 중 첫 번째 등급을 자동으로 할당
+  const tierName = tempSelectedTiers[0];
 
   const reserveStart = document.getElementById('policy-reserve-start').value;
   const reserveEnd = document.getElementById('policy-reserve-end').value;

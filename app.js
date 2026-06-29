@@ -46,10 +46,16 @@ const defaultMenus = [
     id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
       { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
       { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] },
       { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
     ]
   },
-  { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
+  {
+    id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
 ];
 
 const BRAND_DEFAULTS = {
@@ -61,10 +67,72 @@ const BRAND_DEFAULTS = {
   logoImage: null
 };
 
+function getMenuPath(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return `${fallback}/${subId}`;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return `${m.id}/${child.id}`;
+      }
+    }
+  }
+  return `${fallback}/${subId}`;
+}
+
+function getParentMenuLabel(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return fallback;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return m.label;
+      }
+    }
+  }
+  return fallback;
+}
+
 const mockUsers = {
-  user_multi: { name: "홍길동", clients: ["kyobo", "dasom", "other"], tiers: { kyobo: ["기본플랜", "VIP플랜"], dasom: ["통합등급"], other: ["임직원 1등급"] } },
-  user_single_dasom: { name: "이다솜", clients: ["dasom"], tiers: { dasom: ["우대등급"] } },
-  user_single_other: { name: "김제휴", clients: ["other"], tiers: { other: ["임원급"] } }
+  user_multi: {
+    id: "user_multi",
+    name: "홍길동",
+    birth: "1985.06.12",
+    gender: "남성",
+    phone: "010-5678-1234",
+    email: "hong@naver.com",
+    address: "서울특별시 종로구 인사동 10길 12, 3층",
+    clients: ["kyobo", "dasom", "other"],
+    tiers: { kyobo: ["기본플랜", "VIP플랜"], dasom: ["통합등급"], other: ["임직원 1등급"] }
+  },
+  user_single_dasom: {
+    id: "user_single_dasom",
+    name: "이다솜",
+    birth: "1990.04.28",
+    gender: "여성",
+    phone: "010-9876-5432",
+    email: "dasom@gmail.com",
+    address: "서울특별시 마포구 마포대로 56",
+    clients: ["dasom"],
+    tiers: { dasom: ["우대등급"] }
+  },
+  user_single_other: {
+    id: "user_single_other",
+    name: "김제휴",
+    birth: "1978.11.03",
+    gender: "남성",
+    phone: "010-4321-8765",
+    email: "jeseong@naver.com",
+    address: "경기도 성남시 분당구 정자일로 95",
+    clients: ["other"],
+    tiers: { other: ["임원급"] }
+  }
 };
 
 let state = { currentUser: null, activeClient: null, route: window.location.hash || '#/' };
@@ -132,6 +200,13 @@ window.handleHospitalAction = function(event, hospitalName, pkg) {
   else if (action === 'schedule') window.showScheduleModal(hospitalName);
   else if (action === 'reserve') {
     sessionStorage.setItem('selectedHospital', hospitalName + ' - ' + pkg);
+    const activeSub = state.activeSubId || '';
+    const activeMenu = state.activeMenuId || '';
+    const menuObj = state.activeClient && state.activeSite ? state.activeSite.menus.find(m => m.id === activeMenu) : null;
+    const subObj = menuObj && menuObj.children ? menuObj.children.find(c => c.id === activeSub) : null;
+    const pageTitle = subObj ? subObj.label : '';
+    const isCompanySupport = activeSub === 'checkupCorporate' || activeSub === 'checkupWelfare' || decodeURIComponent(activeSub).includes('회사지원') || (pageTitle && pageTitle.includes('회사지원'));
+    sessionStorage.setItem('isCompanySupport', isCompanySupport ? 'true' : 'false');
     window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/' + state.activeMenuId + '/consent';
   }
 };
@@ -253,7 +328,8 @@ window.showHospitalInfoModal = function(hospitalName, defaultTab = 'info') {
             </ul>
 
             <!-- Table 1: Basic -->
-            <table id="${modalId}-table-basic" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1;">
+            <div class="responsive-table-wrapper">
+              <table id="${modalId}-table-basic" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1; margin-bottom: 16px;">
               <thead style="background: #f8fafc; font-weight: 700; color: #334155;">
                 <tr>
                   <th style="padding: 12px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; width: 15%;">구분</th>
@@ -309,9 +385,11 @@ window.showHospitalInfoModal = function(hospitalName, defaultTab = 'info') {
                 </tr>
               </tbody>
             </table>
+          </div>
 
             <!-- Table 2: Optional -->
-            <table id="${modalId}-table-optional" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1; display: none;">
+            <div class="responsive-table-wrapper">
+              <table id="${modalId}-table-optional" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1; display: none; margin-bottom: 16px;">
               <thead style="background: #f8fafc; font-weight: 700; color: #334155;">
                 <tr>
                   <th style="padding: 12px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; width: 12%;">그룹</th>
@@ -399,9 +477,11 @@ window.showHospitalInfoModal = function(hospitalName, defaultTab = 'info') {
                 </tr>
               </tbody>
             </table>
+          </div>
 
             <!-- Table 3: Additional -->
-            <table id="${modalId}-table-additional" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1; display: none;">
+            <div class="responsive-table-wrapper">
+              <table id="${modalId}-table-additional" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; border-top: 2px solid #cbd5e1; display: none; margin-bottom: 16px;">
               <thead style="background: #f8fafc; font-weight: 700; color: #334155;">
                 <tr>
                   <th style="padding: 12px 8px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; width: 30%;">검사항목</th>
@@ -442,6 +522,7 @@ window.showHospitalInfoModal = function(hospitalName, defaultTab = 'info') {
                 </tr>
               </tbody>
             </table>
+          </div>
           </div>
           
         </div>
@@ -544,6 +625,9 @@ window.showScheduleModal = function(hospitalName) {
   if (currentMonth < mockAvailableMonth && currentYear === 2026) {
     currentMonth = mockAvailableMonth;
   }
+  if (currentMonth > 11 && currentYear === 2026) {
+    currentMonth = 11;
+  }
 
   const renderCalendar = (year, month) => {
     const firstDay = new Date(year, month, 1).getDay();
@@ -569,27 +653,23 @@ window.showScheduleModal = function(hospitalName) {
       let statusHtml = '';
       let isAvailable = false;
       
-      // Mock Logic for June 2026 (시안 데이터 기반)
-      if (month === 5 && year === 2026) {
-        if (isSunday) {
-          statusHtml = `<div style="color: #ef4444; font-size: 13px; font-weight: 700; margin-top: 6px;">휴일</div>`;
-        } else if ([2, 9, 10, 16, 17, 18, 23, 24, 29, 30].includes(day)) {
-          isAvailable = true;
-          statusHtml = `
-            <div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px; margin-bottom: 4px;">예약가능</div>
-            <div style="color: #64748b; font-size: 11px; margin-top: 2px; letter-spacing: -0.5px;">• 대장내시경 마감</div>
-            <div style="color: #64748b; font-size: 11px; margin-top: 2px; letter-spacing: -0.5px;">• 유방초음파 마감</div>
-          `;
-        } else {
-          statusHtml = `<div style="color: #94a3b8; font-size: 13px; font-weight: 700; margin-top: 6px; text-decoration: line-through;">예약마감</div>`;
-        }
+      const status = window.getCheckupDateStatus(year, month + 1, day);
+      if (status.type === 'holiday') {
+        statusHtml = `<div style="color: #ef4444; font-size: 13px; font-weight: 700; margin-top: 6px;">휴일</div>`;
+      } else if (status.type === 'available') {
+        isAvailable = true;
+        statusHtml = `
+          <div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px; margin-bottom: 4px;">예약가능</div>
+        `;
+      } else if (status.type === 'partial') {
+        isAvailable = true;
+        const closedText = status.closedItems.map(item => `<div style="color: #64748b; font-size: 11px; margin-top: 2px; letter-spacing: -0.5px;">• ${item} 마감</div>`).join('');
+        statusHtml = `
+          <div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px; margin-bottom: 4px;">예약가능</div>
+          ${closedText}
+        `;
       } else {
-        // 기본은 모두 마감 처리
-        if (isSunday) {
-          statusHtml = `<div style="color: #ef4444; font-size: 13px; font-weight: 700; margin-top: 6px;">휴일</div>`;
-        } else {
-          statusHtml = `<div style="color: #94a3b8; font-size: 13px; font-weight: 700; margin-top: 6px; text-decoration: line-through;">예약마감</div>`;
-        }
+        statusHtml = `<div style="color: #94a3b8; font-size: 13px; font-weight: 700; margin-top: 6px; text-decoration: line-through;">예약마감</div>`;
       }
 
       const bgStyle = isAvailable ? 'background: #eff6ff;' : 'background: white;';
@@ -612,9 +692,23 @@ window.showScheduleModal = function(hospitalName) {
     `;
   };
 
+  const updateNavButtons = () => {
+    const prevBtn = document.getElementById(`${modalId}-prev`);
+    const nextBtn = document.getElementById(`${modalId}-next`);
+    if (prevBtn) {
+      if (currentYear === 2026 && currentMonth <= 5) prevBtn.style.visibility = 'hidden';
+      else prevBtn.style.visibility = 'visible';
+    }
+    if (nextBtn) {
+      if (currentYear === 2026 && currentMonth >= 11) nextBtn.style.visibility = 'hidden';
+      else nextBtn.style.visibility = 'visible';
+    }
+  };
+
   const updateCalendar = (y, m) => {
     document.getElementById(`${modalId}-calendar-body`).innerHTML = renderCalendar(y, m);
     document.getElementById(`${modalId}-month-title`).innerText = `${y}년 ${m + 1}월`;
+    updateNavButtons();
   };
 
   const modalHtml = `
@@ -666,8 +760,10 @@ window.showScheduleModal = function(hospitalName) {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  updateNavButtons();
 
   document.getElementById(`${modalId}-prev`).onclick = () => {
+    if (currentYear === 2026 && currentMonth <= 5) return;
     currentMonth--;
     if (currentMonth < 0) {
       currentMonth = 11;
@@ -677,6 +773,7 @@ window.showScheduleModal = function(hospitalName) {
   };
 
   document.getElementById(`${modalId}-next`).onclick = () => {
+    if (currentYear === 2026 && currentMonth >= 11) return;
     currentMonth++;
     if (currentMonth > 11) {
       currentMonth = 0;
@@ -848,6 +945,10 @@ function loadSavedConfigs() {
                 child.id = 'categoryInfo';
               } else if (lbl.includes('구독') || lbl.includes('콘텐츠')) {
                 child.id = 'contentSubscribe';
+              } else if (lbl.includes('심리칼럼') || lbl.includes('칼럼')) {
+                child.id = 'psyColumn';
+              } else if (lbl.includes('자가진단') || lbl.includes('진단')) {
+                child.id = 'selfDiagnosis';
               } else if (lbl.includes('뉴스')) {
                 child.id = 'healthNews';
               }
@@ -858,7 +959,7 @@ function loadSavedConfigs() {
             const seenIds = new Set();
             healthMenu.children.forEach(child => {
               const targetId = child.id;
-              if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'healthNews') {
+              if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'psyColumn' || targetId === 'selfDiagnosis' || targetId === 'healthNews') {
                 if (!seenIds.has(targetId)) {
                   seenIds.add(targetId);
                   uniqueChildren.push(child);
@@ -875,11 +976,49 @@ function loadSavedConfigs() {
             if (!seenIds.has('contentSubscribe')) {
               uniqueChildren.push({ id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] });
             }
+            if (!seenIds.has('psyColumn')) {
+              uniqueChildren.push({ id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] });
+            }
+            if (!seenIds.has('selfDiagnosis')) {
+              uniqueChildren.push({ id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] });
+            }
             if (!seenIds.has('healthNews')) {
               uniqueChildren.push({ id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] });
             }
             
             healthMenu.children = uniqueChildren;
+          }
+
+          const psyCareMenu = site.menus.find(m => m.id === 'psyCare');
+          if (psyCareMenu) {
+            if (!psyCareMenu.children) psyCareMenu.children = [];
+            
+            psyCareMenu.children.forEach(child => {
+              const lbl = child.label || child.defaultLabel || '';
+              if (lbl.includes('ASMR') || lbl.includes('영상') || lbl.includes('힐링')) {
+                child.id = 'asmrVideo';
+              }
+            });
+
+            const uniquePsyChildren = [];
+            const seenPsyIds = new Set();
+            psyCareMenu.children.forEach(child => {
+              const targetId = child.id;
+              if (targetId === 'asmrVideo') {
+                if (!seenPsyIds.has(targetId)) {
+                  seenPsyIds.add(targetId);
+                  uniquePsyChildren.push(child);
+                }
+              } else {
+                uniquePsyChildren.push(child);
+              }
+            });
+
+            if (!seenPsyIds.has('asmrVideo')) {
+              uniquePsyChildren.push({ id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] });
+            }
+
+            psyCareMenu.children = uniquePsyChildren;
           }
         }
       });
@@ -911,6 +1050,23 @@ function loadSavedConfigs() {
     Object.keys(clientConfigs).forEach(id => {
       mockUsers.user_single_other.tiers[id] = [...(clientConfigs[id].tiers || [])];
     });
+
+    // Load saved email / portalId configurations and seed mock data
+    Object.keys(mockUsers).forEach(userId => {
+      const savedEmail = localStorage.getItem('hc_user_email_' + userId);
+      if (savedEmail) {
+        mockUsers[userId].email = savedEmail;
+      }
+      const savedAddress = localStorage.getItem('hc_user_address_' + userId);
+      if (savedAddress) {
+        mockUsers[userId].address = savedAddress;
+      }
+      const savedPortalId = localStorage.getItem('hc_portal_id_' + userId);
+      if (savedPortalId) {
+        mockUsers[userId].portalId = savedPortalId;
+      }
+    });
+    seedMyPageMockData();
   } catch (error) {
     console.error("Incompatible client config, resetting localStorage key", error);
     try { localStorage.removeItem('hc_portal_data'); } catch (e) { }
@@ -2086,11 +2242,22 @@ function renderPortal() {
 
     const isCategoryInfoPage = state.activeSubId === 'categoryInfo' || activeSub?.label === '분야별 건강정보';
     const isContentSubscribePage = state.activeSubId === 'contentSubscribe' || activeSub?.label === '건강콘텐츠 구독';
+    const isPsyColumnPage = state.activeSubId === 'psyColumn' || activeSub?.label === '심리칼럼';
+    const isSelfDiagnosisPage = state.activeSubId === 'selfDiagnosis' || activeSub?.label === '자가진단';
+    const isAsmrVideoPage = state.activeSubId === 'asmrVideo' || activeSub?.label === '힐링 ASMR 영상';
 
     if (isCategoryInfoPage) {
       detailContentHtml = renderCategoryHealthInfo();
     } else if (isContentSubscribePage) {
       detailContentHtml = renderContentSubscribe();
+    } else if (isPsyColumnPage) {
+      detailContentHtml = renderPsyColumn();
+    } else if (isSelfDiagnosisPage) {
+      detailContentHtml = renderSelfDiagnosis();
+    } else if (isAsmrVideoPage) {
+      detailContentHtml = renderAsmrVideoPage();
+    } else if (state.activeMenuId === 'mypage') {
+      detailContentHtml = renderMyPage();
     } else if (isServiceGuideGroup) {
       const activeTierName = state.activeSubSubId ? decodeURIComponent(state.activeSubSubId) : '';
       
@@ -2359,6 +2526,7 @@ function renderPortal() {
             id: 'chk-001',
             userId: 'user1',
             pkgName: '서울종합검진센터 - 프리미엄형',
+            supportType: '건강검진 우대예약',
             applyDate: '2026-05-10',
             wishDate1: '2026-06-01',
             wishDate2: '2026-06-08',
@@ -2370,12 +2538,14 @@ function renderPortal() {
             targetPhone: '010-1234-5678',
             targetAddress: '서울시 강남구 테헤란로 123',
             status: '확정',
-            reservationConfirmedDate: '2026-05-15'
+            reservationConfirmedDate: '2026-05-15',
+            personalCost: '₩300,000'
           },
           {
             id: 'chk-002',
             userId: 'user1',
             pkgName: '우리허브병원 - 기본형',
+            supportType: '회사지원',
             applyDate: '2026-05-18',
             wishDate1: '2026-06-15',
             wishDate2: '2026-06-20',
@@ -2387,7 +2557,8 @@ function renderPortal() {
             targetPhone: '010-9876-5432',
             targetAddress: '서울시 서초구 방배로 45',
             status: '신청',
-            reservationConfirmedDate: ''
+            reservationConfirmedDate: '',
+            personalCost: '₩200,000'
           }
         ];
         localStorage.setItem('hc_checkup_history', JSON.stringify(checkupHistories));
@@ -2536,7 +2707,7 @@ function renderPortal() {
                   <td colspan="10" style="padding:0; text-align:left; border-bottom: 2px solid #cbd5e1;">
                     <div class="detail-panel">
                       <div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center;">
-                        신청 상세내역 <span style="margin:0 12px; color:#cbd5e1;">|</span> <span style="font-weight:600; color:#64748b;">${chk.pkgName}</span>
+                        신청 상세내역 <span style="margin:0 12px; color:#cbd5e1;">|</span> <span style="font-weight:600; color:#64748b;">${chk.pkgName} (개인결제비용: ${chk.personalCost || (chk.pkgName.includes('기본형') ? '₩200,000' : '₩300,000')})</span>
                       </div>
                       <div class="detail-grid">
                         <div class="detail-col">
@@ -4015,7 +4186,7 @@ function renderPortal() {
 
             <div style="display: flex; gap: 12px; margin-top: 40px;">
               <button onclick="window.history.back()" style="flex: 1; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 16px; font-weight: 700; cursor: pointer;">이전 단계</button>
-              <button onclick="window.location.hash='#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/checkup-items';" style="flex: 1; padding: 16px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;">다음 단계</button>
+              <button onclick="if(window.saveCheckupTargetInfo) window.saveCheckupTargetInfo(); window.location.hash='#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/checkup-items';" style="flex: 1; padding: 16px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;">다음 단계</button>
             </div>
           </div>
         `;
@@ -4373,9 +4544,9 @@ function renderPortal() {
 
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); overflow: hidden; margin-bottom: 24px;">
               <div style="padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
-                <button style="background: none; border: none; cursor: pointer; color: #64748b;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg></button>
-                <div style="font-size: 18px; font-weight: 800; color: #0f172a;">2026년 6월</div>
-                <button style="background: none; border: none; cursor: pointer; color: #64748b;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg></button>
+                <button id="step4-prev-btn" onclick="window.prevStep4Month()" style="background: none; border: none; cursor: pointer; color: #64748b;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg></button>
+                <div id="step4-month-title" style="font-size: 18px; font-weight: 800; color: #0f172a;">2026년 6월</div>
+                <button id="step4-next-btn" onclick="window.nextStep4Month()" style="background: none; border: none; cursor: pointer; color: #64748b;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg></button>
               </div>
               
               <div id="checkup-date-calendar"></div>
@@ -4399,6 +4570,7 @@ function renderPortal() {
           </div>
         `;
       } else if (state.activeSubId === 'checkup-summary') {
+        const isCompanySupport = sessionStorage.getItem('isCompanySupport') === 'true';
         detailContentHtml = `
           <div class="summary-wrapper fade-in" style="animation: fadeIn 0.4s ease; max-width: 900px; margin: 0 auto; padding: 40px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -4410,6 +4582,33 @@ function renderPortal() {
             <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 24px;">
               선택하신 검진 내역을 확인해주세요.
             </h2>
+
+            <!-- 검진대상자 정보 카드 -->
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 24px; padding: 24px;">
+              <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">검진대상자 정보</h3>
+              <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #64748b; width: 120px;">대상자명</span>
+                  <span style="color: #1e293b; font-weight: 600; flex: 1;" id="summary-target-name">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #64748b; width: 120px;">관계</span>
+                  <span style="color: #1e293b; font-weight: 600; flex: 1;" id="summary-target-type">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #64748b; width: 120px;">생년월일 / 성별</span>
+                  <span style="color: #1e293b; font-weight: 600; flex: 1;" id="summary-target-birth-gender">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #64748b; width: 120px;">휴대폰번호</span>
+                  <span style="color: #1e293b; font-weight: 600; flex: 1;" id="summary-target-phone">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #64748b; width: 120px;">주소</span>
+                  <span style="color: #1e293b; font-weight: 600; flex: 1;" id="summary-target-address">-</span>
+                </div>
+              </div>
+            </div>
 
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 24px; padding: 24px;">
               <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">검진선택사항</h3>
@@ -4465,18 +4664,20 @@ function renderPortal() {
                     id: 'chk-' + Date.now(),
                     userId: '${state.currentUser ? state.currentUser.id : ''}',
                     pkgName: '우리허브병원 - 기본형',
+                    supportType: '${isCompanySupport ? '회사지원' : '건강검진 우대예약'}',
                     applyDate: new Date().toISOString().split('T')[0],
-                    wishDate1: '2026-06-30',
-                    wishDate2: '',
+                    wishDate1: (window.selectedWishDates && window.selectedWishDates[0]) ? window.selectedWishDates[0] : '2026-06-30',
+                    wishDate2: (window.selectedWishDates && window.selectedWishDates[1]) ? window.selectedWishDates[1] : '',
                     selectedTests: '-',
                     extraTests: '-',
                     confirmDate: '',
-                    targetName: '${state.currentUser ? state.currentUser.name : ''}',
-                    targetBirthGender: '19850101 / 남성',
-                    targetPhone: '010-0000-0000',
-                    targetAddress: '-',
+                    targetName: window.getCheckupTargetData ? window.getCheckupTargetData().name : '${state.currentUser ? state.currentUser.name : ''}',
+                    targetBirthGender: window.getCheckupTargetData ? (window.getCheckupTargetData().birth + ' / ' + (window.getCheckupTargetData().gender === 'M' ? '남성' : window.getCheckupTargetData().gender === 'F' ? '여성' : '-')) : '19850101 / 남성',
+                    targetPhone: window.getCheckupTargetData ? window.getCheckupTargetData().phone : '010-0000-0000',
+                    targetAddress: window.getCheckupTargetData ? ((window.getCheckupTargetData().addr1 || '') + ' ' + (window.getCheckupTargetData().addr2 || '')).trim() || '-' : '-',
                     status: '신청',
-                    reservationConfirmedDate: ''
+                    reservationConfirmedDate: '',
+                    personalCost: '₩200,000'
                 });
                 localStorage.setItem('hc_checkup_history', JSON.stringify(hist));
                 
@@ -4506,24 +4707,32 @@ function renderPortal() {
       }
     }
 
-    contentHtml = `
-      <div class="subpage-wrapper">
-        <aside class="sidebar">
-          <ul class="sidebar-tree">${sidebarHtml}</ul>
-        </aside>
-        <section class="subpage-content fade-in">
-          <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
-            홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label}
-            ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children.find(c => c.id === state.activeSubId)?.label}` : ''}
-          </div>
-          <div class="guide-content-box">
-             <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
-             <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
-             ${detailContentHtml}
-          </div>
-        </section>
-      </div>
-    `;
+    if (state.activeMenuId === 'mypage') {
+      contentHtml = `
+        <div class="mypage-wrapper" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          ${detailContentHtml}
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="subpage-wrapper">
+          <aside class="sidebar">
+            <ul class="sidebar-tree">${sidebarHtml}</ul>
+          </aside>
+          <section class="subpage-content fade-in">
+            <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
+              홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+              ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+            </div>
+            <div class="guide-content-box">
+               <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
+               <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
+               ${detailContentHtml}
+            </div>
+          </section>
+        </div>
+      `;
+    }
   }
 
   app.innerHTML = `
@@ -4542,7 +4751,8 @@ function renderPortal() {
           ${megaMenuHtml}
           <div class="user-profile" style="display:flex; align-items:center;">
             ${siteSelectorHtml}
-            <span style="font-weight: 500; margin-right:12px;">${state.currentUser.name} 님</span>
+            <span style="font-weight: 500; margin-right:12px; cursor:pointer;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'">${state.currentUser.name} 님</span>
+            <button class="logout-btn" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'" style="margin-right:12px;">마이페이지</button>
             <button class="logout-btn" onclick="logout()">로그아웃</button>
           </div>
         </div>
@@ -4579,6 +4789,8 @@ function renderPortal() {
 
   if (state.activeSubId === 'checkup-date') {
     setTimeout(window.renderStep4Calendar, 50);
+  } else if (state.activeSubId === 'checkup-target') {
+    setTimeout(window.loadCheckupTargetInfo, 50);
   } else if (state.activeSubId === 'checkup-summary') {
     setTimeout(function() {
       const dates = window.selectedWishDates || [];
@@ -4586,11 +4798,100 @@ function renderPortal() {
       const el2 = document.getElementById('summary-date-2');
       if (el1) el1.innerText = dates[0] || '미선택';
       if (el2) el2.innerText = dates[1] || '미선택';
+
+      const targetData = window.getCheckupTargetData ? window.getCheckupTargetData() : {};
+      const elTargetName = document.getElementById('summary-target-name');
+      const elTargetType = document.getElementById('summary-target-type');
+      const elTargetBirthGender = document.getElementById('summary-target-birth-gender');
+      const elTargetPhone = document.getElementById('summary-target-phone');
+      const elTargetAddress = document.getElementById('summary-target-address');
+
+      if (elTargetName) elTargetName.innerText = targetData.name || '-';
+      if (elTargetType) elTargetType.innerText = targetData.type === 'self' ? '본인' : '가족';
+      if (elTargetBirthGender) {
+        elTargetBirthGender.innerText = (targetData.birth ? targetData.birth : '-') + ' / ' + (targetData.gender === 'M' ? '남성' : targetData.gender === 'F' ? '여성' : '-');
+      }
+      if (elTargetPhone) elTargetPhone.innerText = targetData.phone || '-';
+      if (elTargetAddress) {
+        elTargetAddress.innerText = ((targetData.addr1 || '') + ' ' + (targetData.addr2 || '')).trim() || '-';
+      }
     }, 50);
   }
 }
 
+window.getCheckupDateStatus = function(year, month, day) {
+  const date = new Date(year, month - 1, day);
+  const dow = date.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+  
+  if (dow === 0) {
+    return { type: 'holiday', title: '휴무일', closedItems: [] };
+  }
+  
+  // Specific national holidays in 2026:
+  // 8/15 (광복절), 10/3 (개천절), 10/9 (한글날), 12/25 (기독탄신일)
+  // Chuseok 2026: 9/24, 9/25, 9/26
+  if ((month === 8 && day === 15) || 
+      (month === 10 && (day === 3 || day === 9)) || 
+      (month === 12 && day === 25) ||
+      (month === 9 && (day === 24 || day === 25))) {
+    return { type: 'holiday', title: '휴무일', closedItems: [] };
+  }
+
+  if (year !== 2026 || month < 6 || month > 12) {
+    return { type: 'closed', title: '예약마감', closedItems: [] };
+  }
+
+  if (month === 6) {
+    if ([2, 9, 10, 16, 23, 29].includes(day)) {
+      return { type: 'partial', title: '일부항목 마감', closedItems: ['대장내시경', '유방초음파'] };
+    }
+    if ([17, 18, 22, 24, 25, 30].includes(day)) {
+      return { type: 'available', title: '예약가능', closedItems: [] };
+    }
+    return { type: 'closed', title: '예약마감', closedItems: [] };
+  }
+
+  if (dow === 2 || dow === 3 || dow === 4) {
+    if (day % 2 === 1) {
+      return { type: 'partial', title: '일부항목 마감', closedItems: ['대장내시경'] };
+    } else {
+      return { type: 'available', title: '예약가능', closedItems: [] };
+    }
+  }
+  
+  if (dow === 5) {
+    if (day % 4 === 0) {
+      return { type: 'partial', title: '일부항목 마감', closedItems: ['대장내시경', '유방초음파'] };
+    }
+  }
+
+  return { type: 'closed', title: '예약마감', closedItems: [] };
+};
+
 window.selectedWishDates = [];
+window.currentStep4Year = 2026;
+window.currentStep4Month = 6;
+
+window.prevStep4Month = function() {
+  if (window.currentStep4Year === 2026 && window.currentStep4Month <= 6) return;
+  window.currentStep4Month--;
+  if (window.currentStep4Month < 1) {
+    window.currentStep4Month = 12;
+    window.currentStep4Year--;
+  }
+  window.renderStep4Calendar();
+};
+
+window.nextStep4Month = function() {
+  if (window.currentStep4Year === 2026 && window.currentStep4Month >= 12) return;
+  window.currentStep4Month++;
+  if (window.currentStep4Month > 12) {
+    window.currentStep4Month = 1;
+    window.currentStep4Year++;
+  }
+  window.renderStep4Calendar();
+};
+
 window.toggleWishDate = function(y, m, d) {
   const selectedDate = new Date(y, m - 1, d);
   const today = new Date();
@@ -4622,11 +4923,41 @@ window.toggleWishDate = function(y, m, d) {
 };
 
 window.renderStep4Calendar = function() {
-  const y = 2026;
-  const m = 6;
+  if (window.selectedWishDates && window.selectedWishDates.length > 0) {
+    if (!window.hasInitializedStep4Month) {
+      const parts = window.selectedWishDates[0].split('-');
+      window.currentStep4Year = parseInt(parts[0], 10);
+      window.currentStep4Month = parseInt(parts[1], 10);
+      window.hasInitializedStep4Month = true;
+    }
+  } else {
+    if (!window.currentStep4Year || !window.currentStep4Month) {
+      window.currentStep4Year = 2026;
+      window.currentStep4Month = 6;
+    }
+  }
+
+  const y = window.currentStep4Year;
+  const m = window.currentStep4Month;
   const firstDay = new Date(y, m - 1, 1).getDay();
   const daysInMonth = new Date(y, m, 0).getDate();
   
+  const titleEl = document.getElementById('step4-month-title');
+  if (titleEl) {
+    titleEl.innerText = y + '년 ' + m + '월';
+  }
+  
+  const prevBtn = document.getElementById('step4-prev-btn');
+  const nextBtn = document.getElementById('step4-next-btn');
+  if (prevBtn) {
+    if (y === 2026 && m <= 6) prevBtn.style.visibility = 'hidden';
+    else prevBtn.style.visibility = 'visible';
+  }
+  if (nextBtn) {
+    if (y === 2026 && m >= 12) nextBtn.style.visibility = 'hidden';
+    else nextBtn.style.visibility = 'visible';
+  }
+
   let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); border-top: 2px solid #2563eb; border-left: 1px solid #e2e8f0;">';
   ['일', '월', '화', '수', '목', '금', '토'].forEach((d, i) => {
     html += '<div style="padding: 12px 0; text-align: center; font-weight: 800; font-size: 14px; color: ' + (i===0?'#ef4444':i===6?'#3b82f6':'#334155') + '; background: #f8fafc; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">'+d+'</div>';
@@ -4646,14 +4977,19 @@ window.renderStep4Calendar = function() {
     if (isSunday) dayColor = '#ef4444';
     if (isSaturday) dayColor = '#3b82f6';
     
+    const status = window.getCheckupDateStatus(y, m, d);
     let isAvailable = false;
     let statusHtml = '';
     
-    if (isSunday) {
+    if (status.type === 'holiday') {
       statusHtml = '<div style="color: #ef4444; font-size: 13px; font-weight: 700; margin-top: 6px;">휴일</div>';
-    } else if ([2, 9, 10, 16, 17, 18, 23, 24, 29, 30].includes(d)) {
+    } else if (status.type === 'available') {
       isAvailable = true;
-      statusHtml = '<div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px;">예약가능</div><div style="font-size:11px; color:#64748b; margin-top:4px; line-height: 1.4;">· 대장내시경 마감<br>· 유방초음파 마감</div>';
+      statusHtml = '<div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px;">예약가능</div>';
+    } else if (status.type === 'partial') {
+      isAvailable = true;
+      const closedList = status.closedItems.map(item => `· ${item} 마감`).join('<br>');
+      statusHtml = `<div style="background: #3b82f6; color: white; display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; margin-top: 6px;">예약가능</div><div style="font-size:11px; color:#64748b; margin-top:4px; line-height: 1.4;">${closedList}</div>`;
     } else {
       statusHtml = '<div style="color: #94a3b8; font-size: 13px; font-weight: 700; margin-top: 6px; text-decoration: line-through;">예약마감</div>';
     }
@@ -4734,6 +5070,98 @@ window.submitCheckupConsent = function() {
   localStorage.setItem('checkupConsentLogs', JSON.stringify(logs));
 
   window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/' + state.activeMenuId + '/checkup-target';
+};
+
+window.saveCheckupTargetInfo = function() {
+  const nameInput = document.getElementById('target-name');
+  const typeRadio = document.querySelector('input[name="target-type"]:checked');
+  const birthInput = document.getElementById('target-birth');
+  const genderRadio = document.querySelector('input[name="target-gender"]:checked');
+  const phoneInput = document.getElementById('target-phone');
+  const addr1Input = document.getElementById('target-addr1');
+  const addr2Input = document.getElementById('target-addr2');
+
+  const targetInfo = {
+    name: nameInput ? nameInput.value : '',
+    type: typeRadio ? typeRadio.value : '',
+    birth: birthInput ? birthInput.value : '',
+    gender: genderRadio ? genderRadio.value : '',
+    phone: phoneInput ? phoneInput.value : '',
+    addr1: addr1Input ? addr1Input.value : '',
+    addr2: addr2Input ? addr2Input.value : ''
+  };
+
+  sessionStorage.setItem('checkup_target_info', JSON.stringify(targetInfo));
+};
+
+window.loadCheckupTargetInfo = function() {
+  const targetInfoStr = sessionStorage.getItem('checkup_target_info');
+  if (!targetInfoStr) return;
+  
+  try {
+    const targetInfo = JSON.parse(targetInfoStr);
+    const nameInput = document.getElementById('target-name');
+    const typeRadios = document.querySelectorAll('input[name="target-type"]');
+    const birthInput = document.getElementById('target-birth');
+    const genderRadios = document.querySelectorAll('input[name="target-gender"]');
+    const phoneInput = document.getElementById('target-phone');
+    const addr1Input = document.getElementById('target-addr1');
+    const addr2Input = document.getElementById('target-addr2');
+    const infoFields = document.getElementById('target-info-fields');
+
+    if (nameInput && targetInfo.name !== undefined) nameInput.value = targetInfo.name;
+    
+    if (targetInfo.type) {
+      typeRadios.forEach(el => {
+        if (el.value === targetInfo.type) el.checked = true;
+      });
+      if (infoFields) infoFields.style.display = 'flex';
+      
+      if (targetInfo.type === 'self') {
+        if (nameInput) {
+          nameInput.readOnly = true;
+          nameInput.style.background = '#f8fafc';
+        }
+        if (birthInput) {
+          birthInput.readOnly = true;
+          birthInput.style.background = '#f8fafc';
+        }
+        genderRadios.forEach(el => el.disabled = true);
+      }
+    }
+    
+    if (birthInput && targetInfo.birth !== undefined) birthInput.value = targetInfo.birth;
+    
+    if (targetInfo.gender) {
+      genderRadios.forEach(el => {
+        if (el.value === targetInfo.gender) el.checked = true;
+      });
+    }
+    
+    if (phoneInput && targetInfo.phone !== undefined) phoneInput.value = targetInfo.phone;
+    if (addr1Input && targetInfo.addr1 !== undefined) addr1Input.value = targetInfo.addr1;
+    if (addr2Input && targetInfo.addr2 !== undefined) addr2Input.value = targetInfo.addr2;
+  } catch (e) {
+    console.error('Error loading checkup target info:', e);
+  }
+};
+
+window.getCheckupTargetData = function() {
+  const targetInfoStr = sessionStorage.getItem('checkup_target_info');
+  if (targetInfoStr) {
+    try {
+      return JSON.parse(targetInfoStr);
+    } catch(e) {}
+  }
+  return {
+    name: (state && state.currentUser) ? state.currentUser.name : '홍길동',
+    type: 'self',
+    birth: '19800101',
+    gender: 'M',
+    phone: '010-1234-5678',
+    addr1: '서울시 강남구 테헤란로',
+    addr2: '101호'
+  };
 };
 
 window.toggleCheckupTarget = function(type) {
@@ -6452,6 +6880,2021 @@ window.renderContentSubscribe = function() {
   }
 };
 
+// ==========================================
+// 심리칼럼 데이터 & 렌더러 (Psychology Columns)
+// ==========================================
+const PSY_COLUMNS = [
+  {
+    id: "pr1",
+    category: "자존감/관계",
+    categoryKey: "relationship",
+    title: "타인의 시선에서 자유로워지는 자존감 리셋 법칙",
+    summary: "남들의 시선에 갇혀 나를 잃어버리고 있다면, 자존감을 회복해야 할 때입니다. 타인의 기준이 아닌 나 자신의 내면의 목소리에 집중하는 자존감 리셋 법칙.",
+    date: "2026.06.01",
+    views: 1532,
+    author: "최유진 가족상담 전문가",
+    bgGradient: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)",
+    content: `
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">타인의 평가라는 감옥</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">우리는 종종 '남들이 나를 어떻게 생각할까?'라는 고민에 사로잡혀 정작 내가 원하는 것과 감정을 억누릅니다. 자존감은 타인의 칭찬이나 인정에서 오는 것이 아니라, 내 존재 자체를 스스로 수용할 때 비로소 튼튼해집니다.</p>
+      
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">나와의 화해를 시작하는 법</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">자존감을 세우기 위한 첫 단계는 나의 불완전함을 있는 그대로 인정하는 것입니다. 실수할 수 있고, 부족할 수 있음을 받아들이세요. 거울 속 나를 향해 '오늘도 애썼어', '괜찮아'라는 따뜻한 지지의 한마디를 건네며 나 자신과의 다정한 친구가 되어보세요.</p>
+    `
+  },
+  {
+    id: "pr2",
+    category: "스트레스/우울",
+    categoryKey: "stress",
+    title: "이유 없는 무기력증과 계절성 우울증 극복하기",
+    summary: "일조량이 변하는 환절기나 겨울철에 유독 무기력하고 우울함을 느낀다면 계절성 우울증을 의심해볼 수 있습니다. 생체 리듬을 바로잡고 활력을 되찾는 방법.",
+    date: "2026.06.02",
+    views: 942,
+    author: "김현아 정신건강의학과 교수",
+    bgGradient: "linear-gradient(135deg, #3b82f6 0%, #ec4899 100%)",
+    content: `
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">일조량 감소와 마음의 변화</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">일조량이 줄어드는 가을이나 겨울, 혹은 장마철에는 뇌에서 분비되는 신경전달물질인 세로토닌이 감소하게 됩니다. 세로토닌은 행복감과 안정을 느끼게 해주는 호르몬이기 때문에, 이것이 부족해지면 이유 없는 무기력, 수면 장애, 우울감이 찾아옵니다.</p>
+      
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">가장 간단하면서도 강력한 처방: 햇볕 샤워</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">이러한 계절성 우울증을 이기는 가장 효과적인 치료제는 자연이 주는 '햇볕'입니다. 오전 10시에서 오후 2시 사이, 하루 20~30분간 야외에서 햇볕을 쬐며 걷는 '햇볕 샤워'를 실천해 보세요. 피부를 통한 비타민 D 합성을 돕고 뇌의 멜라토닌 분비를 조절해 생체 리듬을 즉시 바로잡아 줍니다.</p>
+    `
+  },
+  {
+    id: "pr3",
+    category: "마음챙김/명상",
+    categoryKey: "mindfulness",
+    title: "하루 5분, 복잡한 생각을 비우는 호흡 명상",
+    summary: "스트레스가 가득 차 숨이 막힐 것 같을 때, 뇌 피로를 덜어주는 간단한 호흡 명상 가이드. 5분 투자로 마음의 평화를 되찾으세요.",
+    date: "2026.06.03",
+    views: 1205,
+    author: "박민우 마인드풀니스 지도자",
+    bgGradient: "linear-gradient(135deg, #10b981 0%, #065f46 100%)",
+    content: `
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">왜 지금 호흡 명상인가?</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">우리의 뇌는 깨어 있는 동안 수많은 정보와 잡념에 시달립니다. 호흡 명상은 오직 들숨과 날숨에 집중함으로써 과부하가 걸린 전두엽을 휴식하게 만듭니다.</p>
+      
+      <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-top:24px; margin-bottom:12px;">시작하는 방법: 4-7-8 호흡법</h3>
+      <p style="font-size:15px; color:#334155; line-height:1.7; margin-bottom:16px;">조용한 곳에 바르게 앉아 눈을 감습니다. 4초간 코로 숨을 들이마시고, 7초간 숨을 참은 뒤, 8초간 입으로 천천히 내쉽니다. 이를 4회 반복하는 것만으로 부교감 신경이 활성화되어 긴장이 풀립니다.</p>
+    `
+  }
+];
+
+window.renderPsyColumn = function() {
+  const client = state.activeClient;
+  const activeSite = state.activeSite || client.sites[0];
+  const postId = state.activeSubSubId;
+
+  const stylesHtml = `
+    <style>
+      .psy-column-container { animation: fadeIn 0.4s ease-out; }
+      .psy-column-title-section { text-align: center; padding: 32px 0 24px 0; }
+      .psy-column-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0; }
+      .psy-column-subtitle { font-size: 15px; color: #64748b; margin-top: 12px; line-height: 1.6; }
+      .psy-column-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-top: 32px; }
+      .psy-column-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; }
+      .psy-column-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+      .psy-column-card-image { height: 160px; position: relative; }
+      .psy-column-card-image-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.3)); }
+      .psy-column-card-category { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.9); color: #0f172a; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+      .psy-column-card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+      .psy-column-card-title { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; line-height: 1.4; }
+      .psy-column-card-summary { font-size: 13.5px; color: #475569; line-height: 1.6; margin: 0 0 20px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; }
+      .psy-column-card-footer { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; font-weight: 500; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+      .psy-column-detail-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; border: 1px solid #e2e8f0; }
+      .psy-column-detail-header { border-bottom: 1px solid #f1f5f9; padding-bottom: 24px; margin-bottom: 32px; }
+      .psy-column-detail-category { display: inline-block; padding: 6px 12px; background: rgba(var(--theme-color-rgb), 0.1); color: var(--theme-color); border-radius: 6px; font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+      .psy-column-detail-title { font-size: 30px; font-weight: 800; color: #0f172a; margin: 0 0 16px 0; line-height: 1.3; }
+      .psy-column-detail-meta { display: flex; justify-content: space-between; font-size: 14px; color: #64748b; }
+      .psy-column-detail-body { color: #334155; font-size: 16px; line-height: 1.8; }
+    </style>
+  `;
+
+  if (postId) {
+    const post = PSY_COLUMNS.find(p => p.id === postId);
+    if (!post) {
+      window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/${getMenuPath("psyColumn", "healthInfo")}`;
+      return '';
+    }
+
+    if (!state[`viewed_psy_${postId}`]) {
+      post.views += 1;
+      state[`viewed_psy_${postId}`] = true;
+    }
+
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>${getParentMenuLabel('psyColumn', '건강정보')}</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="cursor: pointer;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/${getMenuPath("psyColumn", "healthInfo")}'">심리칼럼</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">칼럼 상세</span>
+      </div>
+    `;
+
+    return `
+      ${stylesHtml}
+      <div class="psy-column-container">
+        ${breadcrumbHtml}
+        <div class="psy-column-detail-container">
+          <div class="psy-column-detail-header">
+            <span class="psy-column-detail-category">${post.category}</span>
+            <h1 class="psy-column-detail-title">${post.title}</h1>
+            <div class="psy-column-detail-meta">
+              <span>작성자: ${post.author}</span>
+              <span>등록일: ${post.date} &nbsp;|&nbsp; 조회수: ${post.views}</span>
+            </div>
+          </div>
+          <div class="psy-column-detail-body">
+            <div style="width:100%; height:260px; background:${post.bgGradient}; border-radius:12px; margin-bottom:32px;"></div>
+            ${post.content}
+          </div>
+          <div style="margin-top:40px; padding-top:24px; border-top:1px solid #f1f5f9; display:flex; justify-content:center;">
+            <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/${getMenuPath("psyColumn", "healthInfo")}'" style="padding:12px 32px; background:#0f172a; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">목록으로</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>${getParentMenuLabel('psyColumn', '건강정보')}</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">심리칼럼</span>
+      </div>
+    `;
+
+    const titleSectionHtml = `
+      <div class="psy-column-title-section">
+        <h1 class="psy-column-title">심리칼럼</h1>
+        <p class="psy-column-subtitle">마음의 건강을 위한 분야별 심리 전문가들의 깊이 있는 조언 and 칼럼을 만나보세요.</p>
+      </div>
+    `;
+
+    const cardsHtml = PSY_COLUMNS.map(p => {
+      const clickHash = `#/portal/${client.id}/${activeSite.siteId}/${getMenuPath("psyColumn", "healthInfo")}/${p.id}`;
+      return `
+        <div onclick="window.location.hash='${clickHash}'" class="psy-column-card">
+          <div class="psy-column-card-image" style="background: ${p.bgGradient};">
+            <div class="psy-column-card-image-overlay"></div>
+            <span class="psy-column-card-category">${p.category}</span>
+          </div>
+          <div class="psy-column-card-body">
+            <h2 class="psy-column-card-title">${p.title}</h2>
+            <p class="psy-column-card-summary">${p.summary}</p>
+            <div class="psy-column-card-footer">
+              <span>${p.author}</span>
+              <span>조회수 ${p.views}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      ${stylesHtml}
+      <div class="psy-column-container">
+        ${breadcrumbHtml}
+        ${titleSectionHtml}
+        <div class="psy-column-card-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }
+};
+
+// ==========================================
+// 자가진단 데이터 & 렌더러 (Self Diagnosis)
+// ==========================================
+const DIAG_ITEMS = {
+  stress: {
+    title: "스트레스 자가진단 (PSS)",
+    desc: "최근 한 달 동안 일상에서 느낀 스트레스의 수준을 자가 진단합니다.",
+    questions: [
+      "최근 한 달 동안, 예상치 못한 일로 당황한 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 인생에서 중요한 일들을 조절할 수 없다고 느낀 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 신경이 예민해지고 스트레스를 받았다고 느낀 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 개인적인 문제를 다루는 데 있어서 자신감을 잃은 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 일들이 당신의 뜻대로 진행되지 않는다고 느낀 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 일상적인 대처 능력을 넘어서는 과부하를 느낀 적이 얼마나 있었습니까?",
+      "최근 한 달 동안, 당신의 통제 범위 밖의 일로 화가 난 적이 얼마나 있었습니까?"
+    ],
+    options: ["전혀 없음 (0점)", "거의 없음 (1점)", "가끔 있음 (2점)", "자주 있음 (3점)", "거의 항상 (4점)"],
+    scores: [0, 1, 2, 3, 4],
+    getFeedback: (score) => {
+      if (score <= 10) return { status: "정상 (낮은 스트레스)", color: "#10b981", desc: "고객님의 현재 스트레스 수준은 매우 안정적입니다. 일상의 긴장과 스트레스를 잘 조절하고 있습니다." };
+      if (score <= 18) return { status: "주의 (중간 스트레스)", color: "#f59e0b", desc: "일상적인 수준보다 약간 높은 스트레스를 겪고 계십니다. 충분한 휴식과 스트레스 해소를 위한 취미 활동이 권장됩니다." };
+      return { status: "위험 (높은 스트레스)", color: "#ef4444", desc: "심각한 과부하 상태입니다. 전문적인 심리 상담이나 의료기관을 통해 스트레스 해소와 마음 관리를 시도하시길 강력히 권장합니다." };
+    }
+  },
+  depression: {
+    title: "우울증 자가진단 (PHQ-9)",
+    desc: "최근 2주 동안 느꼈던 마음 상태를 점검하여 우울증 가능성을 선별합니다.",
+    questions: [
+      "일 또는 여가 활동에 흥미나 즐거움을 느끼지 못함",
+      "기분이 가라앉거나, 우울하거나, 희망이 없다고 느낌",
+      "잠들기가 어렵거나 자주 깨며, 혹은 너무 많이 잠",
+      "평소보다 피로감을 느끼고 기운이 없다고 느낌",
+      "입맛이 없거나, 반대로 너무 많이 먹음",
+      "자신을 부정적으로 보거나, 실패자로 느끼거나, 가족을 실망시켰다고 느낌",
+      "신문 읽기나 TV 시청 등 일상적인 일에 집중하기가 어려움",
+      "남들이 알아챌 정도로 행동이나 말이 느려지거나, 반대로 너무 초조해서 가만히 있지 못함",
+      "차라리 죽는 게 낫겠다는 생각이 들거나 어떤 식으로든 자해하고 싶다고 느낌"
+    ],
+    options: ["전혀 없음 (0점)", "3~7일 간 (1점)", "8~12일 간 (2점)", "거의 매일 (3점)"],
+    scores: [0, 1, 2, 3],
+    getFeedback: (score) => {
+      if (score <= 4) return { status: "정상 (안정)", color: "#10b981", desc: "마음의 우울감이 낮고 안정적입니다. 일상적인 스트레스를 양호하게 해소하고 있는 상태입니다." };
+      if (score <= 9) return { status: "가벼운 우울", color: "#f59e0b", desc: "다소 가벼운 우울감이 감지되었습니다. 충분한 수면을 취하고 가벼운 신체 활동이나 걷기 등의 운동을 꾸준히 해보세요." };
+      if (score <= 19) return { status: "중간 정도 우울", color: "#f97316", desc: "어느 정도 지속적인 우울감이 나타나고 있습니다. 전문가와의 대면 또는 모바일 상담을 통해 어려움을 털어놓아 보시길 권장합니다." };
+      return { status: "심한 우울", color: "#ef4444", desc: "매우 높은 수준의 우울과 무기력을 느끼고 있습니다. 전문 심리 상담이나 임상 전문가와의 조속한 심층 진료를 통해 체계적인 보살핌을 받는 것이 매우 필요합니다." };
+    }
+  },
+  burnout: {
+    title: "번아웃 증후군 진단",
+    desc: "업무와 일상의 과도한 피로로 신체적, 정신적 에너지가 소진되었는지 확인합니다.",
+    questions: [
+      "아침에 일어날 때 몸이 무겁고 출근하기 싫다는 생각이 듭니까?",
+      "업무 중 쉽게 피로를 느끼고 짜증이 늘어났습니까?",
+      "일을 마칠 때쯤이면 극심한 에너지가 소진되는 느낌을 받습니까?",
+      "직장 생활이나 업무의 의미에 대해 의구심이 자주 드나요?",
+      "최근 기억력이 나빠지고 집중이 잘 안 됩니까?",
+      "두통, 소화불량 등 이유 없는 신체적 증상이 자주 생기나요?"
+    ],
+    options: ["전혀 아니다 (1점)", "약간 그렇다 (2점)", "자주 그렇다 (3점)", "매우 그렇다 (4점)"],
+    scores: [1, 2, 3, 4],
+    getFeedback: (score) => {
+      if (score <= 10) return { status: "양호함", color: "#10b981", desc: "업무와 생활 간의 균형이 양호하며 신체적, 정신적 피로 수준이 낮은 상태입니다." };
+      if (score <= 18) return { status: "피로 경고", color: "#f59e0b", desc: "다소 높은 번아웃 징후가 나타나고 있습니다. 과로를 줄이고 일시적으로 업무와 차단된 개인적인 휴식 시간을 가지셔야 합니다." };
+      return { status: "소진 상태 (번아웃)", color: "#ef4444", desc: "심각한 소진 상태입니다. 누적된 신체적, 심리적 피로가 극에 달했습니다. 업무량을 조절하거나 휴가를 신청하고 전문가의 지지를 꼭 받으세요." };
+    }
+  }
+};
+
+window.startSelfDiag = function(testId) {
+  state.selfDiagTestId = testId;
+  state.selfDiagAnswers = {};
+  state.selfDiagResult = null;
+  render();
+};
+
+window.setSelfDiagAnswer = function(qIdx, val) {
+  state.selfDiagAnswers = state.selfDiagAnswers || {};
+  state.selfDiagAnswers[qIdx] = parseInt(val);
+  render();
+};
+
+window.submitSelfDiag = function(testId) {
+  const test = DIAG_ITEMS[testId];
+  const answers = state.selfDiagAnswers || {};
+  
+  for (let i = 0; i < test.questions.length; i++) {
+    if (typeof answers[i] === 'undefined') {
+      window.showToast?.('모든 문항에 답변해주세요.') || alert('모든 문항에 답변해주세요.');
+      return;
+    }
+  }
+
+  let score = 0;
+  for (let i = 0; i < test.questions.length; i++) {
+    score += answers[i];
+  }
+
+  state.selfDiagResult = {
+    score: score,
+    maxScore: test.questions.length * Math.max(...test.scores),
+    feedback: test.getFeedback(score)
+  };
+  render();
+};
+
+window.renderSelfDiagnosis = function() {
+  const client = state.activeClient;
+  const activeSite = state.activeSite || client.sites[0];
+  const testId = state.selfDiagTestId;
+
+  const stylesHtml = `
+    <style>
+      .diag-container { animation: fadeIn 0.4s ease-out; }
+      .diag-title-section { text-align: center; padding: 32px 0 24px 0; }
+      .diag-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0; }
+      .diag-subtitle { font-size: 15px; color: #64748b; margin-top: 12px; line-height: 1.6; }
+      .diag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-top: 32px; }
+      .diag-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+      .diag-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-color: var(--theme-color); }
+      .diag-card-title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0; }
+      .diag-card-desc { font-size: 14px; color: #64748b; line-height: 1.6; margin: 0 0 24px 0; flex-grow: 1; }
+      .diag-card-btn { padding: 10px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #0f172a; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; }
+      .diag-card:hover .diag-card-btn { background: var(--theme-color); color: white; border-color: var(--theme-color); }
+      
+      .diag-q-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+      .diag-q-text { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; line-height: 1.5; }
+      .diag-options-grid { display: flex; flex-direction: column; gap: 8px; }
+      .diag-opt-btn { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: left; font-size: 14px; font-weight: 600; color: #475569; background: white; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: space-between; }
+      .diag-opt-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+      .diag-opt-btn.selected { background: rgba(var(--theme-color-rgb), 0.08); border-color: var(--theme-color); color: var(--theme-color); }
+      .diag-opt-circle { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display: inline-block; position: relative; }
+      .diag-opt-btn.selected .diag-opt-circle { border-color: var(--theme-color); background: var(--theme-color); }
+      .diag-opt-btn.selected .diag-opt-circle::after { content: ''; position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; border-radius: 50%; background: white; }
+
+      .diag-result-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.02); }
+      .diag-score-badge { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 140px; height: 140px; border-radius: 50%; border: 6px solid #f1f5f9; margin-bottom: 24px; }
+      .diag-score-val { font-size: 40px; font-weight: 900; color: #0f172a; line-height: 1; }
+      .diag-score-max { font-size: 14px; color: #94a3b8; margin-top: 4px; }
+    </style>
+  `;
+
+  if (testId) {
+    const test = DIAG_ITEMS[testId];
+    if (!test) {
+      state.selfDiagTestId = null;
+      render();
+      return '';
+    }
+
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>${getParentMenuLabel('selfDiagnosis', '건강정보')}</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="cursor: pointer;" onclick="state.selfDiagTestId = null; render();">자가진단</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">진단 진행</span>
+      </div>
+    `;
+
+    if (state.selfDiagResult) {
+      const result = state.selfDiagResult;
+      return `
+        ${stylesHtml}
+        <div class="diag-container">
+          ${breadcrumbHtml}
+          <div class="diag-result-card" style="max-width: 600px; margin: 0 auto;">
+            <div style="font-size: 18px; font-weight: 700; color: #64748b; margin-bottom: 8px;">${test.title} 결과</div>
+            
+            <div class="diag-score-badge" style="border-color: ${result.feedback.color};">
+              <span class="diag-score-val" style="color: ${result.feedback.color};">${result.score}</span>
+              <span class="diag-score-max">/ ${result.maxScore} 점</span>
+            </div>
+            
+            <h2 style="font-size: 24px; font-weight: 900; color: #0f172a; margin: 0 0 16px 0;">나의 상태: <span style="color: ${result.feedback.color};">${result.feedback.status}</span></h2>
+            <p style="font-size: 15px; color: #475569; line-height: 1.7; margin: 0 auto 32px auto; max-width: 480px; word-break: keep-all;">
+              ${result.feedback.desc}
+            </p>
+            
+            <div style="display: flex; gap: 12px; justify-content: center;">
+              <button onclick="window.startSelfDiag('${testId}')" style="padding: 14px 28px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569; font-weight: 700; cursor: pointer; transition: background 0.2s;">다시 테스트하기</button>
+              <button onclick="state.selfDiagTestId = null; state.selfDiagResult = null; render();" style="padding: 14px 28px; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">자가진단 목록</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const answers = state.selfDiagAnswers || {};
+    const questionsHtml = test.questions.map((q, qIdx) => {
+      const selectedVal = answers[qIdx];
+      const optionsHtml = test.options.map((opt, oIdx) => {
+        const val = test.scores[oIdx];
+        const isSelected = selectedVal === val;
+        return `
+          <button onclick="window.setSelfDiagAnswer(${qIdx}, ${val})" class="diag-opt-btn ${isSelected ? 'selected' : ''}">
+            <span>${opt}</span>
+            <span class="diag-opt-circle"></span>
+          </button>
+        `;
+      }).join('');
+
+      return `
+        <div class="diag-q-card">
+          <h3 class="diag-q-text">${qIdx + 1}. ${q}</h3>
+          <div class="diag-options-grid">${optionsHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      ${stylesHtml}
+      <div class="diag-container">
+        ${breadcrumbHtml}
+        <div style="max-width: 700px; margin: 0 auto;">
+          <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 24px; text-align: center;">${test.title}</h2>
+          <div>
+            ${questionsHtml}
+          </div>
+          <div style="margin-top: 32px; display: flex; gap: 12px;">
+            <button onclick="state.selfDiagTestId = null; render();" style="flex: 1; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; color: #475569; font-weight: 700; cursor: pointer;">취소</button>
+            <button onclick="window.submitSelfDiag('${testId}')" style="flex: 2; padding: 16px; border: none; border-radius: 8px; background: var(--theme-color); color: white; font-weight: 700; cursor: pointer;">결과 확인하기</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const breadcrumbHtml = `
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span>${getParentMenuLabel('selfDiagnosis', '건강정보')}</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">자가진단</span>
+      </div>
+    `;
+
+    const titleSectionHtml = `
+      <div class="diag-title-section">
+        <h1 class="diag-title">마음 자가진단</h1>
+        <p class="diag-subtitle">현재 마음 건강 상태를 객관적으로 평가하고 스스로 케어하는 첫걸음을 떼보세요.</p>
+      </div>
+    `;
+
+    const cardsHtml = Object.keys(DIAG_ITEMS).map(key => {
+      const test = DIAG_ITEMS[key];
+      return `
+        <div onclick="window.startSelfDiag('${key}')" class="diag-card">
+          <div>
+            <h2 class="diag-card-title">${test.title}</h2>
+            <p class="diag-card-desc">${test.desc}</p>
+          </div>
+          <button class="diag-card-btn">진단 시작하기</button>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      ${stylesHtml}
+      <div class="diag-container">
+        ${breadcrumbHtml}
+        ${titleSectionHtml}
+        <div class="diag-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }
+};
+
+// ==========================================
+// 힐링 ASMR 영상 기능 (Healing ASMR Videos)
+// ==========================================
+window.asmrViewMode = window.asmrViewMode || 'grid';
+window.asmrActiveTag = window.asmrActiveTag || '전체';
+window.asmrSortBy = window.asmrSortBy || 'latest';
+window.asmrSearchQuery = window.asmrSearchQuery || '';
+
+window.setAsmrTag = function(tag) {
+  window.asmrActiveTag = tag;
+  render();
+};
+
+window.setAsmrSort = function(sortVal) {
+  window.asmrSortBy = sortVal;
+  render();
+};
+
+window.toggleAsmrViewMode = function(mode) {
+  window.asmrViewMode = mode;
+  render();
+};
+
+window.handleAsmrSearch = function() {
+  const q = document.getElementById('asmr-search-input').value;
+  window.asmrSearchQuery = q;
+  render();
+};
+
+window.openAsmrPlayerModal = function(videoId) {
+  const vids = JSON.parse(localStorage.getItem('hc_archive_videos') || '[]');
+  const video = vids.find(v => v.id === videoId);
+  if (!video) return;
+
+  video.views = (video.views || 0) + 1;
+  const updatedVids = vids.map(v => v.id === videoId ? video : v);
+  localStorage.setItem('hc_archive_videos', JSON.stringify(updatedVids));
+
+  const modalId = 'asmr-player-modal';
+  if (document.getElementById(modalId)) return;
+
+  const visualizerBars = Array.from({ length: 15 }).map(() => {
+    const delay = (Math.random() * 0.8).toFixed(2);
+    const dur = (0.5 + Math.random() * 0.5).toFixed(2);
+    return `<div style="width: 4px; height: 30px; background: var(--theme-color); border-radius: 2px; animation: bounce ${dur}s ease-in-out ${delay}s infinite alternate;"></div>`;
+  }).join('');
+
+  const modalHtml = `
+    <div id="${modalId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+      <div style="background: #1e293b; color: white; border-radius: 16px; padding: 0; width: 100%; max-width: 680px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; position: relative;">
+        
+        <div style="padding: 20px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #f1f5f9; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 80%;">${video.title}</h3>
+          <button onclick="window.closeAsmrPlayerModal()" style="background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">×</button>
+        </div>
+
+        <div style="position: relative; width: 100%; height: 360px; background: #0f172a; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px;">
+          <div style="position: relative; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--theme-color-rgb), 0.2) 0%, rgba(15,23,42,0) 70%); display: flex; align-items: center; justify-content: center;">
+            <div id="asmr-disk" style="width: 110px; height: 110px; border-radius: 50%; background: #334155; border: 4px solid var(--theme-color); box-shadow: 0 0 20px rgba(var(--theme-color-rgb), 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.5s ease; animation: rotateDisk 12s linear infinite; animation-play-state: running;">
+              <svg width="40" height="40" fill="white" viewBox="0 0 24 24"><path d="M12 3v9.28a4.39 4.39 0 1 0 2 3.72V7h5V3h-7z"/></svg>
+            </div>
+          </div>
+
+          <div id="asmr-visualizer" style="display: flex; gap: 4px; align-items: flex-end; height: 40px; opacity: 1;">
+            ${visualizerBars}
+          </div>
+
+          <div style="width: 100%; padding: 0 24px; box-sizing: border-box; position: absolute; bottom: 0; left: 0; background: linear-gradient(to top, rgba(15,23,42,0.9), transparent); padding-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <span id="asmr-time-cur" style="font-size: 12px; color: #cbd5e1; font-family: monospace;">00:00</span>
+              <div style="flex: 1; height: 6px; background: #475569; border-radius: 3px; position: relative; cursor: pointer;" onclick="window.seekAsmrMock(event)">
+                <div id="asmr-progress-bar" style="width: 0%; height: 100%; background: var(--theme-color); border-radius: 3px; position: absolute; top:0; left:0;"></div>
+              </div>
+              <span style="font-size: 12px; color: #cbd5e1; font-family: monospace;">${video.duration || '00:05:00'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; gap: 16px; align-items: center;">
+                <button id="asmr-play-btn" onclick="window.toggleAsmrMockPlay()" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
+                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button onclick="window.restartAsmrMock()" style="background: none; border: none; color: #cbd5e1; cursor: pointer; display: flex; align-items: center;" title="처음부터">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0-.57-8.38l5.67-5.67"/></svg>
+                </button>
+              </div>
+              <div style="display: flex; gap: 12px; font-size: 13px; color: #cbd5e1; align-items: center;">
+                <span>반복 재생: <b>${video.loop || '사용'}</b></span>
+                <span>음질: <span style="color: var(--theme-color); font-weight:700;">HQ 320kbps</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 24px; background: #1e293b;">
+          <p style="margin: 0 0 16px 0; font-size: 14.5px; color: #cbd5e1; line-height: 1.6; word-break: keep-all;">${video.description}</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            ${(video.keywords || '').split(',').map(kw => `
+              <span style="font-size: 12px; color: #94a3b8; background: #334155; padding: 4px 10px; border-radius: 6px; font-weight:600;"># ${kw.trim()}</span>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        @keyframes rotateDisk { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes bounce { from { height: 5px; } to { height: 35px; } }
+      </style>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  let curSeconds = 0;
+  const durParts = (video.duration || '00:05:00').split(':').map(Number);
+  const totalSeconds = durParts[0] * 3600 + durParts[1] * 60 + durParts[2];
+  
+  window.asmrIntervalId = setInterval(() => {
+    const disk = document.getElementById('asmr-disk');
+    
+    if (disk && disk.style.animationPlayState === 'running') {
+      curSeconds += 1;
+      if (curSeconds > totalSeconds) {
+        if (video.loop === '사용') {
+          curSeconds = 0;
+        } else {
+          window.toggleAsmrMockPlay();
+          curSeconds = totalSeconds;
+        }
+      }
+      
+      const displayMin = String(Math.floor(curSeconds / 60)).padStart(2, '0');
+      const displaySec = String(curSeconds % 60).padStart(2, '0');
+      const curTimeEl = document.getElementById('asmr-time-cur');
+      if (curTimeEl) curTimeEl.innerText = `${displayMin}:${displaySec}`;
+      
+      const pct = (curSeconds / totalSeconds) * 100;
+      const barEl = document.getElementById('asmr-progress-bar');
+      if (barEl) barEl.style.width = pct + '%';
+    }
+  }, 1000);
+
+  window.toggleAsmrMockPlay = function() {
+    const disk = document.getElementById('asmr-disk');
+    const playBtn = document.getElementById('asmr-play-btn');
+    const visualizer = document.getElementById('asmr-visualizer');
+    if (!disk) return;
+    
+    if (disk.style.animationPlayState === 'running') {
+      disk.style.animationPlayState = 'paused';
+      if (visualizer) visualizer.style.opacity = '0.3';
+      if (playBtn) playBtn.innerHTML = `<svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+    } else {
+      disk.style.animationPlayState = 'running';
+      if (visualizer) visualizer.style.opacity = '1';
+      if (playBtn) playBtn.innerHTML = `<svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+    }
+  };
+
+  window.restartAsmrMock = function() {
+    curSeconds = 0;
+    const curTimeEl = document.getElementById('asmr-time-cur');
+    if (curTimeEl) curTimeEl.innerText = `00:00`;
+    const barEl = document.getElementById('asmr-progress-bar');
+    if (barEl) barEl.style.width = '0%';
+  };
+
+  window.seekAsmrMock = function(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const pct = clickX / rect.width;
+    curSeconds = Math.floor(pct * totalSeconds);
+    
+    const displayMin = String(Math.floor(curSeconds / 60)).padStart(2, '0');
+    const displaySec = String(curSeconds % 60).padStart(2, '0');
+    const curTimeEl = document.getElementById('asmr-time-cur');
+    if (curTimeEl) curTimeEl.innerText = `${displayMin}:${displaySec}`;
+    
+    const barEl = document.getElementById('asmr-progress-bar');
+    if (barEl) barEl.style.width = (pct * 100) + '%';
+  };
+
+  window.closeAsmrPlayerModal = function() {
+    clearInterval(window.asmrIntervalId);
+    const m = document.getElementById(modalId);
+    if (m) m.remove();
+    render();
+  };
+};
+
+window.renderAsmrVideoPage = function() {
+  const client = state.activeClient;
+  const activeSite = state.activeSite || client.sites[0];
+
+  const videos = JSON.parse(localStorage.getItem('hc_archive_videos') || '[]');
+  
+  const allTags = new Set(['전체']);
+  videos.forEach(v => {
+    if (v.keywords) {
+      v.keywords.split(',').forEach(kw => {
+        const t = kw.trim();
+        if (t) allTags.add(t);
+      });
+    }
+  });
+  const tagsList = Array.from(allTags).slice(0, 10);
+
+  let filtered = videos.filter(v => v.status === '게시' && v.exposure === '노출');
+
+  if (window.asmrSearchQuery) {
+    const q = window.asmrSearchQuery.toLowerCase();
+    filtered = filtered.filter(v => 
+      v.title.toLowerCase().includes(q) || 
+      v.description.toLowerCase().includes(q) || 
+      (v.keywords && v.keywords.toLowerCase().includes(q))
+    );
+  }
+
+  if (window.asmrActiveTag !== '전체') {
+    filtered = filtered.filter(v => v.keywords && v.keywords.includes(window.asmrActiveTag));
+  }
+
+  if (window.asmrSortBy === 'latest') {
+    filtered.sort((a,b) => new Date(b.regDate) - new Date(a.regDate));
+  } else if (window.asmrSortBy === 'views') {
+    filtered.sort((a,b) => (b.views || 0) - (a.views || 0));
+  } else if (window.asmrSortBy === 'title') {
+    filtered.sort((a,b) => a.title.localeCompare(b.title));
+  }
+
+  const stylesHtml = `
+    <style>
+      .asmr-container { animation: fadeIn 0.4s ease-out; }
+      .asmr-title-section { text-align: center; padding: 32px 0 24px 0; }
+      .asmr-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0; }
+      .asmr-subtitle { font-size: 15px; color: #64748b; margin-top: 12px; line-height: 1.6; }
+      .asmr-controls { display: flex; flex-direction: column; gap: 16px; background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
+      .asmr-tags-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .asmr-tag-pill { padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 100px; font-size: 13.5px; font-weight: 600; color: #475569; background: white; cursor: pointer; transition: all 0.15s; }
+      .asmr-tag-pill:hover { background: #f8fafc; border-color: #94a3b8; }
+      .asmr-tag-pill.active { background: var(--theme-color); border-color: var(--theme-color); color: white; }
+      
+      .asmr-search-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+      .asmr-search-box { display: flex; align-items: center; background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; max-width: 320px; width: 100%; height: 42px; }
+      .asmr-search-input { border: none; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; flex-grow: 1; }
+      .asmr-search-btn { border: none; background: #f1f5f9; padding: 0 16px; height: 100%; color: #475569; font-weight: 700; cursor: pointer; font-size: 13.5px; border-left: 1px solid #cbd5e1; }
+      
+      .asmr-sort-box { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569; }
+      .asmr-sort-select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 14px; outline: none; background: white; cursor: pointer; }
+      
+      .asmr-view-toggle { display: flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; background: white; }
+      .asmr-toggle-btn { border: none; background: white; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; }
+      .asmr-toggle-btn.active { background: #f1f5f9; color: var(--theme-color); font-weight: 700; }
+
+      .asmr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+      .asmr-grid-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; }
+      .asmr-grid-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06); }
+      .asmr-thumb-container { width: 100%; height: 160px; position: relative; background: #0f172a; overflow: hidden; }
+      .asmr-play-overlay { position: absolute; inset: 0; background: rgba(15,23,42,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+      .asmr-grid-card:hover .asmr-play-overlay { opacity: 1; }
+      .asmr-duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(15,23,42,0.85); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: monospace; }
+      .asmr-card-info { padding: 18px; display: flex; flex-direction: column; flex-grow: 1; }
+      .asmr-card-title { font-size: 16.5px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.4; }
+      .asmr-card-desc { font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; }
+      .asmr-card-meta { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; font-weight: 500; border-top: 1px solid #f8fafc; padding-top: 8px; }
+
+      .asmr-list { display: flex; flex-direction: column; gap: 16px; }
+      .asmr-list-row { display: flex; background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s ease; height: 120px; }
+      .asmr-list-row:hover { border-color: var(--theme-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+      .asmr-list-thumb { width: 200px; height: 100%; position: relative; background: #0f172a; flex-shrink: 0; }
+      .asmr-list-info { padding: 16px 20px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
+    </style>
+  `;
+
+  const breadcrumbHtml = `
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+      <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+      <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+      <span>심리케어</span>
+      <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+      <span style="color: #0f172a; font-weight: 800;">힐링 ASMR 영상</span>
+    </div>
+  `;
+
+  const titleSectionHtml = `
+    <div class="asmr-title-section">
+      <h1 class="asmr-title">힐링 ASMR 영상</h1>
+      <p class="asmr-subtitle">스트레스 해소와 마음의 이완을 위한 다채로운 자연의 소리와 명상 백색소음을 감상해 보세요.</p>
+    </div>
+  `;
+
+  const tagsHtml = tagsList.map(tag => `
+    <button onclick="window.setAsmrTag('${tag}')" class="asmr-tag-pill ${window.asmrActiveTag === tag ? 'active' : ''}">${tag}</button>
+  `).join('');
+
+  const gridHtml = `
+    <div class="asmr-grid">
+      ${filtered.map(v => `
+        <div onclick="window.openAsmrPlayerModal('${v.id}')" class="asmr-grid-card">
+          <div class="asmr-thumb-container">
+            ${v.thumb}
+            <div class="asmr-play-overlay">
+              <svg width="48" height="48" fill="white" viewBox="0 0 24 24" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="asmr-duration-badge">${v.duration || '00:05:00'}</span>
+          </div>
+          <div class="asmr-card-info">
+            <h2 class="asmr-card-title">${v.title}</h2>
+            <p class="asmr-card-desc">${v.description}</p>
+            <div class="asmr-card-meta">
+              <span>조회수 ${v.views || 0}회</span>
+              <span>${v.regDate.split(' ')[0]}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const listHtml = `
+    <div class="asmr-list">
+      ${filtered.map(v => `
+        <div onclick="window.openAsmrPlayerModal('${v.id}')" class="asmr-list-row">
+          <div class="asmr-list-thumb">
+            ${v.thumb}
+            <div class="asmr-play-overlay" style="opacity:1; background:rgba(0,0,0,0.1);">
+              <svg width="36" height="36" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="asmr-duration-badge">${v.duration || '00:05:00'}</span>
+          </div>
+          <div class="asmr-list-info">
+            <div>
+              <h2 class="asmr-card-title" style="margin-bottom:4px;">${v.title}</h2>
+              <p class="asmr-card-desc" style="-webkit-line-clamp: 1; margin-bottom: 0;">${v.description}</p>
+            </div>
+            <div class="asmr-card-meta" style="border:none; padding:0;">
+              <span>조회수 ${v.views || 0}회 &nbsp;•&nbsp; ${v.regDate.split(' ')[0]}</span>
+              <span style="color:var(--theme-color); font-weight:700;">감상하기 ></span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  return `
+    ${stylesHtml}
+    <div class="asmr-container">
+      ${breadcrumbHtml}
+      ${titleSectionHtml}
+      
+      <div class="asmr-controls">
+        <div class="asmr-tags-row">
+          ${tagsHtml}
+        </div>
+        <div class="asmr-search-row">
+          <div class="asmr-search-box">
+            <input type="text" id="asmr-search-input" value="${window.asmrSearchQuery}" placeholder="영상 제목, 해시태그 검색..." class="asmr-search-input" onkeyup="if(event.key === 'Enter') window.handleAsmrSearch()">
+            <button onclick="window.handleAsmrSearch()" class="asmr-search-btn">검색</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div class="asmr-sort-box">
+              <span>정렬</span>
+              <select class="asmr-sort-select" onchange="window.setAsmrSort(this.value)">
+                <option value="latest" ${window.asmrSortBy === 'latest' ? 'selected' : ''}>최신순</option>
+                <option value="views" ${window.asmrSortBy === 'views' ? 'selected' : ''}>인기순</option>
+                <option value="title" ${window.asmrSortBy === 'title' ? 'selected' : ''}>제목순</option>
+              </select>
+            </div>
+            <div class="asmr-view-toggle">
+              <button onclick="window.toggleAsmrViewMode('grid')" class="asmr-toggle-btn ${window.asmrViewMode === 'grid' ? 'active' : ''}" title="그리드 뷰">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+              </button>
+              <button onclick="window.toggleAsmrViewMode('list')" class="asmr-toggle-btn ${window.asmrViewMode === 'list' ? 'active' : ''}" title="리스트 뷰">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        ${window.asmrViewMode === 'grid' ? gridHtml : listHtml}
+      </div>
+    </div>
+  `;
+};
+
+// ==========================================
+// 마이페이지 (My Page)
+// ==========================================
+function seedMyPageMockData() {
+  if (!localStorage.getItem('hc_inquiries')) {
+    const defaultInquiries = [
+      {
+        id: 'iq-1',
+        userId: 'user_multi',
+        clientId: 'kyobo',
+        category: '전화상담',
+        type: 'phone',
+        content: '건강상담을 신청합니다. 최근 혈압이 불규칙적으로 측정되어 걱정이 많습니다. 평소 관리법과 주의사항에 대해 자세한 안내와 설명 부탁드립니다.',
+        date: '2026-06-10',
+        status: '완료',
+        consultDate: '2026-06-12',
+        consultTime: '14:00',
+        answer: '홍길동 고객님, 안녕하세요. 담당 헬스케어 매니저입니다.\\n신청해주신 시간대에 맞추어 전화 통화로 자세한 일상 속 혈압 조절 방법(저염 식습관, 유산소 운동 주기 등)에 대해 친절히 안내를 도와드렸습니다. 궁금한 점이 생기시면 언제든 다시 문의주시기 바랍니다.',
+        answerDate: '2026-06-11 10:30:00'
+      },
+      {
+        id: 'iq-2',
+        userId: 'user_multi',
+        clientId: 'kyobo',
+        category: '온라인문의',
+        type: 'online',
+        content: '최근 두통이 지속적으로 발생하는데 정밀 건강검진을 받아야 할 타이밍일까요? 관련해서 자세히 가이드 주시면 감사하겠습니다.',
+        date: '2026-06-12',
+        status: '답변완료',
+        consultDate: '-',
+        consultTime: '-',
+        answer: '고객님 안녕하세요.\\n지속적인 두통은 스트레스나 피로에 의해서도 나타날 수 있지만 원인이 다양하므로, 가급적 빠른 시일 내에 제휴 의료기관을 통한 신경과 전문의 정밀 진단 또는 뇌 MRA/MRI를 포함한 건강검진을 받아보시는 것을 적극 권장합니다.',
+        answerDate: '2026-06-13 14:15:00'
+      }
+    ];
+    localStorage.setItem('hc_inquiries', JSON.stringify(defaultInquiries));
+  }
+
+  if (!localStorage.getItem('sub_subscribers')) {
+    const defaultSubscribers = [
+      {
+        id: 'sub-1',
+        custName: '홍길동',
+        progName: '고지혈증 예방 관리 프로그램',
+        catName: '심혈관질환',
+        cycle: '주 1회',
+        duration: '4주',
+        applyDate: '2026-06-01',
+        status: '구독중'
+      },
+      {
+        id: 'sub-2',
+        custName: '홍길동',
+        progName: '하루 10분 스트레칭',
+        catName: '생활습관 개선',
+        cycle: '주 3회',
+        duration: '8주',
+        applyDate: '2026-05-15',
+        status: '구독중'
+      }
+    ];
+    localStorage.setItem('sub_subscribers', JSON.stringify(defaultSubscribers));
+  }
+}
+
+function getMyPageHistory() {
+  const user = state.currentUser;
+  const client = state.activeClient;
+  
+  if (!user) return [];
+  
+  // 1. General inquiries
+  const allInquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+  const generalHistory = allInquiries.filter(iq => iq.userId === user.id && iq.clientId === client.id).map(iq => ({
+    id: 'general-' + iq.id,
+    itemType: 'general',
+    category: iq.category || (iq.type === 'phone' ? '전화상담' : '온라인문의'),
+    title: iq.content.split('\n')[0] || '상담 문의',
+    date: iq.date || '2026-06-10',
+    status: iq.status || '신청',
+    details: iq
+  }));
+
+  // 2. Checkups
+  const checkupHistory = JSON.parse(localStorage.getItem('hc_checkup_history') || '[]');
+  const checkupHistoryMapped = checkupHistory.filter(chk => chk.userId === user.id).map(chk => ({
+    id: 'checkup-' + chk.id,
+    itemType: 'checkup',
+    category: '건강검진',
+    title: chk.pkgName || '종합건강검진',
+    date: chk.applyDate || '2026-06-10',
+    status: chk.status || '신청',
+    details: {
+      ...chk,
+      supportType: chk.supportType || (chk.pkgName.includes('프리미엄') ? '건강검진 우대예약' : '회사지원')
+    }
+  }));
+
+  // 3. Subscriptions
+  // Local subs
+  const localSubs = JSON.parse(localStorage.getItem('hc_subscribed_contents') || '[]');
+  const localSubsMapped = localSubs.map(contentId => {
+    let title = contentId;
+    let category = '건강콘텐츠';
+    let cycle = '주 1회';
+    let duration = '4주';
+
+    for (const topicKey in SUBSCRIBE_DATA) {
+      const topic = SUBSCRIBE_DATA[topicKey];
+      const item = topic.contents.find(c => c.id === contentId);
+      if (item) {
+        title = item.name;
+        category = topic.title;
+        cycle = item.cycle;
+        duration = item.duration;
+        break;
+      }
+    }
+    const total = parseInt(duration) || 4;
+    const curr = Math.min(total, 3);
+    return {
+      id: 'sub-local-' + contentId,
+      itemType: 'subscription',
+      category: category,
+      title: title,
+      date: '2026-06-01',
+      status: '구독중',
+      details: { id: contentId, type: 'local', title, category, cycle, duration, currTerm: curr, totalTerms: total }
+    };
+  });
+
+  // Admin subs
+  const subPrograms = JSON.parse(localStorage.getItem('sub_programs') || '[]');
+  const adminSubs = JSON.parse(localStorage.getItem('sub_subscribers') || '[]');
+  const adminSubsMapped = adminSubs.filter(s => s.custName === user.name && s.status !== '구독취소').map(s => {
+    const prog = subPrograms.find(p => p.id === s.progId || p.name === s.progName);
+    const totalTerms = prog ? prog.totalTerms : (parseInt(s.duration) || 4);
+    const currTermNum = parseInt(s.currTerm) || 2;
+    return {
+      id: 'sub-admin-' + s.id,
+      itemType: 'subscription',
+      category: s.catName || '구독콘텐츠',
+      title: s.progName || '구독 프로그램',
+      date: s.applyDate || '2026-06-01',
+      status: s.status || '구독중',
+      details: { id: s.id, type: 'admin', title: s.progName, category: s.catName, cycle: s.cycle, duration: s.duration, currTerm: currTermNum, totalTerms: totalTerms }
+    };
+  });
+
+  const allHistory = [...generalHistory, ...checkupHistoryMapped, ...localSubsMapped, ...adminSubsMapped];
+
+  // Filter for last 5 years
+  const cutoffDate = new Date();
+  cutoffDate.setFullYear(cutoffDate.getFullYear() - 5);
+  
+  const filteredHistory = allHistory.filter(item => {
+    const d = new Date(item.date);
+    return d >= cutoffDate;
+  });
+
+  // Sort by date desc
+  filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return filteredHistory;
+}
+
+window.renderMyPage = function() {
+  const user = state.currentUser;
+  const client = state.activeClient;
+  const activeSite = state.activeSite || client.sites[0];
+  
+  if (!user) {
+    return `<div style="padding:80px; text-align:center; color:#64748b; font-size:16px;">로그인이 필요합니다.</div>`;
+  }
+
+  const name = user.name || "-";
+  const birth = user.birth || "1985.06.12";
+  const gender = user.gender || "남성";
+  const phone = user.phone || "010-5678-1234";
+  const email = user.email || "";
+  const address = user.address || "서울특별시 종로구 인사동 10길 12, 3층";
+
+  window.mypageMainTab = window.mypageMainTab || 'profile';
+  window.mypageHistoryTab = window.mypageHistoryTab || 'all';
+  window.mypageHistoryPage = window.mypageHistoryPage || 1;
+
+  // Compute history counts
+  const allFiltered = getMyPageHistory();
+  const countAll = allFiltered.length;
+  const countGeneral = allFiltered.filter(item => item.itemType === 'general').length;
+  const countCheckup = allFiltered.filter(item => item.itemType === 'checkup').length;
+  const countSubscription = allFiltered.filter(item => item.itemType === 'subscription').length;
+
+  let activeFiltered = allFiltered;
+  if (window.mypageHistoryTab !== 'all') {
+    activeFiltered = allFiltered.filter(item => item.itemType === window.mypageHistoryTab);
+  }
+
+  // Pagination
+  const itemsPerPage = 5;
+  const totalItems = activeFiltered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  
+  if (window.mypageHistoryPage > totalPages) {
+    window.mypageHistoryPage = totalPages;
+  }
+  if (window.mypageHistoryPage < 1) {
+    window.mypageHistoryPage = 1;
+  }
+  
+  const startIndex = (window.mypageHistoryPage - 1) * itemsPerPage;
+  const paginatedItems = activeFiltered.slice(startIndex, startIndex + itemsPerPage);
+
+  // HTML content generation
+  let tabContentHtml = '';
+  
+  if (window.mypageMainTab === 'profile') {
+    // ACCOUNT CARD
+    let accountCardHtml = '';
+    const registeredId = user.portalId || localStorage.getItem('hc_portal_id_' + user.id);
+    
+    if (registeredId) {
+      accountCardHtml = `
+        <div class="mypage-card" style="margin-top: 24px;">
+          <h3 class="mypage-card-title">
+            <svg width="20" height="20" fill="none" stroke="var(--theme-color)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11 2 2 4-4"/></svg>
+            계정정보
+          </h3>
+          
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; font-size: 14px; color: #1e40af; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            아이디가 등록되어 있습니다. 비밀번호를 변경하여 계정을 안전하게 관리하세요.
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: end;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="mypage-label">아이디</span>
+              <div class="mypage-value-disabled" style="font-weight: 700; color: #0f172a; border-color: #cbd5e1; height: 46px; display: flex; align-items: center;">${registeredId}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="mypage-label">계정 상태</span>
+              <div style="display:flex; align-items:center; height:46px;">
+                <span style="background: #dcfce7; color: #16a34a; font-size: 13px; font-weight: 800; padding: 8px 16px; border-radius: 8px;">생성완료</span>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button onclick="window.openChangePasswordModal()" class="mypage-btn-secondary" style="height: 46px; width: 100%; font-weight: 700; border: 1px solid #cbd5e1; background: white; color: #475569; padding: 0 24px; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">비밀번호 변경</button>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      accountCardHtml = `
+        <div class="mypage-card" style="margin-top: 24px;">
+          <h3 class="mypage-card-title">
+            <svg width="20" height="20" fill="none" stroke="var(--theme-color)" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+            계정정보
+          </h3>
+          
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; font-size: 14px; color: #c2410c; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            등록된 아이디가 없습니다. 아이디와 비밀번호를 설정하여 로그인 계정을 생성해 주세요.
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: end; margin-bottom: 20px;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="mypage-label">아이디</span>
+              <input type="text" id="mypage-new-id" placeholder="아이디 입력 (4자 이상)" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit; height: 46px; box-sizing: border-box;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="mypage-label">비밀번호</span>
+              <input type="password" id="mypage-new-pw" placeholder="비밀번호 입력 (8자 이상)" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit; height: 46px; box-sizing: border-box;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span class="mypage-label">비밀번호 확인</span>
+              <input type="password" id="mypage-new-pw-confirm" placeholder="비밀번호 재입력" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit; height: 46px; box-sizing: border-box;">
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:flex-end;">
+            <button onclick="window.saveMyPageAccountInfo()" class="mypage-btn-primary" style="padding:12px 36px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">계정 생성</button>
+          </div>
+        </div>
+      `;
+    }
+
+    tabContentHtml = `
+      <div style="animation: fadeIn 0.3s ease-out;">
+        <div class="mypage-card">
+          <h3 class="mypage-card-title">
+            <svg width="20" height="20" fill="none" stroke="var(--theme-color)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            기본 개인정보
+          </h3>
+          <p style="font-size: 12.5px; color: #ef4444; margin-top: -12px; margin-bottom: 24px; font-weight: 700; text-align: left;">
+            * 기본 개인정보(이름, 생년월일, 성별, 휴대폰 번호)는 연동 정보로 직접 수정할 수 없습니다.
+          </p>
+          
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <!-- 3-column row: Name, Birthdate, Gender -->
+            <div class="personal-info-grid">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">이름</span>
+                <div class="mypage-value-disabled" style="height: 46px; display: flex; align-items: center;">${name}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">생년월일</span>
+                <div class="mypage-value-disabled" style="height: 46px; display: flex; align-items: center;">${birth}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">성별</span>
+                <div class="mypage-value-disabled" style="height: 46px; display: flex; align-items: center;">${gender}</div>
+              </div>
+            </div>
+            
+            <!-- 2-column row: Phone, Email -->
+            <div class="personal-info-grid-2">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">휴대폰 번호</span>
+                <div class="mypage-value-disabled" style="height: 46px; display: flex; align-items: center;">${phone}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">이메일 주소 (선택)</span>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <input type="email" id="mypage-email" value="${email}" placeholder="이메일을 입력해주세요" style="flex:1; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit; height: 46px; box-sizing: border-box;">
+                  <span class="mypage-verify-badge">인증완료</span>
+                  <button onclick="window.resendVerificationEmail()" class="mypage-btn-secondary" style="white-space:nowrap; padding:0 18px; height: 46px; font-size:13.5px; font-weight:700; border:1px solid #cbd5e1; background:white; color:#475569; border-radius:8px; cursor:pointer; box-sizing: border-box; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">인증메일 재발송</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 1-column row: Address -->
+            <div class="personal-info-grid-1">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <span class="mypage-label">주소</span>
+                <input type="text" id="mypage-address" value="${address}" placeholder="주소를 입력해주세요" style="width: 100%; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit; height: 46px; box-sizing: border-box;">
+              </div>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:flex-end; margin-top:28px;">
+            <button onclick="window.saveMyPageGeneralInfo()" class="mypage-btn-primary" style="padding:12px 36px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">저장하기</button>
+          </div>
+        </div>
+        
+        <!-- Account Card -->
+        ${accountCardHtml}
+        
+        <div style="margin-top: 24px; font-size: 13.5px; color: #94a3b8; line-height: 1.6; text-align: left;">
+          <p style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">• 이름, 생년월일, 성별, 휴대폰 번호 등 일부 정보는 연동된 정보이므로 마이페이지에서 직접 수정할 수 없습니다.</p>
+          <p style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">• 포털 계정을 생성하시면 최초 인증 이후 편리하게 로그인이 가능합니다.</p>
+        </div>
+      </div>
+    `;
+  } else if (window.mypageMainTab === 'history') {
+    // Separate all filtered items by category
+    const generalItemsAll = allFiltered.filter(item => item.itemType === 'general');
+    const checkupItemsAll = allFiltered.filter(item => item.itemType === 'checkup');
+    const subscriptionItemsAll = allFiltered.filter(item => item.itemType === 'subscription');
+
+    // Helper to render pagination
+    const renderHistoryPagination = (totalPages) => {
+      if (totalPages <= 1) return '';
+      return `
+        <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:32px;">
+          <button onclick="window.changeHistoryPage(${window.mypageHistoryPage - 1})" ${window.mypageHistoryPage === 1 ? 'disabled' : ''} style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border:1px solid #e2e8f0; background:white; border-radius:8px; cursor:${window.mypageHistoryPage === 1 ? 'not-allowed' : 'pointer'}; opacity:${window.mypageHistoryPage === 1 ? 0.4 : 1};">
+            <svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          
+          ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
+            <button onclick="window.changeHistoryPage(${p})" style="width:36px; height:36px; border:none; background:${window.mypageHistoryPage === p ? 'var(--theme-color)' : 'transparent'};${window.mypageHistoryPage === p ? 'color:white !important;' : 'color:#475569;'} font-weight:700; border-radius:8px; cursor:pointer;">
+              ${p}
+            </button>
+          `).join('')}
+          
+          <button onclick="window.changeHistoryPage(${window.mypageHistoryPage + 1})" ${window.mypageHistoryPage === totalPages ? 'disabled' : ''} style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border:1px solid #e2e8f0; background:white; border-radius:8px; cursor:${window.mypageHistoryPage === totalPages ? 'not-allowed' : 'pointer'}; opacity:${window.mypageHistoryPage === totalPages ? 0.4 : 1};">
+            <svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      `;
+    };
+
+    // Helper to render General history table (상담신청이력)
+    const renderGeneralHistoryTable = (items, isStacked = false) => {
+      const showTitleHtml = isStacked ? `<h4 style="font-size: 16px; font-weight: 800; color: #1e293b; margin: 24px 0 12px 0; text-align: left;">상담신청이력</h4>` : '';
+      return `
+        <div class="history-list-container" style="margin-top: 16px; margin-bottom: 32px; width: 100%;">
+          ${showTitleHtml}
+          <div class="history-header">
+            <div>서비스분류</div>
+            <div>문의유형</div>
+            <div>등록일</div>
+            <div style="text-align:left; padding-left:20px;">내용</div>
+            <div>상담희망일자</div>
+            <div>상담희망시간</div>
+            <div>상담상태</div>
+          </div>
+          ${items.length === 0 ? `
+            <div style="padding:40px; text-align:center; color:#94a3b8; border-bottom:1px solid #e2e8f0; background: white; font-size:14px;">신청하신 상담 및 문의 내역이 없습니다.</div>
+          ` : items.map(item => {
+            const isExpanded = window.mypageExpandedItems && window.mypageExpandedItems[item.id];
+            let statusClass = 'status-request';
+            let statusLabel = item.status;
+            
+            if (item.status === '완료' || item.status === '답변완료') {
+              statusClass = 'status-complete';
+              statusLabel = '완료';
+            } else if (item.status === '취소') {
+              statusClass = 'status-cancel';
+              statusLabel = '취소';
+            } else {
+              statusLabel = '신청';
+            }
+
+            const typeLabel = item.details.type === 'phone' ? '전화상담' : '온라인문의';
+            const categoryColors = {
+              '건강상담': { bg: 'rgba(59, 130, 246, 0.1)', text: '#1d4ed8' },
+              '병원안내': { bg: 'rgba(16, 185, 129, 0.1)', text: '#047857' },
+              '진료예약': { bg: 'rgba(124, 58, 237, 0.1)', text: '#6d28d9' },
+              '건강검진': { bg: 'rgba(219, 39, 119, 0.1)', text: '#db2777' }
+            };
+            const colors = categoryColors[item.category] || categoryColors['건강상담'];
+
+            return `
+              <div class="history-row ${isExpanded ? 'expanded' : ''}" onclick="window.toggleMyPageHistoryDetail('${item.id}')">
+                <div class="history-row-main">
+                  <div><span style="background:${colors.bg}; color:${colors.text}; padding:4px 10px; border-radius:100px; font-size:12px; font-weight:700; display:inline-block;">${item.category}</span></div>
+                  <div><span style="color:${item.details.type === 'phone' ? '#2F4A9A' : '#17B890'}; font-weight:600;">${typeLabel}</span></div>
+                  <div>${item.date}</div>
+                  <div class="history-row-content" style="text-align:left; padding-left:20px;">${item.details.content}</div>
+                  <div>${item.details.consultDate || '-'}</div>
+                  <div>${item.details.consultTime === 'anytime' ? '전일(상시)' : (item.details.consultTime || '-')}</div>
+                  <div><span class="history-status-badge ${statusClass}">${statusLabel}</span></div>
+                </div>
+                <div class="history-detail-area" style="display: ${isExpanded ? 'block' : 'none'};">
+                  <div class="history-detail-q" style="text-align:left;">
+                    <p style="font-weight:700; margin-bottom:8px; color:#1e293b;">Q. 상담 및 문의내용</p>
+                    <p style="white-space: pre-wrap; color:#475569; margin:0;">${item.details.content}</p>
+                  </div>
+                  ${item.details.answer ? `
+                    <div class="history-detail-a" style="text-align:left; margin-top:12px; padding:16px; background:rgba(var(--theme-color-rgb), 0.03); border:1px solid rgba(var(--theme-color-rgb), 0.1); border-radius:8px;">
+                      <div class="answer-label" style="font-weight:700; color:var(--theme-color); margin-bottom:8px;">A. 전문가 답변</div>
+                      <div class="answer-text" style="white-space: pre-wrap; color:#334155;">${item.details.answer}</div>
+                      ${item.details.answerDate ? `<p style="margin:8px 0 0 0; font-size:11.5px; color:#94a3b8; text-align:right;">답변일시: ${item.details.answerDate}</p>` : ''}
+                    </div>
+                  ` : `
+                    <div style="padding:16px; background:#fff; border-radius:8px; border:1px dashed #cbd5e1; color:#94a3b8; font-size:13px; text-align:center; margin-top:12px;">
+                      담당 헬스케어 매니저가 상담 내용을 확인하고 있습니다.
+                    </div>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    };
+
+    // Helper to render Checkup history table (건강검진 신청이력)
+    const renderCheckupHistoryTable = (items, isStacked = false) => {
+      const showTitleHtml = isStacked ? `<h4 style="font-size: 16px; font-weight: 800; color: #1e293b; margin: 24px 0 12px 0; text-align: left;">건강검진 신청이력</h4>` : '';
+      return `
+        <div style="overflow-x:auto; margin-top: 16px; margin-bottom: 32px; width: 100%;">
+          ${showTitleHtml}
+          <table class="checkup-history-table" style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:center; background:white;">
+            <thead>
+              <tr>
+                <th style="width:120px;">신청일 (등록일)</th>
+                <th style="width:120px;">지원구분</th>
+                <th>검진패키지명</th>
+                <th>검진대상자</th>
+                <th>희망일 1</th>
+                <th>희망일 2</th>
+                <th>선택검사</th>
+                <th>추가검사</th>
+                <th>처리단계</th>
+                <th>예약확정일</th>
+                <th style="width:100px;">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.length === 0 ? `
+                <tr><td colspan="11" style="padding:40px; color:#94a3b8; border-bottom:1px solid #e2e8f0; font-size:14px; background: white;">신청하신 건강검진 내역이 없습니다.</td></tr>
+              ` : items.map(item => {
+                const chk = item.details;
+                const statusClass = chk.status === '확정' ? '확정' : (chk.status === '신청' ? '신청' : (chk.status === '취소요청' ? '취소요청' : '취소완료'));
+                const displayStatus = chk.status === '확정' ? '예약 확정' : chk.status;
+                const trId = 'mypage-chk-detail-' + chk.id;
+                const isExpanded = window.mypageExpandedItems && window.mypageExpandedItems[item.id];
+                
+                let supportType = chk.supportType || (chk.pkgName.includes('프리미엄') ? '건강검진 우대예약' : '회사지원');
+                let supportColor = supportType === '회사지원' ? '#1e40af' : '#0f766e';
+                let supportBg = supportType === '회사지원' ? '#eff6ff' : '#f0fdf4';
+
+                return `
+                <tr class="main-row" style="cursor:pointer;" onclick="window.toggleMyPageHistoryDetail('${item.id}')">
+                  <td>
+                    <div style="font-weight:700;">${chk.applyDate}</div>
+                    <div style="color:#94a3b8; font-size:12px; margin-top:4px;">오전 10:35</div>
+                  </td>
+                  <td>
+                    <span style="background:${supportBg}; color:${supportColor}; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; display:inline-block; border: 1px solid rgba(0,0,0,0.05);">${supportType}</span>
+                  </td>
+                  <td style="text-align:left; font-weight:700;">
+                    <div style="color:#0f172a;">${chk.pkgName.split('-')[0].trim()}</div>
+                    <div style="color:#64748b; font-size:13px; margin-top:4px; font-weight:600;">${chk.pkgName.split('-')[1]?.trim() || ''}</div>
+                  </td>
+                  <td style="text-align:left;">
+                    <div style="font-weight:700; color:#0f172a;">${chk.targetName}</div>
+                    <div style="color:#64748b; font-size:12px; margin-top:4px;">${chk.targetBirthGender.split('/')[0].trim()} / ${chk.targetBirthGender.split('/')[1]?.trim() || ''}</div>
+                  </td>
+                  <td style="font-weight:600; color:#475569;">${chk.wishDate1}</td>
+                  <td style="font-weight:600; color:#475569;">${chk.wishDate2 || '-'}</td>
+                  <td style="color:#64748b; font-size:13px;">${chk.selectedTests || '-'}</td>
+                  <td style="color:#64748b; font-size:13px;">${chk.extraTests || '-'}</td>
+                  <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
+                  <td style="font-weight:700; color:#1e293b;">${chk.reservationConfirmedDate || '-'}</td>
+                  <td onclick="event.stopPropagation();">
+                    <button onclick="window.toggleMyPageHistoryDetail('${item.id}')" style="padding:6px 12px; background:white; border:1px solid #e2e8f0; color:#64748b; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                      ${isExpanded ? '접기' : '상세보기'}
+                    </button>
+                  </td>
+                </tr>
+                <tr id="${trId}" style="display:${isExpanded ? 'table-row' : 'none'}; background:#f8fafc;">
+                  <td colspan="11" style="padding:0; text-align:left; border-bottom: 2px solid #cbd5e1;">
+                    <div class="detail-panel" style="padding:24px;">
+                      <div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center;">
+                        신청 상세내역 <span style="margin:0 12px; color:#cbd5e1;">|</span> <span style="font-weight:600; color:#64748b;">${chk.pkgName} (개인결제비용: ${chk.personalCost || (chk.pkgName.includes('기본형') ? '₩200,000' : '₩300,000')})</span>
+                      </div>
+                      <div class="detail-grid" style="display:grid; grid-template-columns: 1fr 1.5fr 1fr 1fr; gap:24px;">
+                        <div class="detail-col" style="border-right:1px solid #e2e8f0; padding-right:24px;">
+                          <div class="detail-section-title" style="font-size:15px; font-weight:700; color:#2563eb; margin-bottom:16px;">신청 정보</div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">신청구분</span><span class="val" style="color:#1e293b; font-weight:700;">${supportType}</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">신청일</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.applyDate} 10:35</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">희망일 1</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.wishDate1}</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">희망일 2</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.wishDate2 || '-'}</span></div>
+                          <div class="detail-row-item" style="display:flex; align-items:center; font-size:14px;">
+                            <span class="lbl" style="width:100px; color:#64748b; font-weight:600;">처리단계</span>
+                            <div style="display:flex; gap:8px;">
+                              <span class="status-badge ${statusClass}" style="padding:4px 10px; font-size:12px;">${displayStatus}</span>
+                              ${chk.status !== '취소요청' && chk.status !== '취소' && chk.status !== '취소완료' ? `
+                              <button onclick="window.requestCancelCheckupFromMyPage('${chk.id}')" style="padding:4px 10px; background:white; border:1px solid #ef4444; color:#ef4444; border-radius:100px; font-size:12px; font-weight:700; cursor:pointer;">취소 요청</button>
+                              ` : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="detail-col" style="border-right:1px solid #e2e8f0; padding-right:24px;">
+                          <div class="detail-section-title" style="font-size:15px; font-weight:700; color:#2563eb; margin-bottom:16px;">검진대상자 정보</div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">성명</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.targetName}</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">생년월일/성별</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.targetBirthGender}</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">휴대폰번호</span><span class="val" style="color:#1e293b; font-weight:700;">${chk.targetPhone}</span></div>
+                          <div class="detail-row-item" style="display:flex; margin-bottom:12px; font-size:14px;"><span class="lbl" style="width:100px; color:#64748b; font-weight:600;">주소</span><span class="val" style="color:#1e293b; font-weight:700; line-height:1.5;">${chk.targetAddress}</span></div>
+                        </div>
+                        <div class="detail-col" style="border-right:1px solid #e2e8f0; padding-right:24px;">
+                          <div class="detail-section-title" style="font-size:15px; font-weight:700; color:#2563eb; margin-bottom:16px;">선택검사</div>
+                          <ul class="detail-list" style="padding-left:20px; margin:0; color:#1e293b; font-weight:600; line-height:1.6;">
+                            ${chk.selectedTests ? chk.selectedTests.split(',').map(t => `<li>${t.trim()}</li>`).join('') : '<li>-</li>'}
+                          </ul>
+                        </div>
+                        <div class="detail-col">
+                          <div class="detail-section-title" style="font-size:15px; font-weight:700; color:#2563eb; margin-bottom:16px;">추가검사</div>
+                          <ul class="detail-list" style="padding-left:20px; margin:0; color:#1e293b; font-weight:600; line-height:1.6;">
+                            ${chk.extraTests ? chk.extraTests.split(',').map(t => `<li>${t.trim()}</li>`).join('') : '<li>-</li>'}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    // Helper to render Subscription history table (구독서비스 신청이력)
+    const renderSubscriptionHistoryTable = (items, isStacked = false) => {
+      const showTitleHtml = isStacked ? `<h4 style="font-size: 16px; font-weight: 800; color: #1e293b; margin: 24px 0 12px 0; text-align: left;">구독서비스 신청이력</h4>` : '';
+      return `
+        <div style="overflow-x:auto; margin-top: 16px; margin-bottom: 32px; width: 100%;">
+          ${showTitleHtml}
+          <table class="checkup-history-table" style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:center; background:white;">
+            <thead>
+              <tr>
+                <th style="width:120px;">카테고리</th>
+                <th>콘텐츠명</th>
+                <th>신청일</th>
+                <th>현재진행차수</th>
+                <th>총 차수</th>
+                <th>신청상태</th>
+                <th style="width:150px;">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.length === 0 ? `
+                <tr><td colspan="7" style="padding:40px; color:#94a3b8; border-bottom:1px solid #e2e8f0; font-size:14px; background: white;">신청하신 구독서비스 내역이 없습니다.</td></tr>
+              ` : items.map(item => {
+                const isExpanded = window.mypageExpandedItems && window.mypageExpandedItems[item.id];
+                
+                let statusLabel = '구독중';
+                let statusClass = '신청';
+                if (item.status === '구독취소' || item.status === '구독해지' || item.status === '취소') {
+                  statusLabel = '취소';
+                  statusClass = '취소완료';
+                } else if (item.status === '구독완료' || item.status === '완료') {
+                  statusLabel = '완료';
+                  statusClass = '확정';
+                }
+
+                const isCancelled = statusLabel === '취소';
+
+                return `
+                <tr class="main-row" style="cursor:pointer;" onclick="window.toggleMyPageHistoryDetail('${item.id}')">
+                  <td>
+                    <span style="background:#f3e8ff; color:#6b21a8; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:700; display:inline-block;">${item.category}</span>
+                  </td>
+                  <td style="text-align:left; font-weight:700; color:#0f172a;">${item.title}</td>
+                  <td>${item.date}</td>
+                  <td style="font-weight:700; color:#2563eb;">${item.details.currTerm || '1'}차</td>
+                  <td style="font-weight:700; color:#475569;">${item.details.totalTerms || '4'}차</td>
+                  <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                  <td onclick="event.stopPropagation();">
+                    <div style="display:flex; gap:6px; justify-content:center;">
+                      <button onclick="window.toggleMyPageHistoryDetail('${item.id}')" style="padding:6px 10px; background:white; border:1px solid #e2e8f0; color:#64748b; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        ${isExpanded ? '접기' : '상세보기'}
+                      </button>
+                      ${!isCancelled ? `
+                        <button onclick="window.cancelMyPageSubscription('${item.details.type}', '${item.details.id}')" style="padding:6px 10px; border:1px solid #fca5a5; background:white; color:#ef4444; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#fef2f2';" onmouseout="this.style.background='white';">
+                          구독 해지
+                        </button>
+                      ` : ''}
+                    </div>
+                  </td>
+                </tr>
+                <tr style="display:${isExpanded ? 'table-row' : 'none'}; background:#f8fafc;">
+                  <td colspan="7" style="padding:0; text-align:left; border-bottom: 2px solid #cbd5e1;">
+                    <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center;">
+                      <div>
+                        <span style="font-size:12px; color:#64748b; font-weight:600; display:block; margin-bottom:4px;">구독 상세정보</span>
+                        <span style="font-size:13.5px; font-weight:700; color:#1e293b;">
+                          주기: ${item.details.cycle || '주 1회'} / 기간: ${item.details.duration || '4주'} (진행률: ${Math.round(((item.details.currTerm || 1) / (item.details.totalTerms || 4)) * 100)}%)
+                        </span>
+                      </div>
+                      <div style="font-size:13px; color:#64748b; font-weight:600;">
+                        상태: <span style="color:${isCancelled ? '#ef4444' : '#16a34a'}; font-weight:700;">${isCancelled ? '구독 해지됨' : '정상 구독 중'}</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    let paginationHtml = '';
+    let tableHtml = '';
+
+    if (window.mypageHistoryTab === 'general') {
+      const itemsPerPage = 5;
+      const totalItems = generalItemsAll.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+      if (window.mypageHistoryPage > totalPages) window.mypageHistoryPage = totalPages;
+      if (window.mypageHistoryPage < 1) window.mypageHistoryPage = 1;
+      const startIndex = (window.mypageHistoryPage - 1) * itemsPerPage;
+      const paginatedGeneral = generalItemsAll.slice(startIndex, startIndex + itemsPerPage);
+
+      paginationHtml = renderHistoryPagination(totalPages);
+      tableHtml = renderGeneralHistoryTable(paginatedGeneral);
+    } else if (window.mypageHistoryTab === 'checkup') {
+      const itemsPerPage = 5;
+      const totalItems = checkupItemsAll.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+      if (window.mypageHistoryPage > totalPages) window.mypageHistoryPage = totalPages;
+      if (window.mypageHistoryPage < 1) window.mypageHistoryPage = 1;
+      const startIndex = (window.mypageHistoryPage - 1) * itemsPerPage;
+      const paginatedCheckup = checkupItemsAll.slice(startIndex, startIndex + itemsPerPage);
+
+      paginationHtml = renderHistoryPagination(totalPages);
+      tableHtml = renderCheckupHistoryTable(paginatedCheckup);
+    } else if (window.mypageHistoryTab === 'subscription') {
+      const itemsPerPage = 5;
+      const totalItems = subscriptionItemsAll.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+      if (window.mypageHistoryPage > totalPages) window.mypageHistoryPage = totalPages;
+      if (window.mypageHistoryPage < 1) window.mypageHistoryPage = 1;
+      const startIndex = (window.mypageHistoryPage - 1) * itemsPerPage;
+      const paginatedSubscription = subscriptionItemsAll.slice(startIndex, startIndex + itemsPerPage);
+
+      paginationHtml = renderHistoryPagination(totalPages);
+      tableHtml = renderSubscriptionHistoryTable(paginatedSubscription);
+    } else {
+      // 'all' tab
+      const itemsPerPage = 5;
+      const totalItems = allFiltered.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+      if (window.mypageHistoryPage > totalPages) window.mypageHistoryPage = totalPages;
+      if (window.mypageHistoryPage < 1) window.mypageHistoryPage = 1;
+      const startIndex = (window.mypageHistoryPage - 1) * itemsPerPage;
+      const paginatedItems = allFiltered.slice(startIndex, startIndex + itemsPerPage);
+
+      const paginatedGeneral = paginatedItems.filter(item => item.itemType === 'general');
+      const paginatedCheckup = paginatedItems.filter(item => item.itemType === 'checkup');
+      const paginatedSubscription = paginatedItems.filter(item => item.itemType === 'subscription');
+
+      paginationHtml = renderHistoryPagination(totalPages);
+      tableHtml = `
+        ${renderGeneralHistoryTable(paginatedGeneral, true)}
+        ${renderCheckupHistoryTable(paginatedCheckup, true)}
+        ${renderSubscriptionHistoryTable(paginatedSubscription, true)}
+      `;
+    }
+
+    tabContentHtml = `
+      <div style="animation: fadeIn 0.3s ease-out;">
+        <!-- Sub tabs pills -->
+        <div class="mypage-sub-tabs" style="display:flex; gap:8px; margin-bottom:24px; overflow-x:auto; padding-bottom:8px;">
+          <button onclick="window.switchMyPageHistoryTab('all')" class="mypage-pill-btn ${window.mypageHistoryTab === 'all' ? 'active' : ''}">
+            전체 <span class="mypage-pill-count">${countAll}</span>
+          </button>
+          <button onclick="window.switchMyPageHistoryTab('general')" class="mypage-pill-btn ${window.mypageHistoryTab === 'general' ? 'active' : ''}">
+            상담신청이력 <span class="mypage-pill-count">${countGeneral}</span>
+          </button>
+          <button onclick="window.switchMyPageHistoryTab('checkup')" class="mypage-pill-btn ${window.mypageHistoryTab === 'checkup' ? 'active' : ''}">
+            건강검진 신청이력 <span class="mypage-pill-count">${countCheckup}</span>
+          </button>
+          <button onclick="window.switchMyPageHistoryTab('subscription')" class="mypage-pill-btn ${window.mypageHistoryTab === 'subscription' ? 'active' : ''}">
+            구독서비스 신청이력 <span class="mypage-pill-count">${countSubscription}</span>
+          </button>
+        </div>
+        
+        <div style="min-height: 350px;">
+          ${tableHtml}
+        </div>
+        
+        ${paginationHtml}
+        
+        <div style="margin-top: 32px; font-size: 13.5px; color: #94a3b8; line-height: 1.6; text-align: left; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+          <p style="margin: 4px 0;">• 최근 5년간의 신청 내역을 확인할 수 있습니다.</p>
+          <p style="margin: 4px 0;">• 이전 내역 조회나 상세 진행 상황 확인은 헬스케어 고객센터로 문의해 주시기 바랍니다.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const stylesHtml = `
+    <style>
+      .mypage-container {
+        padding: 24px 0;
+        animation: fadeIn 0.4s ease-out;
+      }
+      .mypage-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01);
+        text-align: left;
+      }
+      .mypage-card-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .mypage-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 6px;
+        display: block;
+      }
+      .mypage-value-disabled {
+        padding: 12px 14px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #64748b;
+        cursor: not-allowed;
+        font-weight: 600;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .mypage-btn-primary {
+        padding: 12px 24px;
+        background: var(--theme-color);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 14.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .mypage-btn-primary:hover {
+        filter: brightness(0.95);
+      }
+      .mypage-verify-badge {
+        background: #dcfce7;
+        color: #16a34a;
+        font-size: 12.5px;
+        font-weight: 800;
+        padding: 10px 14px;
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .personal-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .personal-info-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .personal-info-grid-1 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .mypage-pill-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 100px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .mypage-pill-btn:hover {
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .mypage-pill-btn.active {
+        background: var(--theme-color);
+        border-color: var(--theme-color);
+        color: white;
+      }
+      .mypage-pill-count {
+        font-size: 11px;
+        font-weight: 800;
+        background: #cbd5e1;
+        color: #475569;
+        padding: 2px 6px;
+        border-radius: 100px;
+      }
+      .mypage-pill-btn.active .mypage-pill-count {
+        background: white;
+        color: var(--theme-color);
+      }
+      
+      .mypage-history-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+      }
+      .mypage-history-card:hover {
+        border-color: rgba(var(--theme-color-rgb), 0.3);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04);
+      }
+      .mypage-tag-category {
+        font-size: 12px;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 100px;
+      }
+      .mypage-status-badge {
+        font-size: 12px;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 100px;
+        display: inline-block;
+      }
+      .mypage-status-badge.status-complete {
+        background: #dcfce7;
+        color: #16a34a;
+      }
+      .mypage-status-badge.status-request {
+        background: #e0f2fe;
+        color: #0284c7;
+      }
+      .mypage-status-badge.status-cancel {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      
+      .mypage-history-content {
+        font-size: 15px;
+        color: #1e293b;
+        font-weight: 700;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+      }
+      .mypage-history-card.expanded .mypage-history-content {
+        white-space: normal;
+      }
+      
+      .mypage-history-footer {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+      
+      /* Checkup and general history table styles for MyPage */
+      .checkup-history-table { width:100%; border-collapse:collapse; font-size:13.5px; text-align:center; background:white; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; }
+      .checkup-history-table th { background:#f8fafc; padding:14px 10px; color:#475569; font-weight:700; border-bottom:1px solid #e2e8f0; border-top:none; font-size:13px; }
+      .checkup-history-table td { padding:14px 10px; border-bottom:1px solid #e2e8f0; color:#1e293b; vertical-align:middle; }
+      .checkup-history-table tr.main-row:hover { background:#f8fafc; }
+      .checkup-history-table .status-badge { display:inline-block; padding:4px 10px; border-radius:100px; font-size:12.5px; font-weight:700; }
+      .checkup-history-table .status-badge.신청 { background:#e0f2fe; color:#0284c7; }
+      .checkup-history-table .status-badge.확정 { background:#dcfce7; color:#16a34a; }
+      .checkup-history-table .status-badge.취소요청 { background:#ffedd5; color:#ea580c; }
+      .checkup-history-table .status-badge.취소완료 { background:#f1f5f9; color:#64748b; }
+      .checkup-history-table .status-badge.취소대기 { background:#ffedd5; color:#ea580c; }
+      .detail-panel { text-align:left; padding:20px; background:#f8fafc; }
+      .detail-section-title { font-size:14.5px; font-weight:700; color:#2563eb; margin-bottom:12px; display:flex; align-items:center; }
+      .detail-grid { display:grid; grid-template-columns: 1fr 1.5fr 1fr 1fr; gap:20px; }
+      .detail-col { border-right:1px solid #e2e8f0; padding-right:20px; }
+      .detail-col:last-child { border-right:none; padding-right:0; }
+      .detail-row-item { display:flex; margin-bottom:10px; font-size:13.5px; }
+      .detail-row-item .lbl { width:90px; color:#64748b; font-weight:600; flex-shrink:0; }
+      .detail-row-item .val { color:#1e293b; font-weight:700; }
+      .detail-list { padding-left:18px; margin:0; color:#1e293b; font-weight:600; line-height:1.5; font-size:13px; }
+      .detail-list li { margin-bottom:4px; }
+    </style>
+  `;
+
+  return `
+    ${stylesHtml}
+    <div class="mypage-container">
+      <!-- Breadcrumb -->
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #64748b; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.3px;">
+        <span style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}'">Home</span>
+        <span style="color:#cbd5e1; font-weight:normal;">&gt;</span>
+        <span style="color: #0f172a; font-weight: 800;">마이페이지</span>
+      </div>
+
+      <!-- Title area -->
+      <div style="margin-bottom: 32px; text-align: left;">
+        <h1 style="font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">마이페이지</h1>
+        <p style="font-size: 15px; color: #64748b; margin: 0;">계정 관리 및 서비스 신청 내역을 확인할 수 있습니다.</p>
+      </div>
+
+      <!-- Segmented main tabs -->
+      <div class="mypage-main-tab-bar" style="display:flex; border-bottom:2px solid #cbd5e1; margin-bottom:32px; gap: 8px;">
+        <button onclick="window.switchMyPageMainTab('profile')" class="mypage-main-tab-btn ${window.mypageMainTab === 'profile' ? 'active' : ''}" style="padding:14px 28px; font-size:16px; font-weight:800; border:none; background:transparent; border-bottom:3px solid ${window.mypageMainTab === 'profile' ? 'var(--theme-color)' : 'transparent'}; color:${window.mypageMainTab === 'profile' ? 'var(--theme-color)' : '#64748b'}; cursor:pointer; transition:all 0.15s; position:relative; margin-bottom:-2px;">
+          개인정보
+        </button>
+        <button onclick="window.switchMyPageMainTab('history')" class="mypage-main-tab-btn ${window.mypageMainTab === 'history' ? 'active' : ''}" style="padding:14px 28px; font-size:16px; font-weight:800; border:none; background:transparent; border-bottom:3px solid ${window.mypageMainTab === 'history' ? 'var(--theme-color)' : 'transparent'}; color:${window.mypageMainTab === 'history' ? 'var(--theme-color)' : '#64748b'}; cursor:pointer; transition:all 0.15s; position:relative; margin-bottom:-2px;">
+          신청이력
+        </button>
+      </div>
+
+      <!-- Tab contents -->
+      <div>
+        ${tabContentHtml}
+      </div>
+    </div>
+  `;
+};
+
+window.switchMyPageMainTab = function(tab) {
+  window.mypageMainTab = tab;
+  window.mypageHistoryPage = 1;
+  render();
+};
+
+window.switchMyPageHistoryTab = function(tab) {
+  window.mypageHistoryTab = tab;
+  window.mypageHistoryPage = 1;
+  render();
+};
+
+window.changeHistoryPage = function(page) {
+  window.mypageHistoryPage = page;
+  render();
+};
+
+window.toggleMyPageHistoryDetail = function(id) {
+  window.mypageExpandedItems = window.mypageExpandedItems || {};
+  window.mypageExpandedItems[id] = !window.mypageExpandedItems[id];
+  render();
+};
+
+window.saveMyPageGeneralInfo = function() {
+  const emailInput = document.getElementById('mypage-email');
+  const addressInput = document.getElementById('mypage-address');
+  const user = state.currentUser;
+  
+  if (emailInput) {
+    const emailValue = emailInput.value.trim();
+    if (emailValue && !emailValue.includes('@')) {
+      alert('올바른 이메일 형식을 입력해 주세요.');
+      return;
+    }
+    user.email = emailValue;
+    localStorage.setItem('hc_user_email_' + user.id, emailValue);
+  }
+  
+  if (addressInput) {
+    const addressValue = addressInput.value.trim();
+    user.address = addressValue;
+    localStorage.setItem('hc_user_address_' + user.id, addressValue);
+  }
+  
+  alert('개인정보가 저장되었습니다.');
+  render();
+};
+
+window.resendVerificationEmail = function() {
+  const emailInput = document.getElementById('mypage-email');
+  const emailValue = emailInput ? emailInput.value.trim() : '';
+  if (!emailValue) {
+    alert('이메일 주소를 먼저 입력해 주세요.');
+    return;
+  }
+  alert(emailValue + ' 주소로 인증 메일이 재발송되었습니다.');
+};
+
+window.saveMyPageAccountInfo = function() {
+  const newId = document.getElementById('mypage-new-id').value;
+  const newPw = document.getElementById('mypage-new-pw').value;
+  const newPwConfirm = document.getElementById('mypage-new-pw-confirm').value;
+  
+  if (!newId || newId.length < 4) {
+    alert('아이디는 4자 이상 입력해 주세요.');
+    return;
+  }
+  if (!newPw || newPw.length < 8) {
+    alert('비밀번호는 8자 이상 입력해 주세요.');
+    return;
+  }
+  if (newPw !== newPwConfirm) {
+    alert('비밀번호 확인이 일치하지 않습니다.');
+    return;
+  }
+  
+  const user = state.currentUser;
+  user.portalId = newId;
+  localStorage.setItem('hc_portal_id_' + user.id, newId);
+  localStorage.setItem('hc_portal_pw_' + user.id, newPw);
+  
+  alert('성공적으로 계정이 생성되었습니다.');
+  render();
+};
+
+window.openChangePasswordModal = function() {
+  const modalId = 'mypage-password-modal';
+  if (document.getElementById(modalId)) return;
+  
+  const modalHtml = `
+    <div id="${modalId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+      <div style="background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: left; animation: modalFadeIn 0.3s ease-out;">
+        <h3 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0f172a; display:flex; align-items:center; gap:8px;">
+          <svg width="22" height="22" fill="none" stroke="var(--theme-color)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          비밀번호 변경
+        </h3>
+        
+        <form onsubmit="window.submitChangePortalPassword(event)" style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label class="mypage-label" style="font-size:13px;">현재 비밀번호</label>
+            <input type="password" id="modal-curr-pw" required placeholder="현재 비밀번호 입력" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label class="mypage-label" style="font-size:13px;">새 비밀번호</label>
+            <input type="password" id="modal-new-pw" required placeholder="영문, 숫자, 특수문자 포함 8자 이상" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label class="mypage-label" style="font-size:13px;">새 비밀번호 확인</label>
+            <input type="password" id="modal-new-pw-confirm" required placeholder="새 비밀번호 재입력" style="padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; font-family:inherit;">
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <button type="button" onclick="window.closeChangePasswordModal()" style="flex: 1; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-size: 15px; font-weight: 700; cursor: pointer;">취소</button>
+            <button type="submit" style="flex: 1; padding: 14px; border-radius: 8px; border: none; background: var(--theme-color); color: white; font-size: 15px; font-weight: 700; cursor: pointer;">변경하기</button>
+          </div>
+        </form>
+      </div>
+      <style>@keyframes modalFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }</style>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.closeChangePasswordModal = function() {
+  const modal = document.getElementById('mypage-password-modal');
+  if (modal) modal.remove();
+};
+
+window.submitChangePortalPassword = function(event) {
+  event.preventDefault();
+  const currPw = document.getElementById('modal-curr-pw').value;
+  const newPw = document.getElementById('modal-new-pw').value;
+  const newPwConfirm = document.getElementById('modal-new-pw-confirm').value;
+  
+  if (newPw.length < 8) {
+    alert('새 비밀번호는 8자 이상이어야 합니다.');
+    return;
+  }
+  if (newPw !== newPwConfirm) {
+    alert('새 비밀번호가 일치하지 않습니다.');
+    return;
+  }
+  
+  const user = state.currentUser;
+  localStorage.setItem('hc_portal_pw_' + user.id, newPw);
+  
+  alert('비밀번호가 성공적으로 변경되었습니다.');
+  window.closeChangePasswordModal();
+  render();
+};
+
+window.cancelMyPageSubscription = function(type, id) {
+  if (confirm('구독을 해지하시겠습니까?')) {
+    if (type === 'local') {
+      let localSubs = JSON.parse(localStorage.getItem('hc_subscribed_contents') || '[]');
+      localSubs = localSubs.filter(subId => subId !== id);
+      localStorage.setItem('hc_subscribed_contents', JSON.stringify(localSubs));
+    } else {
+      let adminSubs = JSON.parse(localStorage.getItem('sub_subscribers') || '[]');
+      const idx = adminSubs.findIndex(s => s.id === id);
+      if (idx !== -1) {
+        adminSubs[idx].status = '구독취소';
+        localStorage.setItem('sub_subscribers', JSON.stringify(adminSubs));
+      }
+    }
+    alert('구독이 해지되었습니다.');
+    render();
+  }
+};
+
+window.requestCancelCheckupFromMyPage = function(id) {
+  if (confirm('예약을 취소하시겠습니까?\\n(취소신청이 전달되며 최종 확정 시 취소 완료 처리됩니다.)')) {
+    let hist = JSON.parse(localStorage.getItem('hc_checkup_history') || '[]');
+    const idx = hist.findIndex(h => h.id === id);
+    if (idx !== -1) {
+      hist[idx].status = '취소요청';
+      localStorage.setItem('hc_checkup_history', JSON.stringify(hist));
+      alert('예약 취소 신청이 완료되었습니다.');
+      render();
+    }
+  }
+};
+
 render();
+
 
 

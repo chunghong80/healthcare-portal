@@ -10,33 +10,52 @@ let activeEditPost = null; // null if creating a new post
 let currentEditorCategoryId = '';
 let canvasEditorModes = { content: 'editor' };
 
-// Initialize page
+// Initialize page & View Switching
+let currentAdminView = 'categories';
+let currentSelectedCategoryId = 'all';
+
 document.addEventListener("DOMContentLoaded", () => {
   loadData();
-  switchMainTab('categories');
+  switchView('categories');
 });
 
-// Switch Main tabs
-window.switchMainTab = function(tabId) {
-  activeTabId = tabId;
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabId));
-  });
-  document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.toggle('active', content.id === `tab-${tabId}`);
-  });
-
-  if (tabId === 'categories') {
-    renderCategoriesTab();
-  } else if (tabId === 'articles') {
-    renderArticlesTab();
-  } else if (tabId === 'statistics') {
-    renderStatisticsTab();
+window.switchView = function(viewName, params = {}) {
+  currentAdminView = viewName;
+  
+  if (viewName === 'categories') {
+    filterType = 'health';
+    renderCategoryManagement();
+  } else if (viewName === 'posts') {
+    currentSelectedCategoryId = params.catId || 'all';
+    if (currentSelectedCategoryId === 'psyColumn') {
+      filterType = 'psyColumn';
+    } else {
+      filterType = 'health';
+    }
+    renderPostsWorkspace();
+  } else if (viewName === 'editor') {
+    openArticleEditor(params.catId, params.postId);
   }
 };
 
 // --- Icon and Details Helpers ---
 function getHealthIcon(iconType) {
+  if (iconType && iconType.startsWith('data:image/')) {
+    return `
+      <div style="
+        width: 36px; 
+        height: 36px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        border-radius: 50%;
+        margin: 0 auto;
+        overflow: hidden;
+      ">
+        <img src="${iconType}" style="width: 100%; height: 100%; object-fit: contain;" alt="icon" />
+      </div>
+    `;
+  }
   if (iconType && iconType.length <= 4) {
     return `
       <div style="
@@ -176,26 +195,38 @@ function loadData() {
     console.error('Error parsing categories:', e);
   }
 
-  // Detect if categories are old (e.g. fewer than 9 categories, or using old Korean icons)
+  // Detect if categories are old (e.g. fewer than 11 categories, or missing 'psyColumn' type)
   const isOldCategories = !loadedCategories || 
-    loadedCategories.length < 9 || 
-    loadedCategories.some(cat => cat.icon === '여성건강' || cat.icon === '남성건강' || cat.icon === '노인건강');
+    !Array.isArray(loadedCategories) ||
+    loadedCategories.length < 11 || 
+    loadedCategories.some(cat => !cat || cat.icon === '여성건강' || cat.icon === '남성건강' || cat.icon === '노인건강' || typeof cat.status === 'undefined') ||
+    !loadedCategories.some(cat => cat && cat.type === 'psyColumn');
 
   if (isOldCategories) {
     healthCategories = [
-      { id: 'women', label: '여성건강', icon: 'women_health' },
-      { id: 'men', label: '남성건강', icon: 'men_health' },
-      { id: 'senior', label: '노인건강', icon: 'senior_health' },
-      { id: 'child', label: '어린이건강', icon: 'child_health' },
-      { id: 'pregnancy', label: '임신과 출산', icon: 'pregnancy' },
-      { id: 'obesity', label: '비만', icon: 'obesity' },
-      { id: 'alcohol', label: '술과 담배', icon: 'alcohol' },
-      { id: 'cancer', label: '암정보', icon: 'cancer' },
-      { id: 'dementia', label: '치매예방', icon: 'dementia' }
+      { id: 'women', label: '여성건강', icon: 'women_health', sortOrder: 1, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'men', label: '남성건강', icon: 'men_health', sortOrder: 2, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'senior', label: '노인건강', icon: 'senior_health', sortOrder: 3, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'child', label: '어린이건강', icon: 'child_health', sortOrder: 4, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'pregnancy', label: '임신과 출산', icon: 'pregnancy', sortOrder: 5, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'obesity', label: '비만', icon: 'obesity', sortOrder: 6, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'alcohol', label: '술과 담배', icon: 'alcohol', sortOrder: 7, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'cancer', label: '암정보', icon: 'cancer', sortOrder: 8, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'dementia', label: '치매예방', icon: 'dementia', sortOrder: 9, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'psyColumn', label: '심리칼럼', icon: 'senior_health', sortOrder: 10, status: '사용함', type: 'psyColumn', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' },
+      { id: 'example', label: '(추가 카테고리 예시)', icon: '➕', sortOrder: 11, status: '사용함', type: 'health', regDate: '2024-05-20 10:30', modDate: '2024-05-20 10:30' }
     ];
     localStorage.setItem('hc_health_categories', JSON.stringify(healthCategories));
   } else {
-    healthCategories = loadedCategories;
+    healthCategories = loadedCategories.filter(cat => cat && typeof cat === 'object');
+    // Backfill any missing properties for existing categories
+    healthCategories.forEach((cat, index) => {
+      if (typeof cat.sortOrder === 'undefined') cat.sortOrder = index + 1;
+      if (typeof cat.status === 'undefined') cat.status = '사용함';
+      if (typeof cat.type === 'undefined') cat.type = 'health';
+      if (typeof cat.regDate === 'undefined') cat.regDate = '2024-05-20 10:30';
+      if (typeof cat.modDate === 'undefined') cat.modDate = '2024-05-20 10:30';
+    });
   }
 
   // 2. Posts
@@ -578,11 +609,41 @@ function loadData() {
           modUser: 'Admin',
           details: getFallbackDetailHTML('올리브유, 견과류, 신선한 야채와 생선 위주의 지중해식 식단은 뇌 혈관 건강을 지키고 치매 위험을 30% 이상 낮춰준다는 연구 결과가 있습니다.')
         }
+      ],
+      psyColumn: [
+        { 
+          id: 'psy1', 
+          title: '스트레스와 마음 챙김, 나를 지키는 습관', 
+          summary: '현대인에게 스트레스는 피할 수 없는 동반자입니다. 가벼운 호흡법과 명상을 통해 마음을 다스리고 일상의 활력을 되찾는 방법을 알아봅니다.', 
+          date: '2026-06-05', 
+          views: 945, 
+          regUser: 'Admin', 
+          modUser: 'Admin',
+          details: `<p>스트레스는 신체적, 정신적 위협에 대응하기 위한 몸의 자연스러운 반응입니다. 하지만 만성화된 스트레스는 면역력을 떨어뜨리고 우울증 등 다양한 질환을 유발할 수 있습니다.</p>
+                    <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">일상 속 마음 챙김(Mindfulness) 실천법</h5>
+                    <p>하루 5분, 온전히 자신의 호흡에 집중해 보세요. 잡생각이 떠오르면 이를 판단하지 않고 그대로 흘려보냅니다. 현재 이 순간에 머무는 훈련을 통해 뇌의 피로를 덜어줄 수 있습니다.</p>`
+        },
+        { 
+          id: 'psy2', 
+          title: '우울감과 무기력감에서 벗어나는 첫걸음', 
+          summary: '감정의 감기라고 불리는 우울증은 조기 발견과 대처가 중요합니다. 작은 활동부터 시작하여 성취감을 느끼고 신체 활동을 늘려 나가는 구체적인 실행 계획을 제시합니다.', 
+          date: '2026-06-02', 
+          views: 812, 
+          regUser: 'Admin', 
+          modUser: 'Admin',
+          details: `<p>우울증은 의지가 약해서 생기는 병이 아닙니다. 뇌의 신경전달물질 불균형으로 발생하는 의학적 상태이므로, 전문가의 도움과 생활 습관 교정이 병행되어야 합니다.</p>
+                    <h5 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 20px 0 10px 0;">가벼운 행동 활성화</h5>
+                    <p>우울할 때는 누워만 있고 싶어지지만, 이는 우울감을 악화시킵니다. 가벼운 동네 산책, 하루 10분 햇볕 쬐기 등 아주 작은 신체적 움직임부터 시작해 보세요.</p>`
+        }
       ]
     };
     localStorage.setItem('hc_health_posts_by_cat', JSON.stringify(healthPosts));
+  } else {
+    healthPosts = loadedPosts;
+    if (!healthPosts.psyColumn) {
+      healthPosts.psyColumn = [];
+    }
   }
-}
 
   // 3. Click Logs
   const savedLogs = localStorage.getItem('hc_health_clicks_log');
@@ -654,163 +715,446 @@ function saveData() {
   localStorage.setItem('hc_health_posts_by_cat', JSON.stringify(healthPosts));
 }
 
-// --- Tab 1: Category Management ---
-function renderCategoriesTab() {
-  const container = document.getElementById('tab-categories');
+// --- Category Management State & Functionality ---
+let filterType = 'health';
+let filterStatus = 'all';
+let searchQuery = '';
+let currentPage = 1;
+let pageSize = 10;
+
+function getFormattedNow() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+window.renderCategoryManagement = function() {
+  const container = document.getElementById('category-main-workspace');
   if (!container) return;
 
+  const filtered = healthCategories.filter(cat => {
+    const catType = cat.type || 'health';
+    if (filterType !== catType) return false;
+    if (filterStatus !== 'all' && cat.status !== filterStatus) return false;
+    if (searchQuery && !cat.label.includes(searchQuery)) return false;
+    return true;
+  }).sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
+
+  const totalCount = filtered.length;
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginated = filtered.slice(startIndex, startIndex + pageSize);
+
   let rowsHtml = '';
-  healthCategories.forEach((cat, index) => {
-    const postCount = (healthPosts[cat.id] || []).length;
+  paginated.forEach((cat, index) => {
+    const displayIndex = startIndex + index + 1;
     rowsHtml += `
       <tr>
-        <td style="font-weight:600;">${index + 1}</td>
-        <td style="text-align: center; width: 80px; vertical-align: middle;">${getHealthIcon(cat.icon)}</td>
-        <td style="font-weight:700; color:var(--primary-color);">${cat.id}</td>
-        <td style="font-weight:700;">${cat.label}</td>
-        <td><span class="badge-premium badge-primary">${postCount} 개</span></td>
-        <td>
-          <button class="btn btn-sm" onclick="editCategoryForm('${cat.id}')">수정</button>
-          <button class="btn btn-sm" style="color:#ef4444;" onclick="deleteCategory('${cat.id}')">삭제</button>
+        <td style="text-align: center; font-weight: 600;">${displayIndex}</td>
+        <td style="text-align: center; width: 80px; vertical-align: middle;">
+          ${getHealthIcon(cat.icon)}
+        </td>
+        <td style="font-weight: 700; color: #2563eb; cursor: pointer; text-decoration: underline;" onclick="switchView('posts', { catId: '${cat.id}' })">${cat.label}</td>
+        <td style="text-align: center;">
+          <span class="badge-premium ${cat.type === 'psyColumn' ? 'badge-primary' : 'badge-success'}">
+            ${cat.type === 'psyColumn' ? '심리칼럼' : '건강정보'}
+          </span>
+        </td>
+        <td style="text-align: center; font-weight: 600; color: #475569;">${cat.sortOrder}</td>
+        <td style="text-align: center;">
+          <span class="badge-premium ${cat.status === '사용안함' ? 'badge-gray' : 'badge-success'}">
+            ${cat.status || '사용함'}
+          </span>
+        </td>
+        <td style="text-align: center; color: #64748b; font-size: 13px;">${cat.regDate || '2024-05-20 10:30'}</td>
+        <td style="text-align: center; color: #64748b; font-size: 13px;">${cat.modDate || '2024-05-20 10:30'}</td>
+        <td style="text-align: center;">
+          <button class="btn btn-sm" style="background: white; border: 1px solid #cbd5e1; color: #334155; margin-right: 4px; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500;" onclick="openCategoryModal('${cat.id}')">수정</button>
+          <button class="btn btn-sm" style="background: white; border: 1px solid #fca5a5; color: #ef4444; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500;" onclick="deleteCategory('${cat.id}')">삭제</button>
         </td>
       </tr>
     `;
   });
 
+  let paginationHtml = '';
+  paginationHtml += `
+    <button class="btn btn-sm" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''} style="min-width:32px; padding:6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; font-weight:600; color:#64748b;"><<</button>
+    <button class="btn btn-sm" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="min-width:32px; padding:6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;"><</button>
+  `;
+
+  for (let i = 1; i <= totalPages; i++) {
+    const isCurrent = i === currentPage;
+    paginationHtml += `
+      <button onclick="changePage(${i})" style="
+        min-width: 32px;
+        height: 32px;
+        margin: 0 2px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        border: 1px solid ${isCurrent ? 'var(--primary-color)' : '#cbd5e1'};
+        background: ${isCurrent ? 'var(--primary-color)' : 'white'};
+        color: ${isCurrent ? 'white' : '#475569'};
+        transition: all 0.2s;
+      ">${i}</button>
+    `;
+  }
+
+  paginationHtml += `
+    <button class="btn btn-sm" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="min-width:32px; padding:6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;">></button>
+    <button class="btn btn-sm" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} style="min-width:32px; padding:6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;">>></button>
+  `;
+
+  const addButtonText = filterType === 'psyColumn' ? '+ 게시글 등록' : '+ 추가 등록';
+  const addOnClick = filterType === 'psyColumn' ? "switchView('editor', { catId: 'psyColumn' })" : "openCategoryModal()";
+
   container.innerHTML = `
-    <div class="category-mgmt-layout">
-      <!-- Left side: Category List -->
-      <div class="config-card">
-        <div class="card-header">
-          <h2 class="card-title">카테고리 목록</h2>
-          <span style="font-size: 13px; color: #64748b;">* 카테고리를 삭제하면 해당 카테고리 내의 모든 건강정보글이 삭제될 수 있습니다.</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 class="page-title" style="margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #0f172a;">건강정보 카테고리 관리</h1>
+        <p class="page-subtitle" style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">건강정보 분야별 및 심리칼럼 카테고리를 관리할 수 있습니다.</p>
+      </div>
+      <button class="btn btn-primary" onclick="${addOnClick}" style="display: flex; align-items: center; gap: 6px; padding: 10px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; background: #2563eb; color: white; border: none; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+        ${addButtonText}
+      </button>
+    </div>
+
+    <div class="tabs-nav" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+      <button onclick="onFilterTypeChange('health')" class="tab-btn ${filterType === 'health' ? 'active' : ''}">분야별 건강정보</button>
+      <button onclick="onFilterTypeChange('psyColumn')" class="tab-btn ${filterType === 'psyColumn' ? 'active' : ''}">심리칼럼</button>
+    </div>
+
+    <div class="search-panel" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 24px; flex: 1; min-width: 300px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap;">사용 상태</span>
+          <select id="filter-status-select" onchange="onFilterStatusChange(this.value)" style="padding: 8px 36px 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; background: white; min-width: 120px;">
+            <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>전체</option>
+            <option value="사용함" ${filterStatus === '사용함' ? 'selected' : ''}>사용함</option>
+            <option value="사용안함" ${filterStatus === '사용안함' ? 'selected' : ''}>사용안함</option>
+          </select>
         </div>
-        <div class="card-body" style="padding: 0; overflow-x: auto;">
-          <table class="premium-table">
-            <thead>
-              <tr>
-                <th width="60">번호</th>
-                <th width="80" style="text-align: center;">아이콘</th>
-                <th>카테고리 ID (영문)</th>
-                <th>카테고리명 (한글)</th>
-                <th>게시글 수</th>
-                <th width="140">관리</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml ? rowsHtml : '<tr><td colspan="6" style="text-align:center; padding:32px; color:#64748b;">등록된 카테고리가 없습니다.</td></tr>'}
-            </tbody>
-          </table>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; max-width: 400px; position: relative;">
+          <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap;">카테고리명 검색</span>
+          <div style="position: relative; flex: 1;">
+            <input type="text" id="filter-search-input" onkeydown="if(event.key === 'Enter') onSearch()" placeholder="카테고리명을 입력하세요." value="${searchQuery}" style="width: 100%; padding: 8px 40px 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#2563eb'">
+            <span onclick="onSearch()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 16px;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'">🔍</span>
+          </div>
         </div>
       </div>
 
-      <!-- Right side: Add/Edit Form -->
-      <div class="config-card" id="category-form-card">
-        <div class="card-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <h2 class="card-title" id="cat-form-title">➕ 신규 카테고리 등록</h2>
-        </div>
-        <div class="card-body" style="padding: 24px;">
-          <form id="category-form" onsubmit="saveCategory(event)">
-            <input type="hidden" id="edit-cat-mode" value="create">
-            <input type="hidden" id="original-cat-id" value="">
+      <button class="btn btn-secondary" onclick="resetFilters()" style="padding: 8px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8';" onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1';">
+        초기화
+      </button>
+    </div>
 
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label class="form-label" style="font-weight: 700; margin-bottom: 6px;">카테고리 ID (영문 소문자) <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="cat-id-input" class="form-input" placeholder="예: women, diet, sleep" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
-            </div>
+    <div class="config-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); overflow: hidden; margin-bottom: 20px;">
+      <div class="card-body" style="padding: 0; overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+          <thead>
+            <tr>
+              <th width="60" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">No.</th>
+              <th width="80" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">아이콘</th>
+              <th style="background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">카테고리명</th>
+              <th width="120" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">구분</th>
+              <th width="100" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">정렬순서</th>
+              <th width="100" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">사용여부</th>
+              <th width="160" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">등록일</th>
+              <th width="160" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">수정일</th>
+              <th width="140" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml ? rowsHtml : '<tr><td colspan="9" style="text-align:center; padding:48px; color:#64748b;">등록된 카테고리가 없습니다.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label class="form-label" style="font-weight: 700; margin-bottom: 6px;">카테고리명 (한글) <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="cat-label-input" class="form-input" placeholder="예: 식습관 개선, 여성건강" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
-            </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 14px; font-weight: 600; color: #475569;">전체 <strong style="color:var(--primary-color);">${totalCount}</strong>건</span>
+        <select onchange="onPageSizeChange(this.value)" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #475569; background: white; outline: none; cursor:pointer;">
+          <option value="5" ${pageSize === 5 ? 'selected' : ''}>5개씩 보기</option>
+          <option value="10" ${pageSize === 10 ? 'selected' : ''}>10개씩 보기</option>
+          <option value="20" ${pageSize === 20 ? 'selected' : ''}>20개씩 보기</option>
+          <option value="50" ${pageSize === 50 ? 'selected' : ''}>50개씩 보기</option>
+        </select>
+      </div>
 
-            <div class="form-group" style="margin-bottom: 24px;">
-              <label class="form-label" style="font-weight: 700; margin-bottom: 6px;">아이콘 (이모지 또는 한글레이블) <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="cat-icon-input" class="form-input" placeholder="예: 🍏, 🧘‍♀️, 혹은 아이콘 명칭" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
-              <span style="font-size: 11px; color:#94a3b8; margin-top: 4px; display:block;">고객용 포털에서 탭으로 렌더링될 때 표시되는 아이콘입니다.</span>
-            </div>
-
-            <div style="display:flex; justify-content:flex-end; gap:8px;">
-              <button type="button" class="btn btn-secondary" onclick="resetCategoryForm()" style="padding: 8px 16px; border-radius: 6px;">초기화</button>
-              <button type="submit" class="btn btn-primary" style="padding: 8px 24px; border-radius: 6px; background:var(--primary-color); border:none; color:white; font-weight:700;">카테고리 저장</button>
-            </div>
-          </form>
-        </div>
+      <div style="display: flex; align-items: center; gap: 2px;">
+        ${paginationHtml}
       </div>
     </div>
   `;
-}
-
-window.resetCategoryForm = function() {
-  const title = document.getElementById('cat-form-title');
-  const mode = document.getElementById('edit-cat-mode');
-  const origId = document.getElementById('original-cat-id');
-  const catIdInput = document.getElementById('cat-id-input');
-  const catLabelInput = document.getElementById('cat-label-input');
-  const catIconInput = document.getElementById('cat-icon-input');
-
-  if (title) title.innerText = '➕ 신규 카테고리 등록';
-  if (mode) mode.value = 'create';
-  if (origId) origId.value = '';
-  if (catIdInput) { catIdInput.value = ''; catIdInput.disabled = false; }
-  if (catLabelInput) catLabelInput.value = '';
-  if (catIconInput) catIconInput.value = '';
 };
 
-window.editCategoryForm = function(catId) {
-  const cat = healthCategories.find(c => c.id === catId);
-  if (!cat) return;
-
-  const title = document.getElementById('cat-form-title');
-  const mode = document.getElementById('edit-cat-mode');
-  const origId = document.getElementById('original-cat-id');
-  const catIdInput = document.getElementById('cat-id-input');
-  const catLabelInput = document.getElementById('cat-label-input');
-  const catIconInput = document.getElementById('cat-icon-input');
-
-  if (title) title.innerText = '✏️ 카테고리 수정';
-  if (mode) mode.value = 'edit';
-  if (origId) origId.value = catId;
-  if (catIdInput) { catIdInput.value = cat.id; catIdInput.disabled = true; } // ID modification locked
-  if (catLabelInput) catLabelInput.value = cat.label;
-  if (catIconInput) catIconInput.value = cat.icon || '';
+window.onFilterTypeChange = function(type) {
+  filterType = type;
+  currentPage = 1;
+  if (type === 'health') {
+    switchView('categories');
+  } else if (type === 'psyColumn') {
+    switchView('posts', { catId: 'psyColumn' });
+  }
 };
 
-window.saveCategory = function(event) {
-  event.preventDefault();
+window.onFilterStatusChange = function(status) {
+  filterStatus = status;
+  currentPage = 1;
+  renderCategoryManagement();
+};
 
-  const mode = document.getElementById('edit-cat-mode').value;
-  const origId = document.getElementById('original-cat-id').value;
-  const catId = document.getElementById('cat-id-input').value.trim().toLowerCase();
-  const catLabel = document.getElementById('cat-label-input').value.trim();
-  const catIcon = document.getElementById('cat-icon-input').value.trim();
+window.onSearch = function() {
+  const input = document.getElementById('filter-search-input');
+  if (input) {
+    searchQuery = input.value.trim();
+  }
+  currentPage = 1;
+  renderCategoryManagement();
+};
 
-  // Validate ID format (letters/numbers only)
-  if (!/^[a-z0-9_-]+$/.test(catId)) {
-    alert("카테고리 ID는 영문 소문자, 숫자, 하이픈(-) 및 언더바(_)만 사용 가능합니다.");
+window.resetFilters = function() {
+  filterStatus = 'all';
+  searchQuery = '';
+  currentPage = 1;
+  renderCategoryManagement();
+};
+
+window.changePage = function(pageNum) {
+  currentPage = pageNum;
+  renderCategoryManagement();
+};
+
+window.onPageSizeChange = function(size) {
+  pageSize = Number(size);
+  currentPage = 1;
+  renderCategoryManagement();
+};
+
+window.updateCharCounter = function(val) {
+  const counter = document.getElementById('char-counter');
+  if (counter) {
+    counter.innerText = `${val.length} / 20`;
+  }
+};
+
+window.updateToggleLabel = function(checked) {
+  const labelText = document.getElementById('modal-toggle-label');
+  if (labelText) {
+    if (checked) {
+      labelText.innerHTML = '사용함 <span style="font-size: 12px; color: #64748b; font-weight: 400; margin-left: 2px;">(사용하지 않으면 목록에 노출되지 않습니다.)</span>';
+    } else {
+      labelText.innerHTML = '사용안함 <span style="font-size: 12px; color: #64748b; font-weight: 400; margin-left: 2px;">(사용하지 않으면 목록에 노출되지 않습니다.)</span>';
+    }
+  }
+};
+
+window.triggerFileInput = function() {
+  const fileInput = document.getElementById('modal-cat-file-input');
+  if (fileInput) fileInput.click();
+};
+
+window.handleFileSelect = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate size
+  if (file.size > 2 * 1024 * 1024) {
+    alert("파일 크기는 2MB 이하여야 합니다.");
+    event.target.value = '';
     return;
   }
 
+  // Validate format
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    alert("PNG, JPG, GIF 파일 형식만 등록 가능합니다.");
+    event.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+    document.getElementById('modal-cat-icon-data').value = base64Data;
+    
+    // Show preview
+    const previewImg = document.getElementById('upload-preview');
+    const placeholder = document.getElementById('upload-placeholder');
+    
+    if (previewImg && placeholder) {
+      previewImg.src = base64Data;
+      previewImg.style.display = 'block';
+      placeholder.style.display = 'none';
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.openCategoryModal = function(catId = '') {
+  const modal = document.getElementById('category-modal');
+  const title = document.getElementById('modal-title');
+  const mode = document.getElementById('modal-mode');
+  const origId = document.getElementById('modal-original-id');
+  const catLabelInput = document.getElementById('modal-cat-label');
+  const catSortInput = document.getElementById('modal-cat-sort');
+  const catTypeSelect = document.getElementById('modal-cat-type');
+  const statusToggle = document.getElementById('modal-cat-status-toggle');
+  const iconDataInput = document.getElementById('modal-cat-icon-data');
+  const fileInput = document.getElementById('modal-cat-file-input');
+  const previewImg = document.getElementById('upload-preview');
+  const placeholder = document.getElementById('upload-placeholder');
+  const submitBtn = document.getElementById('modal-submit-btn');
+
+  if (!modal) return;
+
+  // Reset file input
+  if (fileInput) fileInput.value = '';
+
+  if (catId) {
+    const cat = healthCategories.find(c => c.id === catId);
+    if (!cat) return;
+
+    if (title) title.innerText = '카테고리 수정';
+    if (mode) mode.value = 'edit';
+    if (origId) origId.value = catId;
+    if (catLabelInput) {
+      catLabelInput.value = cat.label;
+      updateCharCounter(cat.label);
+    }
+    if (catSortInput) catSortInput.value = cat.sortOrder || '';
+    if (catTypeSelect) catTypeSelect.value = cat.type || 'health';
+    
+    const isUsed = (cat.status !== '사용안함');
+    if (statusToggle) {
+      statusToggle.checked = isUsed;
+      updateToggleLabel(isUsed);
+    }
+
+    if (iconDataInput) iconDataInput.value = (cat.icon && cat.icon.startsWith('data:image/')) ? cat.icon : '';
+    
+    // Set preview
+    if (cat.icon && cat.icon.startsWith('data:image/')) {
+      if (previewImg && placeholder) {
+        previewImg.src = cat.icon;
+        previewImg.style.display = 'block';
+        placeholder.style.display = 'none';
+      }
+    } else if (cat.icon) {
+      if (placeholder && previewImg) {
+        placeholder.innerHTML = getHealthIcon(cat.icon) + `<span style="font-size: 11px; font-weight: 500; color: #64748b; margin-top: 4px;">이미지 변경</span>`;
+        placeholder.style.display = 'flex';
+        previewImg.style.display = 'none';
+      }
+    } else {
+      if (placeholder && previewImg) {
+        placeholder.innerHTML = `
+          <svg style="width:24px; height:24px; color:#94a3b8;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+          <span style="font-size: 11px; font-weight: 500; color: #64748b;">이미지 선택</span>
+        `;
+        placeholder.style.display = 'flex';
+        previewImg.style.display = 'none';
+      }
+    }
+
+    if (submitBtn) submitBtn.innerText = '저장';
+  } else {
+    if (title) title.innerText = '카테고리 추가 등록';
+    if (mode) mode.value = 'create';
+    if (origId) origId.value = '';
+    if (catLabelInput) {
+      catLabelInput.value = '';
+      updateCharCounter('');
+    }
+    
+    const maxSort = healthCategories.reduce((max, c) => Math.max(max, Number(c.sortOrder) || 0), 0);
+    if (catSortInput) catSortInput.value = maxSort + 1;
+    if (catTypeSelect) catTypeSelect.value = 'health';
+    
+    if (statusToggle) {
+      statusToggle.checked = true;
+      updateToggleLabel(true);
+    }
+    if (iconDataInput) iconDataInput.value = '';
+
+    if (placeholder && previewImg) {
+      placeholder.innerHTML = `
+        <svg style="width:24px; height:24px; color:#94a3b8;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+        <span style="font-size: 11px; font-weight: 500; color: #64748b;">이미지 선택</span>
+      `;
+      placeholder.style.display = 'flex';
+      previewImg.style.display = 'none';
+    }
+
+    if (submitBtn) submitBtn.innerText = '등록';
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.closeCategoryModal = function() {
+  const modal = document.getElementById('category-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.saveCategoryModal = function(event) {
+  event.preventDefault();
+
+  const mode = document.getElementById('modal-mode').value;
+  const origId = document.getElementById('modal-original-id').value;
+  const catLabel = document.getElementById('modal-cat-label').value.trim();
+  const catSort = Number(document.getElementById('modal-cat-sort').value) || 1;
+  const catType = document.getElementById('modal-cat-type').value;
+  const catStatus = document.getElementById('modal-cat-status-toggle').checked ? '사용함' : '사용안함';
+  const catIconData = document.getElementById('modal-cat-icon-data').value;
+
+  const formattedNow = getFormattedNow();
+
   if (mode === 'create') {
-    // Check duplication
-    if (healthCategories.some(c => c.id === catId)) {
-      alert("이미 존재하는 카테고리 ID입니다.");
+    if (!catIconData) {
+      alert("아이콘 이미지를 등록해주세요.");
       return;
     }
-    healthCategories.push({ id: catId, label: catLabel, icon: catIcon });
-    healthPosts[catId] = []; // Initialize empty array for posts
+    const catId = 'cat_' + Date.now();
+    const newCat = {
+      id: catId,
+      label: catLabel,
+      icon: catIconData,
+      sortOrder: catSort,
+      status: catStatus,
+      type: catType,
+      regDate: formattedNow,
+      modDate: formattedNow
+    };
+    healthCategories.push(newCat);
+    healthPosts[catId] = [];
   } else {
-    // Edit mode
     const cat = healthCategories.find(c => c.id === origId);
     if (cat) {
       cat.label = catLabel;
-      cat.icon = catIcon;
+      if (catIconData) {
+        cat.icon = catIconData;
+      }
+      cat.sortOrder = catSort;
+      cat.status = catStatus;
+      cat.type = catType;
+      cat.modDate = formattedNow;
     }
   }
 
   saveData();
-  resetCategoryForm();
-  renderCategoriesTab();
+  closeCategoryModal();
+  renderCategoryManagement();
   showToast("카테고리가 성공적으로 저장되었습니다.");
 };
 
@@ -827,7 +1171,7 @@ window.deleteCategory = function(catId) {
     healthCategories = healthCategories.filter(c => c.id !== catId);
     delete healthPosts[catId];
     saveData();
-    renderCategoriesTab();
+    renderCategoryManagement();
     showToast("카테고리가 삭제되었습니다.");
   }
 };
@@ -845,7 +1189,7 @@ function renderArticlesTab() {
           <span style="font-weight:700; font-size:14px; color:#475569;">카테고리 필터:</span>
           <select id="article-cat-select" class="form-input" style="width:200px; padding:6px 10px; font-size:13px; border-radius:6px; border:1px solid #cbd5e1;" onchange="filterArticlesByCategory(this.value)">
             <option value="all" ${activeCategoryFilter === 'all' ? 'selected' : ''}>전체 카테고리</option>
-            ${healthCategories.map(c => `<option value="${c.id}" ${activeCategoryFilter === c.id ? 'selected' : ''}>${c.label} (${c.id})</option>`).join('')}
+            ${healthCategories.map(c => `<option value="${c.id}" ${activeCategoryFilter === c.id ? 'selected' : ''}>${c.label} (${c.type === 'psyColumn' ? '심리칼럼' : '건강정보'})</option>`).join('')}
           </select>
         </div>
         <button class="btn btn-primary" onclick="openArticleEditor()" style="background:var(--primary-color); color:white; border:none; padding:8px 16px; font-weight:700; border-radius:6px; cursor:pointer;">
@@ -918,7 +1262,7 @@ function renderArticlesTable() {
     rowsHtml += `
       <tr>
         <td style="color:#64748b; font-family:monospace;">${post.id}</td>
-        <td><span class="badge-premium badge-primary">${catLabel}</span></td>
+        <td style="font-weight: 600; color: #475569;">${catLabel}</td>
         <td style="font-weight:700; cursor:pointer; color:#0f172a;" onclick="openArticleEditor('${post.catId}', '${post.id}')" title="제목을 눌러 편집하기">
           ${post.title}
         </td>
@@ -950,9 +1294,8 @@ window.deleteArticle = function(catId, postId) {
 
 // --- WYSIWYG visual editor engine ---
 window.openArticleEditor = function(catId = '', postId = '') {
-  document.getElementById('articles-list-view').style.display = 'none';
-  const editorView = document.getElementById('articles-editor-view');
-  editorView.style.display = 'block';
+  const editorView = document.getElementById('category-main-workspace');
+  if (!editorView) return;
 
   let post = null;
   if (postId && catId) {
@@ -963,12 +1306,11 @@ window.openArticleEditor = function(catId = '', postId = '') {
   activeEditPost = post;
   currentEditorCategoryId = catId || (healthCategories[0] ? healthCategories[0].id : '');
 
-  // If editing, use existing post content (HTML). If editing mock post without custom detail, extract default or empty.
+  // If editing, use existing post content (HTML).
   let initialHtml = '';
   if (post) {
     initialHtml = post.details || post.content || '';
     if (!initialHtml.includes('provided-service-fluid-frame') && !initialHtml.includes('provided-service-text-bg')) {
-      // Wrap simple content in fluid frame for editor compatibility
       initialHtml = `
         <div class="provided-service-fluid-frame" style="position:relative; width:100%; padding-bottom:35%; min-height:350px; background:#fff; overflow:hidden;">
           <div class="provided-service-text-bg" style="position:absolute; inset:0; padding:20px; line-height:1.6; font-size:14px; overflow-y:auto; z-index:1;">
@@ -1006,20 +1348,31 @@ window.openArticleEditor = function(catId = '', postId = '') {
     <div class="config-card" style="margin-bottom:24px;">
       <div class="card-body" style="padding:24px; display:flex; flex-direction:column; gap:16px;">
         <!-- Meta Row -->
-        <div style="display:grid; grid-template-columns:1fr 2fr 1.5fr; gap:16px;">
+        <div style="display:grid; grid-template-columns:1.5fr 2fr 1fr 1fr 1fr; gap:16px;">
           <div class="form-group">
             <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">카테고리 선택</label>
-            <select id="edit-post-cat" class="form-input" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; outline:none;" ${post ? 'disabled' : ''}>
-              ${healthCategories.map(c => `<option value="${c.id}" ${currentEditorCategoryId === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}
+            <select id="edit-post-cat" class="form-input" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; outline:none; background:white;" ${post ? 'disabled' : ''}>
+              ${healthCategories.map(c => `<option value="${c.id}" ${currentEditorCategoryId === c.id ? 'selected' : ''}>${c.label} [${c.type === 'psyColumn' ? '심리칼럼' : '건강정보'}]</option>`).join('')}
             </select>
           </div>
           <div class="form-group">
             <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">게시글 제목 <span style="color:#ef4444;">*</span></label>
-            <input type="text" id="edit-post-title" class="form-input" placeholder="제목을 기입하세요" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700;" value="${post ? post.title : ''}" required>
+            <input type="text" id="edit-post-title" class="form-input" placeholder="제목을 기입하세요" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; box-sizing:border-box;" value="${post ? post.title : ''}" required>
           </div>
           <div class="form-group">
-            <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">등록자/수정자 ID <span style="color:#ef4444;">*</span></label>
-            <input type="text" id="edit-post-author" class="form-input" placeholder="예: Admin" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px;" value="${post ? (post.modUser || 'Admin') : 'Admin'}" required>
+            <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">등록자 ID <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="edit-post-author" class="form-input" placeholder="예: Admin" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;" value="${post ? (post.modUser || 'Admin') : 'Admin'}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">게시 상태</label>
+            <select id="edit-post-status" class="form-input" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; background:white; outline:none;">
+              <option value="게시" ${post && post.status === '비게시' ? '' : 'selected'}>게시</option>
+              <option value="비게시" ${post && post.status === '비게시' ? 'selected' : ''}>비게시</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block;">첨부파일 개수</label>
+            <input type="number" id="edit-post-attachment-count" class="form-input" min="0" max="10" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;" value="${post && typeof post.attachmentCount !== 'undefined' ? post.attachmentCount : 0}">
           </div>
         </div>
 
@@ -1027,8 +1380,8 @@ window.openArticleEditor = function(catId = '', postId = '') {
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
           <h3 style="font-size:14px; font-weight:700; color:#0f172a; margin:0;">상세 내용 본문 편집 (에디터/HTML/CSS 동시 제공)</h3>
           <div style="display:flex; background:#e2e8f0; border-radius:6px; padding:2px;">
-            <button class="btn btn-sm" id="btn-toggle-editor-mode-content" onclick="switchEditorMode('content', 'editor')" style="padding:4px 10px; font-size:11px; background:var(--primary-color); color:white; border-radius:4px;">에디터 모드</button>
-            <button class="btn btn-sm" id="btn-toggle-html-mode-content" onclick="switchEditorMode('content', 'html')" style="padding:4px 10px; font-size:11px; background:transparent; color:#475569; border-radius:4px;">HTML 모드</button>
+            <button class="btn btn-sm" id="btn-toggle-editor-mode-content" onclick="switchEditorMode('content', 'editor')" style="padding:4px 10px; font-size:11px; background:var(--primary-color); color:white; border-radius:4px; border:none; cursor:pointer;">에디터 모드</button>
+            <button class="btn btn-sm" id="btn-toggle-html-mode-content" onclick="switchEditorMode('content', 'html')" style="padding:4px 10px; font-size:11px; background:transparent; color:#475569; border-radius:4px; border:none; cursor:pointer;">HTML 모드</button>
           </div>
         </div>
 
@@ -1045,9 +1398,7 @@ window.openArticleEditor = function(catId = '', postId = '') {
 };
 
 window.closeArticleEditor = function() {
-  document.getElementById('articles-editor-view').style.display = 'none';
-  document.getElementById('articles-list-view').style.display = 'block';
-  renderArticlesTable();
+  switchView('posts', { catId: currentEditorCategoryId });
 };
 
 // Return custom canvas editor markup
@@ -1602,6 +1953,8 @@ window.saveArticle = function() {
   const catId = document.getElementById('edit-post-cat').value;
   const title = document.getElementById('edit-post-title').value.trim();
   const author = document.getElementById('edit-post-author').value.trim() || 'Admin';
+  const status = document.getElementById('edit-post-status').value;
+  const attachmentCount = Number(document.getElementById('edit-post-attachment-count').value) || 0;
 
   if (!title) {
     alert("제목을 입력하세요.");
@@ -1626,10 +1979,10 @@ window.saveArticle = function() {
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
   const dateStr = `${yyyy}-${mm}-${dd}`;
+  const formattedTimeNow = getFormattedNow();
 
   if (activeEditPost) {
     // Edit existing post
-    // Wait, did they change the category? In edit mode, category dropdown is disabled, but let's check
     const list = healthPosts[catId] || [];
     const p = list.find(x => x.id === activeEditPost.id);
     if (p) {
@@ -1639,6 +1992,9 @@ window.saveArticle = function() {
       p.content = contentHtml; // both fields for compatibility
       p.date = dateStr;
       p.modUser = author;
+      p.status = status;
+      p.attachmentCount = attachmentCount;
+      p.modDate = formattedTimeNow;
     }
   } else {
     // Create new post
@@ -1652,7 +2008,11 @@ window.saveArticle = function() {
       date: dateStr,
       views: 0,
       regUser: author,
-      modUser: author
+      modUser: author,
+      status: status,
+      attachmentCount: attachmentCount,
+      regDate: formattedTimeNow,
+      modDate: formattedTimeNow
     };
     if (!healthPosts[catId]) {
       healthPosts[catId] = [];
@@ -1879,7 +2239,7 @@ function renderStatsLogsTable() {
         <td style="font-weight:600; color:#334155;">${log.clickDate}</td>
         <td style="color:#64748b; font-family:monospace;">${log.clickTime}</td>
         <td style="font-weight:700; color:#0f172a;">${log.postTitle}</td>
-        <td><span class="badge-premium badge-primary">${log.categoryLabel}</span></td>
+        <td style="font-weight: 600; color: #475569;">${log.categoryLabel}</td>
         <td><span class="badge-premium badge-gray">${log.clientName}</span></td>
         <td style="font-weight:600;">${log.userName}</td>
       </tr>
@@ -1919,6 +2279,475 @@ window.exportStatsToCsv = function() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// --- Category Posts List View & Search Filtering (Mockup matched) ---
+let postFilterCategory = 'all';
+let postSearchType = 'both';
+let postSearchQuery = '';
+let postStartDate = '';
+let postEndDate = '';
+let postViewStartDate = '';
+let postViewEndDate = '';
+let postSortOrder = 'newest';
+let postCurrentPage = 1;
+let postPageSize = 10;
+
+window.renderPostsWorkspace = function() {
+  const container = document.getElementById('category-main-workspace');
+  if (!container) return;
+
+  if (filterType === 'psyColumn') {
+    postFilterCategory = 'psyColumn';
+  } else if (postFilterCategory === 'all' && currentSelectedCategoryId !== 'all') {
+    postFilterCategory = currentSelectedCategoryId;
+  }
+
+  const catOptions = healthCategories.map(c => `
+    <option value="${c.id}" ${postFilterCategory === c.id ? 'selected' : ''}>${c.label} [${c.type === 'psyColumn' ? '심리칼럼' : '건강정보'}]</option>
+  `).join('');
+
+  const titleHtml = filterType === 'psyColumn' ? `
+    <div>
+      <h1 class="page-title" style="margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #0f172a;">심리칼럼 게시글 관리</h1>
+      <p class="page-subtitle" style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">심리칼럼의 게시글 목록을 조회하고 등록할 수 있습니다.</p>
+    </div>
+  ` : `
+    <div>
+      <h1 class="page-title" style="margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #0f172a;">건강정보 게시글 목록</h1>
+      <p class="page-subtitle" style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">선택한 카테고리의 게시글을 관리할 수 있습니다.</p>
+    </div>
+  `;
+
+  const tabsNavHtml = filterType === 'psyColumn' ? `
+    <div class="tabs-nav" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+      <button onclick="onFilterTypeChange('health')" class="tab-btn">분야별 건강정보</button>
+      <button onclick="onFilterTypeChange('psyColumn')" class="tab-btn active">심리칼럼</button>
+    </div>
+  ` : '';
+
+  const catSelectorHtml = filterType === 'psyColumn' ? `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; width: 60px;">카테고리</span>
+          <div style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #64748b; background: #f8fafc; font-weight: 600; box-sizing: border-box;">
+            심리칼럼
+          </div>
+        </div>
+  ` : `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; width: 60px;">카테고리</span>
+          <select id="post-cat-select" onchange="onPostCatChange(this.value)" style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; background: white;">
+            <option value="all" ${postFilterCategory === 'all' ? 'selected' : ''}>전체</option>
+            ${catOptions}
+          </select>
+        </div>
+  `;
+
+  const floatingBtnHtml = filterType === 'psyColumn' ? '' : `
+    <!-- Floating Circular List Button -->
+    <button onclick="switchView('categories')" style="
+      position: fixed;
+      right: 40px;
+      bottom: 40px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      z-index: 99;
+      transition: all 0.2s ease;
+    " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#1d4ed8';" onmouseout="this.style.transform='scale(1)'; this.style.background='#2563eb';">
+      <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+      <span style="font-size:11px; font-weight:700;">목록</span>
+    </button>
+  `;
+
+  container.innerHTML = `
+    ${floatingBtnHtml}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      ${titleHtml}
+    </div>
+
+    ${tabsNavHtml}
+
+    <!-- Filter Bar -->
+    <div class="search-panel" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); display: flex; flex-direction: column; gap: 16px;">
+      <!-- Row 1: Category, Search Word -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px; align-items: center;">
+        ${catSelectorHtml}
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; width: 50px;">검색어</span>
+          <select id="post-search-type" onchange="onPostSearchTypeChange(this.value)" style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; background: white;">
+            <option value="both" ${postSearchType === 'both' ? 'selected' : ''}>제목+내용</option>
+            <option value="title" ${postSearchType === 'title' ? 'selected' : ''}>제목</option>
+            <option value="content" ${postSearchType === 'content' ? 'selected' : ''}>내용</option>
+          </select>
+        </div>
+
+        <div style="position: relative;">
+          <input type="text" id="post-search-input" onkeydown="if(event.key === 'Enter') onPostSearch()" placeholder="검색어를 입력하세요." value="${postSearchQuery}" style="width: 100%; padding: 8px 40px 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#2563eb'">
+          <span onclick="onPostSearch()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 16px;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'">🔍</span>
+        </div>
+      </div>
+
+      <!-- Row 2: RegDate, Reset, Add Post Button -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; width: 60px;">등록일</span>
+            <input type="date" id="post-start-date" value="${postStartDate}" onchange="onPostStartDateChange(this.value)" style="padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none;">
+            <span style="color: #64748b;">~</span>
+            <input type="date" id="post-end-date" value="${postEndDate}" onchange="onPostEndDateChange(this.value)" style="padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none;">
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 10px; margin-left: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; width: 60px;">조회일</span>
+            <input type="date" id="post-view-start-date" value="${postViewStartDate}" onchange="onPostViewStartDateChange(this.value)" style="padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none;">
+            <span style="color: #64748b;">~</span>
+            <input type="date" id="post-view-end-date" value="${postViewEndDate}" onchange="onPostViewEndDateChange(this.value)" style="padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none;">
+          </div>
+          
+          <button class="btn btn-secondary" onclick="resetPostFilters()" style="padding: 8px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; transition: all 0.2s; margin-left: 12px;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8';" onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1';">
+            초기화
+          </button>
+        </div>
+
+        <button class="btn btn-primary" onclick="switchView('editor', { catId: postFilterCategory === 'all' ? (healthCategories[0] ? healthCategories[0].id : '') : postFilterCategory })" style="padding: 10px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; background: #2563eb; color: white; border: none; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+          + 게시글 등록
+        </button>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div id="posts-table-container">
+      <!-- Renders dynamically -->
+    </div>
+  `;
+
+  renderPostsTable();
+};
+
+window.onPostCatChange = function(val) {
+  postFilterCategory = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostSearchTypeChange = function(val) {
+  postSearchType = val;
+};
+
+window.onPostSearch = function() {
+  const input = document.getElementById('post-search-input');
+  if (input) {
+    postSearchQuery = input.value.trim();
+  }
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostStartDateChange = function(val) {
+  postStartDate = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostEndDateChange = function(val) {
+  postEndDate = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostViewStartDateChange = function(val) {
+  postViewStartDate = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostViewEndDateChange = function(val) {
+  postViewEndDate = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.onPostSortOrderChange = function(val) {
+  postSortOrder = val;
+  postCurrentPage = 1;
+  renderPostsTable();
+};
+
+window.resetPostFilters = function() {
+  postFilterCategory = currentSelectedCategoryId;
+  postSearchType = 'both';
+  postSearchQuery = '';
+  postStartDate = '';
+  postEndDate = '';
+  postViewStartDate = '';
+  postViewEndDate = '';
+  postSortOrder = 'newest';
+  postCurrentPage = 1;
+
+  const catSelect = document.getElementById('post-cat-select');
+  const typeSelect = document.getElementById('post-search-type');
+  const searchInput = document.getElementById('post-search-input');
+  const startDateInput = document.getElementById('post-start-date');
+  const endDateInput = document.getElementById('post-end-date');
+  const viewStartDateInput = document.getElementById('post-view-start-date');
+  const viewEndDateInput = document.getElementById('post-view-end-date');
+
+  if (catSelect) catSelect.value = currentSelectedCategoryId;
+  if (typeSelect) typeSelect.value = 'both';
+  if (searchInput) searchInput.value = '';
+  if (startDateInput) startDateInput.value = '';
+  if (endDateInput) endDateInput.value = '';
+  if (viewStartDateInput) viewStartDateInput.value = '';
+  if (viewEndDateInput) viewEndDateInput.value = '';
+
+  renderPostsTable();
+};
+
+window.changePostPage = function(pageNum) {
+  postCurrentPage = pageNum;
+  renderPostsTable();
+};
+
+window.renderPostsTable = function() {
+  const container = document.getElementById('posts-table-container');
+  if (!container) return;
+
+  let allFiltered = [];
+  const targetCategories = postFilterCategory === 'all' 
+    ? healthCategories.map(c => c.id) 
+    : [postFilterCategory];
+    
+  targetCategories.forEach(catId => {
+    const list = healthPosts[catId] || [];
+    list.forEach(p => {
+      allFiltered.push({ ...p, catId });
+    });
+  });
+
+  // Filter by search query
+  if (postSearchQuery) {
+    const query = postSearchQuery.toLowerCase();
+    allFiltered = allFiltered.filter(p => {
+      const matchTitle = p.title.toLowerCase().includes(query);
+      const matchSummary = (p.summary || '').toLowerCase().includes(query);
+      const matchDetails = (p.details || '').toLowerCase().includes(query);
+      
+      if (postSearchType === 'both') {
+        return matchTitle || matchSummary || matchDetails;
+      } else if (postSearchType === 'title') {
+        return matchTitle;
+      } else if (postSearchType === 'content') {
+        return matchSummary || matchDetails;
+      }
+      return true;
+    });
+  }
+
+  // Filter by date range (Registration date)
+  if (postStartDate) {
+    allFiltered = allFiltered.filter(p => p.date >= postStartDate);
+  }
+  if (postEndDate) {
+    allFiltered = allFiltered.filter(p => p.date <= postEndDate);
+  }
+
+  // Filter by view date range (Inquiry date)
+  const hasViewDateFilter = !!(postViewStartDate || postViewEndDate);
+  if (hasViewDateFilter) {
+    allFiltered = allFiltered.map(p => {
+      const clicks = clickLogs.filter(log => {
+        if (log.postId !== p.id) return false;
+        if (postViewStartDate && log.clickDate < postViewStartDate) return false;
+        if (postViewEndDate && log.clickDate > postViewEndDate) return false;
+        return true;
+      });
+      return { ...p, periodViews: clicks.length };
+    }).filter(p => p.periodViews > 0);
+  }
+
+  // Sort
+  if (postSortOrder === 'newest') {
+    allFiltered.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  } else if (postSortOrder === 'oldest') {
+    allFiltered.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  } else if (postSortOrder === 'alphabetical') {
+    allFiltered.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  const totalCount = allFiltered.length;
+  const totalPages = Math.ceil(totalCount / postPageSize) || 1;
+  if (postCurrentPage > totalPages) postCurrentPage = totalPages;
+  if (postCurrentPage < 1) postCurrentPage = 1;
+
+  const startIndex = (postCurrentPage - 1) * postPageSize;
+  const paginated = allFiltered.slice(startIndex, startIndex + postPageSize);
+
+  let rowsHtml = '';
+  paginated.forEach((post, index) => {
+    const displayNo = totalCount - (startIndex + index);
+    const category = healthCategories.find(c => c.id === post.catId);
+    const catLabel = category ? category.label : '기타';
+    
+    let summaryText = post.summary || '';
+    if (summaryText.length > 50) {
+      summaryText = summaryText.substring(0, 50) + '...';
+    } else if (!summaryText) {
+      const temp = document.createElement('div');
+      temp.innerHTML = post.details || '';
+      summaryText = (temp.innerText || '').substring(0, 50) + '...';
+    }
+
+    const attachmentCount = typeof post.attachmentCount !== 'undefined' ? Number(post.attachmentCount) : 0;
+    const attachmentHtml = attachmentCount > 0 
+      ? `<span style="display:inline-flex; align-items:center; gap:2px; font-weight:600; color:#475569;"><svg style="width:14px; height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 0A3 3 0 109.828 14.12l3.536-3.536m0 0l3.536-3.536L14.12 12.656l-3.536 3.536m0 0a3 3 0 11-4.243-4.243l3.536-3.536m0 0L9.828 14.12"/></svg>${attachmentCount}</span>` 
+      : `<span style="color:#cbd5e1;">-</span>`;
+
+    const regDateStr = post.regDate || `${post.date} 10:30`;
+    const modDateStr = post.modDate || `${post.date} 10:30`;
+
+    const statusVal = post.status || '게시';
+    const statusHtml = statusVal === '비게시'
+      ? `<span style="display:inline-block; padding:4px 10px; font-size:12px; font-weight:700; border:1px solid #cbd5e1; color:#64748b; background:#f1f5f9; border-radius:4px; text-align:center;">비게시</span>`
+      : `<span style="display:inline-block; padding:4px 10px; font-size:12px; font-weight:700; border:1px solid #a7f3d0; color:#059669; background:#ecfdf5; border-radius:4px; text-align:center;">게시</span>`;
+
+    rowsHtml += `
+      <tr>
+        <td style="text-align: center; font-weight: 600; color: #475569;">${displayNo}</td>
+        <td style="font-weight: 600; color: #475569;">${catLabel}</td>
+        <td style="font-weight: 700; color: #2563eb; cursor: pointer; text-decoration: underline;" onclick="switchView('editor', { catId: '${post.catId}', postId: '${post.id}' })">${post.title}</td>
+        <td style="color: #475569; font-size: 13px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${summaryText}</td>
+        <td style="text-align: center;">${attachmentHtml}</td>
+        <td style="text-align: center; color: #64748b; font-size: 13px;">${regDateStr}</td>
+        <td style="text-align: center; color: #64748b; font-size: 13px;">${modDateStr}</td>
+        <td style="text-align: center; font-weight: 600; color: #475569;">${hasViewDateFilter ? post.periodViews : (post.views || 0)}</td>
+        <td style="text-align: center;">${statusHtml}</td>
+        <td style="text-align: center;">
+          <button class="btn btn-sm" style="background: white; border: 1px solid #cbd5e1; color: #334155; margin-right: 4px; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500;" onclick="switchView('editor', { catId: '${post.catId}', postId: '${post.id}' })">수정</button>
+          <button class="btn btn-sm" style="background: white; border: 1px solid #fca5a5; color: #ef4444; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500;" onclick="deletePostDirect('${post.catId}', '${post.id}')">삭제</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  let paginationHtml = '';
+  paginationHtml += `
+    <button onclick="changePostPage(1)" ${postCurrentPage === 1 ? 'disabled' : ''} style="min-width:32px; height:32px; padding:0 6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; font-weight:600; color:#64748b;"><<</button>
+    <button onclick="changePostPage(${postCurrentPage - 1})" ${postCurrentPage === 1 ? 'disabled' : ''} style="min-width:32px; height:32px; padding:0 6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;"><</button>
+  `;
+
+  for (let i = 1; i <= totalPages; i++) {
+    const isCurrent = i === postCurrentPage;
+    paginationHtml += `
+      <button onclick="changePostPage(${i})" style="
+        min-width: 32px;
+        height: 32px;
+        margin: 0 2px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        border: 1px solid ${isCurrent ? '#2563eb' : '#cbd5e1'};
+        background: ${isCurrent ? '#2563eb' : 'white'};
+        color: ${isCurrent ? 'white' : '#475569'};
+        transition: all 0.2s;
+      ">${i}</button>
+    `;
+  }
+
+  paginationHtml += `
+    <button onclick="changePostPage(${postCurrentPage + 1})" ${postCurrentPage === totalPages ? 'disabled' : ''} style="min-width:32px; height:32px; padding:0 6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;">></button>
+    <button onclick="changePostPage(${totalPages})" ${postCurrentPage === totalPages ? 'disabled' : ''} style="min-width:32px; height:32px; padding:0 6px; background:white; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; margin-left:4px; font-weight:600; color:#64748b;">>></button>
+  `;
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span style="font-size: 14px; font-weight: 600; color: #475569;">총 <strong style="color:#2563eb;">${totalCount}</strong>건</span>
+    </div>
+
+    <div class="config-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); overflow: hidden; margin-bottom: 20px;">
+      <div class="card-body" style="padding: 0; overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+          <thead>
+            <tr>
+              <th width="60" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">No.</th>
+              <th width="100" style="background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">카테고리</th>
+              <th width="200" style="background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">제목</th>
+              <th style="background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">내용</th>
+              <th width="80" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">첨부파일</th>
+              <th width="140" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">등록일</th>
+              <th width="140" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">수정일</th>
+              <th width="80" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">${hasViewDateFilter ? '조회수(기간)' : '조회수'}</th>
+              <th width="90" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">상태</th>
+              <th width="140" style="text-align: center; background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml ? rowsHtml : '<tr><td colspan="10" style="text-align:center; padding:48px; color:#64748b;">등록된 게시글이 없습니다.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+      <div>
+        ${filterType === 'psyColumn' ? '' : `
+        <button onclick="switchView('categories')" style="
+          padding: 8px 18px; 
+          font-size: 14px; 
+          font-weight: 700; 
+          border-radius: 8px; 
+          background: white; 
+          border: 1px solid #cbd5e1; 
+          color: #334155; 
+          cursor: pointer; 
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        " onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8';" onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1';">
+          <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+          이전
+        </button>
+        `}
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 2px;">
+        ${paginationHtml}
+      </div>
+
+      <div>
+        <select onchange="onPostSortOrderChange(this.value)" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; outline: none; background: white; cursor:pointer; font-weight:500;">
+          <option value="newest" ${postSortOrder === 'newest' ? 'selected' : ''}>최신순</option>
+          <option value="oldest" ${postSortOrder === 'oldest' ? 'selected' : ''}>오래된 순</option>
+          <option value="alphabetical" ${postSortOrder === 'alphabetical' ? 'selected' : ''}>가나다순</option>
+        </select>
+      </div>
+    </div>
+  `;
+};
+
+window.deletePostDirect = function(catId, postId) {
+  if (confirm("이 건강정보 게시글을 정말 삭제하시겠습니까?")) {
+    const posts = healthPosts[catId] || [];
+    healthPosts[catId] = posts.filter(p => p.id !== postId);
+    saveData();
+    renderPostsTable();
+    showToast("게시글이 삭제되었습니다.");
+  }
 };
 
 // --- Common toast simulator ---

@@ -152,7 +152,7 @@ let subscriberPageSize = 10;
           id: `cont_${prog.id}_${s}`,
           progId: prog.id,
           seq: `${s}회차`,
-          day: `${s}회차 발송`,
+          day: "",
           title: `[${prog.name}] 제 ${s}강 건강 가이드`,
           dateCreated: "2026-05-20",
           body: `📣 오늘의 중요 건강 미션\n\n이 정보는 ${prog.name} 구독 프로그램의 ${s}회차 공식 콘텐츠입니다. 아래의 수칙을 하루 한 번 실천하고 가뿐한 하루를 만들어 보세요!\n\n1. 아침 공복에 따뜻한 물 한 잔 마시기\n2. 가벼운 보행 시 허리를 곧게 펴고 발꿈치부터 딛기\n3. 식단에 푸른 잎 채소 섭취량 20% 늘리기\n\n*본 의학 정보는 서울 종합 건강 증진 연구소의 정식 자문을 득한 자료입니다.`
@@ -297,10 +297,9 @@ window.getRegistrationFlowHtml = function(activeStep) {
 
 // Sidebar sub-submenu highlight helper
 window.updateSidebarActiveStates = function() {
-  document.querySelectorAll('.nav-item-sub').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item-sub-sub').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   
-  const activeMenuBtn = document.getElementById(`menu-${currentView}-btn`);
+  const activeMenuBtn = document.getElementById(`sidebar-sub-${currentView}`);
   if (activeMenuBtn) {
     activeMenuBtn.classList.add('active');
   }
@@ -1265,7 +1264,7 @@ window.saveProgram = function() {
         id: `cont_${newId}_${s}`,
         progId: newId,
         seq: `${s}회차`,
-        day: `${s}회차 발송`,
+        day: "",
         title: "",
         dateCreated: new Date().toISOString().split('T')[0],
         body: ""
@@ -1342,14 +1341,13 @@ function renderContentList(container) {
 
   let rowsHtml = '';
   if (progContents.length === 0) {
-    rowsHtml = `<tr><td colspan="5" style="text-align:center; padding:40px; color:#64748b;">등록된 회차별 세부 콘텐츠가 없습니다. 첫 콘텐츠를 등록해 주세요.</td></tr>`;
+    rowsHtml = `<tr><td colspan="4" style="text-align:center; padding:40px; color:#64748b;">등록된 회차별 세부 콘텐츠가 없습니다. 첫 콘텐츠를 등록해 주세요.</td></tr>`;
   } else {
     progContents.forEach((cont, index) => {
       rowsHtml += `
         <tr>
           <td style="padding:16px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center; color:#64748b;">${cont.seq}</td>
           <td style="padding:16px; border-bottom:1px solid #e2e8f0; font-size:14px; font-weight:700; color:#334155;">${cont.title}</td>
-          <td style="padding:16px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center; font-weight:600; color:#0f5cf2;">${cont.day}</td>
           <td style="padding:16px; border-bottom:1px solid #e2e8f0; font-size:13px; text-align:center; color:#64748b;">${cont.dateCreated}</td>
           <td style="padding:16px; border-bottom:1px solid #e2e8f0; text-align:center;">
             <div style="display:flex; gap:6px; justify-content:center;">
@@ -1388,7 +1386,6 @@ function renderContentList(container) {
             <tr>
               <th style="width:90px; text-align:center;">회차</th>
               <th>콘텐츠 제목</th>
-              <th style="width:140px; text-align:center;">발송 시점</th>
               <th style="width:160px; text-align:center;">등록일자</th>
               <th style="width:220px; text-align:center;">관리</th>
             </tr>
@@ -1443,7 +1440,6 @@ window.openContentDrawer = function(contId = null) {
 
   let title = "새 콘텐츠 등록";
   let seq = "";
-  let day = "";
   let contTitle = "";
   let body = "";
 
@@ -1453,10 +1449,21 @@ window.openContentDrawer = function(contId = null) {
     const cont = contents.find(c => c.id === contId);
     if (cont) {
       seq = cont.seq;
-      day = cont.day;
       contTitle = cont.title;
       body = cont.body;
     }
+  }
+
+  // Get total terms for select options
+  const programs = getPrograms();
+  const prog = programs.find(p => p.id === selectedProgramId);
+  const totalTerms = prog ? parseInt(prog.totalTerms, 10) || 0 : 0;
+
+  let termOptions = '<option value="" disabled selected>회차를 선택해 주세요.</option>';
+  for (let i = 1; i <= totalTerms; i++) {
+    const termValue = `${i}회차`;
+    const isSelected = (seq === termValue || seq === String(i) || seq === `${i}`) ? 'selected' : '';
+    termOptions += `<option value="${termValue}" ${isSelected}>${termValue}</option>`;
   }
 
   modal = document.createElement('div');
@@ -1466,19 +1473,22 @@ window.openContentDrawer = function(contId = null) {
   modal.innerHTML = `
     <div class="modal-content" style="width: 780px;">
       <div class="modal-header">
-        <h3>${title}</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 style="margin:0;">${title}</h3>
+          ${prog ? `
+            <span style="font-size:12px; font-weight:600; color:#0045c4; background:#e0f2fe; border:1px solid #bae6fd; padding:3px 8px; border-radius:4px; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${prog.name}">
+              ${prog.name}
+            </span>
+          ` : ''}
+        </div>
         <button class="drawer-close-btn" style="font-size:20px;" onclick="document.getElementById('${modalId}').remove()">&times;</button>
       </div>
       <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-          <div>
-            <label class="form-label">회차 <span class="field-required">*</span></label>
-            <input type="text" id="m-content-seq" class="form-input" placeholder="예: 1회차" value="${seq}">
-          </div>
-          <div>
-            <label class="form-label">발송 시점 <span class="field-required">*</span></label>
-            <input type="text" id="m-content-day" class="form-input" placeholder="예: 1일차" value="${day}">
-          </div>
+        <div>
+          <label class="form-label">회차 <span class="field-required">*</span></label>
+          <select id="m-content-seq" class="form-select" style="width:100%; min-width:auto; height:40px; padding:8px 12px; font-size:14px;">
+            ${termOptions}
+          </select>
         </div>
         <div>
           <label class="form-label">콘텐츠 제목 <span class="field-required">*</span></label>
@@ -1500,11 +1510,10 @@ window.openContentDrawer = function(contId = null) {
 
 window.saveContentItem = function(contId) {
   const seq = document.getElementById('m-content-seq').value.trim();
-  const day = document.getElementById('m-content-day').value.trim();
   const title = document.getElementById('m-content-title').value.trim();
   const body = document.getElementById('m-content-body').value.trim();
 
-  if (!seq || !day || !title || !body) {
+  if (!seq || !title || !body) {
     window.showToast("모든 필수 입력값을 기입해 주세요.", true);
     return;
   }
@@ -1515,7 +1524,7 @@ window.saveContentItem = function(contId) {
     const idx = contents.findIndex(c => c.id === contId);
     if (idx !== -1) {
       contents[idx].seq = seq;
-      contents[idx].day = day;
+      contents[idx].day = "";
       contents[idx].title = title;
       contents[idx].body = body;
     }
@@ -1526,7 +1535,7 @@ window.saveContentItem = function(contId) {
       id: `cont_${selectedProgramId}_${Date.now()}`,
       progId: selectedProgramId,
       seq: seq,
-      day: day,
+      day: "",
       title: title,
       dateCreated: new Date().toISOString().split('T')[0],
       body: body

@@ -152,6 +152,139 @@ function saveProvidedServicesData(data) {
   localStorage.setItem('hc_provided_services', JSON.stringify(data));
 }
 
+// Convert HTML Customer Center block back to plain text (for backward compatibility)
+window.convertHtmlToCsText = function(html) {
+  if (!html) return '';
+  if (!html.trim().startsWith('<')) return html; // Already plain text
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Extract text content line by line
+    const text = doc.body.textContent || doc.body.innerText || '';
+    const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    // Remove "전화 연결", "전화연결", "전담 간호사 연결" or similar button text
+    const filteredLines = rawLines.filter(l => {
+      const lower = l.toLowerCase();
+      return !lower.includes('전화 연결') && !lower.includes('전화연결') && !lower.includes('간호사 연결') && !lower.includes('연결');
+    });
+    
+    return filteredLines.join('\n');
+  } catch (e) {
+    console.error("Failed to parse HTML to CS Text:", e);
+    return html;
+  }
+};
+
+// Render Customer Center plain text (or HTML) in the designated premium card layout
+window.renderCSGuideDesign = function(text, clientName) {
+  if (!text) return '';
+  if (text.trim().startsWith('<')) {
+    return text; // Backward compatibility: already HTML
+  }
+
+  // Parse lines
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  let phone = '';
+  let title = '';
+  let subtitle = '';
+  let extraLine = '';
+
+  // Extract phone number from lines (look for digits and hyphens)
+  const phoneRegex = /([\d\-]{4,15})/;
+  let phoneLineIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(phoneRegex);
+    if (match) {
+      phone = match[1];
+      phoneLineIdx = i;
+      break;
+    }
+  }
+
+  const otherLines = lines.filter((_, idx) => idx !== phoneLineIdx);
+
+  if (!phone) {
+    phone = '1588-7545'; // fallback
+  }
+
+  // Clean phone number for tel: link (remove non-digits)
+  const phoneClean = phone.replace(/[^0-9]/g, '');
+
+  if (otherLines.length > 0) {
+    title = otherLines[0];
+  } else {
+    title = `${clientName || '교보생명'} 고객센터`;
+  }
+
+  if (otherLines.length > 1) {
+    subtitle = otherLines[1];
+  } else {
+    subtitle = '헬스케어서비스 콜센터';
+  }
+
+  if (otherLines.length > 2) {
+    extraLine = otherLines.slice(2).join(' | ');
+  }
+
+  // Return premium design using client-specific CSS variable or default blue
+  return `
+    <div class="cs-guide-card-premium" style="position: relative; width: 100%; border: 1px solid #cbd5e1; border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 22px 28px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02), 0 4px 6px -2px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; transition: transform 0.2s, box-shadow 0.2s;">
+      <style>
+        .cs-guide-card-premium:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 20px -3px rgba(0,0,0,0.04), 0 4px 12px -2px rgba(0,0,0,0.02);
+        }
+        .cs-call-btn {
+          background: var(--theme-color, #2563eb);
+          color: white !important;
+          padding: 10px 24px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 6px -1px rgba(var(--theme-color-rgb, 37, 99, 235), 0.2);
+          transition: all 0.2s ease;
+        }
+        .cs-call-btn:hover {
+          opacity: 0.95;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 12px -1px rgba(var(--theme-color-rgb, 37, 99, 235), 0.3);
+        }
+      </style>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(var(--theme-color-rgb, 37, 99, 235), 0.1); display: flex; align-items: center; justify-content: center; color: var(--theme-color, #2563eb); flex-shrink: 0;">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        </div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: -0.2px;">${subtitle}</div>
+          <div style="font-size: 20px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">${title}</div>
+          ${extraLine ? `<div style="font-size: 12.5px; color: #64748b; font-weight: 500; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+            <span style="display:inline-block; width:4px; height:4px; border-radius:50%; background:#94a3b8;"></span>
+            ${extraLine}
+          </div>` : ''}
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+        <div style="text-align: right;">
+          <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">전화 상담 번호</div>
+          <div style="font-size: 24px; font-weight: 900; color: var(--theme-color, #2563eb); letter-spacing: -0.5px;">${phone}</div>
+        </div>
+        <a href="tel:${phoneClean}" class="cs-call-btn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          전화 연결
+        </a>
+      </div>
+    </div>
+  `;
+};
+
 // -------------------------------------------------------------
 // MAIN ENTRY: Render list view of registered services
 // -------------------------------------------------------------
@@ -540,6 +673,34 @@ window.openProvidedServicesEditor = function(key, clientId, tierName) {
   const container = document.getElementById('admin-main-view');
   if (!container) return;
 
+  // Build options for importing other tier settings
+  let otherGradesOptions = '<option value="" disabled selected>불러올 다른 등급 선택...</option>';
+  const clientMap = { 
+    kyobo: "교보생명", 
+    dasom: "교보다솜케어", 
+    bnk: "BNK자산운용", 
+    kyobo_special: "교보New헬스케어(건강)", 
+    kyobo_cardio: "교보New헬스케어(뇌-심장)", 
+    umobile: "U+유모바일", 
+    remember: "리멤버앤컴퍼니", 
+    bright: "브라이트스타트", 
+    yulchon: "법무법인 율촌", 
+    kpartners: "케이파트너스", 
+    today_acct: "오늘 회계법인", 
+    kyobobook: "교보문고", 
+    other: "A기업" 
+  };
+  
+  let hasOtherServices = false;
+  Object.keys(data).forEach(k => {
+    if (k !== key) {
+      hasOtherServices = true;
+      const s = data[k];
+      const clientName = clientMap[s.clientId] || s.clientId;
+      otherGradesOptions += `<option value="${k}">${clientName} - ${s.tierName}</option>`;
+    }
+  });
+
   // Build the full HTML structure for the editor
   container.innerHTML = `
     <!-- Top Bar with Buttons -->
@@ -559,15 +720,27 @@ window.openProvidedServicesEditor = function(key, clientId, tierName) {
     </div>
 
     <!-- Info Block -->
-    <div class="config-card" style="padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
-      <div style="display:flex; align-items:center; gap:20px;">
+    <div class="config-card" style="padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
         <div>
           <span class="form-label" style="margin-bottom:4px; font-size:12px;">서비스 등급명</span>
-          <div style="font-size:15px; font-weight:700; color:#0f172a;">${tierName}</div>
+          <div style="font-size:15px; font-weight:700; color:#0f172a; white-space:nowrap;">${tierName}</div>
         </div>
         <div style="width:1px; height:32px; background:#e2e8f0;"></div>
+        
+        <!-- 다른 등급 설정 불러오기 -->
+        <div style="display:flex; align-items:center; gap:8px;">
+          <select id="editor-import-tier-select" class="form-select" style="min-width:200px; height:34px; padding:4px 8px; font-size:12px; font-family:inherit;">
+            ${otherGradesOptions}
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="window.importOtherTierSettings()" style="padding:6px 12px; font-size:12px; background:#fff; border:1px solid #2563eb; color:#2563eb; font-weight:700;" ${!hasOtherServices ? 'disabled' : ''}>
+            다른등급 설정 불러오기
+          </button>
+        </div>
+        
+        <div style="width:1px; height:32px; background:#e2e8f0;"></div>
         <button class="btn btn-secondary btn-sm" onclick="window.loadSampleTemplate()" style="padding:6px 12px; font-size:12px; background:#fff; border:1px solid #cbd5e1;">
-          기존 서비스 불러오기 (샘플 템플릿)
+          샘플 템플릿 불러오기
         </button>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
@@ -599,15 +772,11 @@ window.openProvidedServicesEditor = function(key, clientId, tierName) {
 
       <!-- 2. 헬스케어 고객센터 안내 (Fixed) -->
       <div class="config-card">
-        <div class="card-header" style="background:#fafaf9; border-bottom:1px solid #e2e8f0; padding:16px 24px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="card-header" style="background:#fafaf9; border-bottom:1px solid #e2e8f0; padding:16px 24px;">
           <h3 class="card-title" style="font-size:14px; font-weight:700; color:#0f172a;">2. 헬스케어 고객센터 안내 <span style="color:#ef4444;">*</span></h3>
-          <div style="display:flex; background:#e2e8f0; border-radius:6px; padding:2px;">
-            <button class="btn btn-sm" id="btn-toggle-editor-mode-cs" onclick="window.switchEditorMode('cs', 'editor')" style="padding:4px 10px; font-size:11px; background:#2563eb; color:white; border-radius:4px;">에디터 모드</button>
-            <button class="btn btn-sm" id="btn-toggle-html-mode-cs" onclick="window.switchEditorMode('cs', 'html')" style="padding:4px 10px; font-size:11px; background:transparent; color:#475569; border-radius:4px;">HTML 모드</button>
-          </div>
         </div>
         <div class="card-body" style="padding:20px;">
-          ${window.renderCanvasEditorMarkup('cs', service.sections.csGuide)}
+          <textarea id="editor-cs-textarea" class="form-input" style="width:100%; height:120px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:14px; line-height:1.6; outline:none; resize:vertical;" placeholder="고객센터 번호와 운영시간 안내를 텍스트로만 입력하세요.&#10;예)&#10;1588-1001&#10;교보생명 헬스케어 전용 콜센터&#10;평일 09:00 ~ 18:00 (토요일/공휴일 제외)"></textarea>
         </div>
       </div>
 
@@ -672,8 +841,13 @@ window.openProvidedServicesEditor = function(key, clientId, tierName) {
 
   // Initialize and bind all custom canvas rich-editor scripts
   window.initializeCanvasEditor('intro');
-  window.initializeCanvasEditor('cs');
   window.initializeCanvasEditor('tabs');
+
+  // Populate CS textarea
+  const csTextarea = document.getElementById('editor-cs-textarea');
+  if (csTextarea) {
+    csTextarea.value = window.convertHtmlToCsText(service.sections.csGuide);
+  }
 
   // Load active tab content
   window.refreshTabButtonsBar();
@@ -1694,7 +1868,10 @@ window.loadSampleTemplate = function() {
 
     // Ingest into visual editor directly
     window.parseHtmlToCanvasWorkspace('intro', sampleIntro);
-    window.parseHtmlToCanvasWorkspace('cs', sampleCs);
+    const csTextarea = document.getElementById('editor-cs-textarea');
+    if (csTextarea) {
+      csTextarea.value = window.convertHtmlToCsText(sampleCs);
+    }
     
     // Reset tabs
     serviceEditorTabs = [
@@ -1714,6 +1891,52 @@ window.loadSampleTemplate = function() {
   }
 };
 
+// 다른 등급 설정내용을 복사하여 에디터로 불러오기
+window.importOtherTierSettings = function() {
+  const select = document.getElementById('editor-import-tier-select');
+  if (!select) return;
+  const targetKey = select.value;
+  if (!targetKey) {
+    alert("불러올 대상 등급을 드롭다운에서 선택해 주세요.");
+    return;
+  }
+
+  const allServices = getProvidedServicesData();
+  const sourceService = allServices[targetKey];
+  if (!sourceService) {
+    alert("해당 등급의 설정을 찾을 수 없습니다.");
+    return;
+  }
+
+  const selectText = select.options[select.selectedIndex].text;
+  if (confirm(`선택한 등급(${selectText})의 설정 내용을 이 페이지로 복사해 오시겠습니까?\n주의: 현재 에디터에 작성 중인 내용은 덮어씌워집니다.`)) {
+    // Ingest intro
+    window.parseHtmlToCanvasWorkspace('intro', sourceService.sections.intro || "");
+
+    // Ingest CS Guide
+    const csTextarea = document.getElementById('editor-cs-textarea');
+    if (csTextarea) {
+      csTextarea.value = window.convertHtmlToCsText(sourceService.sections.csGuide || "");
+    }
+
+    // Ingest tabs
+    serviceEditorTabs = sourceService.sections.tabs ? JSON.parse(JSON.stringify(sourceService.sections.tabs)) : [];
+    if (serviceEditorTabs.length === 0) {
+      serviceEditorTabs.push({ title: "평상시 서비스", html: "" });
+    }
+    activeEditorTabIdx = 0;
+
+    // Refresh layout
+    window.refreshTabButtonsBar();
+    window.parseHtmlToCanvasWorkspace('tabs', serviceEditorTabs[0].html || "");
+
+    if (typeof showToast !== 'undefined') {
+      showToast("다른 등급의 설정 데이터를 성공적으로 불러왔습니다.");
+    }
+  }
+};
+
+
 // -------------------------------------------------------------
 // PREVIEW MODAL: Interactive PC/Mobile viewer
 // -------------------------------------------------------------
@@ -1727,10 +1950,13 @@ window.previewProvidedService = function() {
   if (introMode === 'html') introHtml = document.getElementById('canvas-html-textarea-intro')?.value || '';
   else introHtml = window.serializeCanvasWorkspace('intro');
 
-  const csMode = canvasEditorModes['cs'];
-  let csHtml = '';
-  if (csMode === 'html') csHtml = document.getElementById('canvas-html-textarea-cs')?.value || '';
-  else csHtml = window.serializeCanvasWorkspace('cs');
+  const csText = document.getElementById('editor-cs-textarea')?.value || '';
+  const clientMap = {};
+  if (typeof adminClientConfigs !== 'undefined') {
+    Object.values(adminClientConfigs).forEach(c => clientMap[c.id] = c.name.split('(')[0].trim());
+  }
+  const clientName = clientMap[currentEditorClientId] || "교보생명";
+  const csHtml = window.renderCSGuideDesign(csText, clientName);
 
   // Load preview modal
   const modalId = 'service-preview-modal';
@@ -1886,17 +2112,14 @@ window.saveProvidedServices = function() {
   else introHtml = window.serializeCanvasWorkspace('intro');
 
   // Grab CS content
-  const csMode = canvasEditorModes['cs'];
-  let csHtml = '';
-  if (csMode === 'html') csHtml = document.getElementById('canvas-html-textarea-cs')?.value || '';
-  else csHtml = window.serializeCanvasWorkspace('cs');
+  const csText = document.getElementById('editor-cs-textarea')?.value || '';
 
   // Validation checks
   if (!introHtml.trim()) {
     alert("1. 서비스 소개를 상세히 작성해주세요.");
     return;
   }
-  if (!csHtml.trim()) {
+  if (!csText.trim()) {
     alert("2. 헬스케어 고객센터 안내를 작성해주세요.");
     return;
   }
@@ -1933,7 +2156,7 @@ window.saveProvidedServices = function() {
     writer: writerName,
     sections: {
       intro: introHtml,
-      csGuide: csHtml,
+      csGuide: csText,
       tabs: serviceEditorTabs
     }
   };

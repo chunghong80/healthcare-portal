@@ -1326,3 +1326,22 @@ body {
   background: var(--theme-color) !important;
   color: white !important;
 }
+
+/* 테이블 반응형 가로 스크롤 지원 */
+.checkup-history-table,
+.portal-subscribe-table,
+table[id$="-table-basic"],
+table[id$="-table-optional"],
+table[id$="-table-additional"] {
+  min-width: 900px !important;
+}
+
+.portal-subscribe-table-card {
+  overflow-x: auto !important;
+}
+
+.responsive-table-wrapper {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+}

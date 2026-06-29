@@ -40,9 +40,13 @@ const defaultMenus = [
   { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
     { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
     { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+    { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+    { id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] },
     { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] }
   ] },
-  { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [] }
+  { id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+    { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+  ] }
 ];
 
 const healthCategories = ["기초검사", "혈액검사", "초음파", "내시경", "암진단", "심혈관", "여성/남성", "유전자", "식이요법", "심리/스트레스"];
@@ -182,6 +186,10 @@ function loadAllData() {
                   child.id = 'categoryInfo';
                 } else if (lbl.includes('구독') || lbl.includes('콘텐츠')) {
                   child.id = 'contentSubscribe';
+                } else if (lbl.includes('심리칼럼') || lbl.includes('칼럼')) {
+                  child.id = 'psyColumn';
+                } else if (lbl.includes('자가진단') || lbl.includes('진단')) {
+                  child.id = 'selfDiagnosis';
                 } else if (lbl.includes('뉴스')) {
                   child.id = 'healthNews';
                 }
@@ -192,7 +200,7 @@ function loadAllData() {
               const seenIds = new Set();
               healthMenu.children.forEach(child => {
                 const targetId = child.id;
-                if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'healthNews') {
+                if (targetId === 'categoryInfo' || targetId === 'contentSubscribe' || targetId === 'psyColumn' || targetId === 'selfDiagnosis' || targetId === 'healthNews') {
                   if (!seenIds.has(targetId)) {
                     seenIds.add(targetId);
                     uniqueChildren.push(child);
@@ -209,11 +217,49 @@ function loadAllData() {
               if (!seenIds.has('contentSubscribe')) {
                 uniqueChildren.push({ id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] });
               }
+              if (!seenIds.has('psyColumn')) {
+                uniqueChildren.push({ id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] });
+              }
+              if (!seenIds.has('selfDiagnosis')) {
+                uniqueChildren.push({ id: "selfDiagnosis", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [] });
+              }
               if (!seenIds.has('healthNews')) {
                 uniqueChildren.push({ id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] });
               }
               
               healthMenu.children = uniqueChildren;
+            }
+
+            const psyCareMenu = site.menus.find(m => m.id === 'psyCare');
+            if (psyCareMenu) {
+              if (!psyCareMenu.children) psyCareMenu.children = [];
+              
+              psyCareMenu.children.forEach(child => {
+                const lbl = child.label || child.defaultLabel || '';
+                if (lbl.includes('ASMR') || lbl.includes('영상') || lbl.includes('힐링')) {
+                  child.id = 'asmrVideo';
+                }
+              });
+
+              const uniquePsyChildren = [];
+              const seenPsyIds = new Set();
+              psyCareMenu.children.forEach(child => {
+                const targetId = child.id;
+                if (targetId === 'asmrVideo') {
+                  if (!seenPsyIds.has(targetId)) {
+                    seenPsyIds.add(targetId);
+                    uniquePsyChildren.push(child);
+                  }
+                } else {
+                  uniquePsyChildren.push(child);
+                }
+              });
+
+              if (!seenPsyIds.has('asmrVideo')) {
+                uniquePsyChildren.push({ id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] });
+              }
+
+              psyCareMenu.children = uniquePsyChildren;
             }
           }
         });
