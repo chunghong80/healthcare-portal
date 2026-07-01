@@ -781,7 +781,6 @@ function renderMenuSettings(container) {
       </div>
     </div>
   `;
-  
   const select = document.getElementById("client-select");
   Object.values(adminClientConfigs).forEach(client => {
     const opt = document.createElement("option");
@@ -791,6 +790,209 @@ function renderMenuSettings(container) {
   });
 
   loadClientSettings();
+  setupMenuDragAndDrop();
+}
+
+window.enableDrag = function(e) {
+  const item = e.target.closest('.menu-tree-item');
+  if (item) {
+    item.setAttribute('draggable', 'true');
+  }
+};
+
+window.disableDrag = function(e) {
+  const item = e.target.closest('.menu-tree-item');
+  if (item) {
+    if (!item.classList.contains('dragging')) {
+      item.setAttribute('draggable', 'false');
+    }
+  }
+};
+
+function setupMenuDragAndDrop() {
+  const container = document.getElementById("menu-tree-container");
+  if (!container) return;
+
+  let draggedItem = null;
+
+  container.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('.menu-tree-item');
+    if (!item) return;
+    draggedItem = item;
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.getAttribute('data-id'));
+  });
+
+  container.addEventListener('dragend', (e) => {
+    if (draggedItem) {
+      draggedItem.classList.remove('dragging');
+      draggedItem.setAttribute('draggable', 'false');
+      draggedItem = null;
+    }
+    const items = container.querySelectorAll('.menu-tree-item');
+    items.forEach(el => {
+      el.classList.remove('drag-over-above', 'drag-over-below', 'drag-over-child');
+    });
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    
+    const targetItem = e.target.closest('.menu-tree-item');
+    if (!targetItem || targetItem === draggedItem) return;
+    if (draggedItem.contains(targetItem)) return;
+
+    const row = targetItem.querySelector('.menu-item-row');
+    if (!row) return;
+
+    const rect = row.getBoundingClientRect();
+    const relativeY = e.clientY - rect.top;
+    const height = rect.height;
+
+    // Reset previous dragover classes
+    const items = container.querySelectorAll('.menu-tree-item');
+    items.forEach(el => {
+      if (el !== targetItem) {
+        el.classList.remove('drag-over-above', 'drag-over-below', 'drag-over-child');
+      }
+    });
+
+    const targetDepth = parseInt(targetItem.className.match(/depth-(\d+)/)[1]);
+
+    if (targetDepth < 3 && relativeY > height * 0.33 && relativeY < height * 0.66) {
+      targetItem.classList.add('drag-over-child');
+      targetItem.classList.remove('drag-over-above', 'drag-over-below');
+    } else if (relativeY <= height * 0.5) {
+      targetItem.classList.add('drag-over-above');
+      targetItem.classList.remove('drag-over-below', 'drag-over-child');
+    } else {
+      targetItem.classList.add('drag-over-below');
+      targetItem.classList.remove('drag-over-above', 'drag-over-child');
+    }
+  });
+
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    const targetItem = e.target.closest('.menu-tree-item');
+    if (!targetItem || targetItem === draggedItem) return;
+    if (draggedItem.contains(targetItem)) return;
+
+    const row = targetItem.querySelector('.menu-item-row');
+    if (!row) return;
+
+    const rect = row.getBoundingClientRect();
+    const relativeY = e.clientY - rect.top;
+    const height = rect.height;
+
+    const targetDepth = parseInt(targetItem.className.match(/depth-(\d+)/)[1]);
+
+    if (targetDepth < 3 && relativeY > height * 0.33 && relativeY < height * 0.66) {
+      // Drop as child
+      let childrenContainer = targetItem.querySelector('.menu-children-container');
+      if (!childrenContainer) {
+        childrenContainer = document.createElement('div');
+        childrenContainer.id = `children-${targetItem.getAttribute('data-id')}`;
+        childrenContainer.className = 'menu-children-container';
+        targetItem.appendChild(childrenContainer);
+      }
+      childrenContainer.appendChild(draggedItem);
+    } else if (relativeY <= height * 0.5) {
+      // Drop above target
+      targetItem.parentNode.insertBefore(draggedItem, targetItem);
+    } else {
+      // Drop below target
+      targetItem.parentNode.insertBefore(draggedItem, targetItem.nextSibling);
+    }
+
+    updateMenuStructureFromDOM();
+  });
+}
+
+function updateMenuStructureFromDOM() {
+  const client = adminClientConfigs[currentClientId];
+  const activeSite = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  
+  // 1. Flatten all menus to easily look them up by ID
+  const flatMenus = {};
+  function flat(menus) {
+    menus.forEach(m => {
+      flatMenus[m.id] = {
+        id: m.id,
+        defaultLabel: m.defaultLabel,
+        label: m.label,
+        isVisible: m.isVisible,
+        children: []
+      };
+      if (m.children) flat(m.children);
+    });
+  }
+  flat(activeSite.menus);
+
+  // 2. Build tree from DOM starting from depth 1
+  const container = document.getElementById("menu-tree-container");
+  if (!container) return;
+
+  function buildTreeFromDOM(el, depth) {
+    const items = Array.from(el.children).filter(child => child.classList.contains('menu-tree-item'));
+    const levelMenus = [];
+    
+    items.forEach(item => {
+      const menuId = item.getAttribute('data-id');
+      const menuObj = flatMenus[menuId];
+      if (menuObj) {
+        const childrenContainer = item.querySelector('.menu-children-container');
+        if (childrenContainer && depth < 3) {
+          menuObj.children = buildTreeFromDOM(childrenContainer, depth + 1);
+        } else {
+          menuObj.children = [];
+        }
+        levelMenus.push(menuObj);
+      }
+    });
+    return levelMenus;
+  }
+
+  const newMenus = buildTreeFromDOM(container, 1);
+
+  // 3. Set the new menu array for the active site
+  activeSite.menus = newMenus;
+
+  // 4. Sync menu structural order to all other clients/sites
+  Object.keys(adminClientConfigs).forEach(clientId => {
+    adminClientConfigs[clientId].sites.forEach(site => {
+      if (clientId === currentClientId && site.siteId === currentSiteId) return;
+      
+      const siteFlatMenus = {};
+      function flatSite(menus) {
+        menus.forEach(m => {
+          siteFlatMenus[m.id] = m;
+          if (m.children) flatSite(m.children);
+        });
+      }
+      flatSite(site.menus);
+
+      function reconstruct(refMenus) {
+        return refMenus.map(refM => {
+          const siteM = siteFlatMenus[refM.id];
+          if (siteM) {
+            siteM.children = refM.children ? reconstruct(refM.children) : [];
+            return siteM;
+          }
+          return null;
+        }).filter(Boolean);
+      }
+
+      site.menus = reconstruct(newMenus);
+    });
+  });
+
+  // 5. Re-render client settings (maintains inputs, updates view depths and icons)
+  loadClientSettings();
+  setupMenuDragAndDrop();
 }
 
 window.loadClientSettings = function() {
@@ -901,13 +1103,24 @@ function renderMenuLevel(menus, container, depth) {
   menus.forEach((menu, index) => {
     const item = document.createElement('div');
     item.className = `menu-tree-item depth-${depth}`;
+    item.setAttribute('data-id', menu.id);
     item.innerHTML = `
       <div class="menu-item-row ${!menu.isVisible ? 'disabled' : ''}" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 280px; align-items:center; gap:12px;">
-        <div class="menu-info">
-          <div class="depth-indicator">${'—'.repeat(depth - 1)}</div>
+        <div class="menu-tree-info" style="display:flex; align-items:center; gap:8px;">
+          <!-- Drag Handle -->
+          <div class="drag-handle" style="display:flex; align-items:center; justify-content:center; width:20px; height:20px; cursor:grab; margin-right:4px;" onmousedown="enableDrag(event)" onmouseup="disableDrag(event)" onmouseleave="disableDrag(event)">
+            <svg class="drag-handle-icon" width="12" height="18" viewBox="0 0 12 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #94a3b8; flex-shrink: 0; pointer-events:none;">
+              <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+              <circle cx="9" cy="3" r="1.5" fill="currentColor"/>
+              <circle cx="3" cy="9" r="1.5" fill="currentColor"/>
+              <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+              <circle cx="3" cy="15" r="1.5" fill="currentColor"/>
+              <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
           <input type="text" class="form-input default-label-input" value="${menu.defaultLabel || menu.label}" onchange="updateMenuDefaultLabel('${menu.id}', this.value)" placeholder="기본 명칭">
         </div>
-        <div class="menu-info">
+        <div class="menu-tree-info">
           <input type="text" class="form-input" value="${menu.label}" onchange="updateMenuLabel('${menu.id}', this.value)" placeholder="고객사 노출 명칭">
         </div>
         <div class="menu-action" style="justify-content:center;">

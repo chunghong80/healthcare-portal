@@ -304,9 +304,14 @@ body {
   overflow-x: auto;
 }
 
-/* Menu Tree Styles */
 .menu-tree-item {
   margin-bottom: 8px;
+  position: relative;
+}
+.menu-tree-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .menu-item-row {
   display: grid;
@@ -338,16 +343,64 @@ body {
   align-items: center;
   gap: 12px;
 }
-.depth-indicator {
-  color: #94a3b8;
-  font-family: monospace;
-  font-weight: bold;
-}
-.depth-2 { margin-left: 32px; }
-.depth-3 { margin-left: 64px; }
-
 .menu-children-container {
   margin-top: 8px;
+  padding-left: 40px;
+  position: relative;
+}
+
+.menu-children-container:empty {
+  display: none !important;
+}
+
+/* Vertical line for the menu items in the children container */
+.menu-children-container > .menu-tree-item::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: -8px;
+  bottom: 0;
+  width: 1.5px;
+  background-color: #cbd5e1;
+}
+
+/* For the last child, terminate the vertical line at its own horizontal line */
+.menu-children-container > .menu-tree-item:last-child::before {
+  bottom: auto;
+  height: 40px;
+}
+
+/* Horizontal line pointing to the child row */
+.menu-children-container > .menu-tree-item::after {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 32px;
+  width: 24px;
+  height: 1.5px;
+  background-color: #cbd5e1;
+}
+
+/* Drag and Drop Styling */
+.menu-tree-item.dragging {
+  opacity: 0.5;
+}
+.menu-tree-item.dragging .menu-item-row {
+  border: 2px dashed #2563eb !important;
+  background: #f0f7ff !important;
+}
+
+.menu-tree-item.drag-over-above > .menu-item-row {
+  border-top: 2px solid #2563eb !important;
+}
+
+.menu-tree-item.drag-over-below > .menu-item-row {
+  border-bottom: 2px solid #2563eb !important;
+}
+
+.menu-tree-item.drag-over-child > .menu-item-row {
+  background-color: #f0fdf4 !important;
+  border: 2px dashed #22c55e !important;
 }
 
 /* Table elements */
