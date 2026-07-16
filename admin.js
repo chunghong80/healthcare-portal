@@ -1,3 +1,4 @@
+try {
 /**
  * Unified Admin Management System
  * Consolidates all admin functionalities into a single SPA logic.
@@ -22,38 +23,42 @@ let adminClientConfigs = {
 
 const defaultMenus = [
   { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
-  { id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
-    { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: false, children: [] },
-    { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
-  ] },
-  { id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
-    { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
-    { id: "expert", defaultLabel: "명의안내", label: "명의안내", isVisible: true, children: [] }
-  ] },
-  { id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
-    { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
-  ] },
-  { id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
-    { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
-    { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: true, children: [] },
-    { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
-  ] },
-  { id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
-    { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
-    { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
-    { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
-    { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
-  ] },
-  { id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
-    { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
-    { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
-      { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
-      { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
-      { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
-      { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
-    ] },
-    { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
-  ] }
+  {
+    id: "healthConsulting", defaultLabel: "상담·예약 신청", label: "상담·예약 신청", isVisible: true, children: [
+      { id: "general", defaultLabel: "일반 건강상담", label: "일반 건강상담", isVisible: false, children: [] },
+      { id: "appt", defaultLabel: "진료예약", label: "진료예약", isVisible: false, children: [] },
+      { id: "expert", defaultLabel: "병원 및 전문의료진 안내", label: "병원 및 전문의료진 안내", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: []
+  },
+  {
+    id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: false, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
 ];
 
 const healthCategories = ["기초검사", "혈액검사", "초음파", "내시경", "암진단", "심혈관", "여성/남성", "유전자", "식이요법", "심리/스트레스"];
@@ -157,6 +162,51 @@ function loadAllData() {
         client.sites = [defaultSite];
       } else {
         client.sites.forEach(site => {
+          if (site.menus && Array.isArray(site.menus)) {
+            // Clean up old menus and ensure search exists
+            site.menus = site.menus.filter(m => m.id !== 'hospitalGuide' && m.id !== 'medicalAppt');
+            if (!site.menus.some(m => m.id === 'search')) {
+              const hcIdx = site.menus.findIndex(m => m.id === 'healthConsulting');
+              if (hcIdx !== -1) {
+                site.menus.splice(hcIdx + 1, 0, { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] });
+              } else {
+                site.menus.push({ id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] });
+              }
+            }
+
+            // Force update checkupAppt children
+            const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
+            if (checkupApptMenu) {
+              checkupApptMenu.defaultLabel = "건강검진 예약";
+              checkupApptMenu.label = "건강검진 예약";
+              checkupApptMenu.children = [
+                { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: false, children: [] },
+                { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: false, children: [] }
+              ];
+            }
+
+            // Force update healthConsulting children
+            const healthConsultingMenu = site.menus.find(m => m.id === 'healthConsulting');
+            if (healthConsultingMenu) {
+              healthConsultingMenu.defaultLabel = "상담·예약 신청";
+              healthConsultingMenu.label = "상담·예약 신청";
+              healthConsultingMenu.children = [
+                { id: "general", defaultLabel: "일반 건강상담", label: "일반 건강상담", isVisible: false, children: [] },
+                { id: "appt", defaultLabel: "진료예약", label: "진료예약", isVisible: false, children: [] },
+                { id: "expert", defaultLabel: "병원 및 전문의료진 안내", label: "병원 및 전문의료진 안내", isVisible: false, children: [] }
+              ];
+            }
+
+            // Force update psyCare label
+            const psyCareMenu = site.menus.find(m => m.id === 'psyCare');
+            if (psyCareMenu) {
+              psyCareMenu.defaultLabel = "심리케어";
+              psyCareMenu.label = "심리케어";
+            }
+          }
+        });
+        
+        client.sites.forEach(site => {
           if (!site) return;
           if (!site.menus || site.menus.length === 0) {
             site.menus = JSON.parse(JSON.stringify(defaultMenus));
@@ -174,14 +224,6 @@ function loadAllData() {
         
         client.sites.forEach(site => {
           if (site.menus) {
-            const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
-            if (checkupApptMenu && (!checkupApptMenu.children || checkupApptMenu.children.length === 0)) {
-              checkupApptMenu.children = [
-                { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
-                { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
-              ];
-            }
-            
             const healthMenu = site.menus.find(m => m.id === 'healthInfo');
             if (healthMenu) {
               if (!healthMenu.children) healthMenu.children = [];
@@ -308,7 +350,7 @@ function syncAllClientMenus(configs) {
   }
 
   function findMenuInList(list, id) {
-    if (!list) return null;
+    if (!list || !Array.isArray(list)) return null;
     for (let m of list) {
       if (m.id === id) return m;
       if (m.children) {
@@ -2875,3 +2917,6 @@ window.submitAddClient = function() {
   showToast(`신규 고객사 '${name}'(이)가 성공적으로 추가되었습니다.`);
   renderView('client-management');
 };
+} catch (err) {
+  alert("admin.js 런타임 에러 감지!\n\n스택:\n" + err.stack);
+}

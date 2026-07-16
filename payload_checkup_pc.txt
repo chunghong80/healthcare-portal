@@ -1,0 +1,70 @@
+          <div class="checkup-wrapper fade-in" style="animation: fadeIn 0.4s ease;">
+            <h3 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px; margin-top: 0;">건강검진 예약</h3>
+            <p style="color: #334155; line-height: 1.6; font-size: 15px; margin-bottom: 16px;">
+              건강검진, 나에게 맞게 직접 선택하거나 전문가와 함께 설계하세요<br/>
+              고객의 건강 상태와 필요에 따라 직접 검진을 선택할 수도, 전문 상담 간호사의 도움을 받아 맞춤형 검진을 설계할 수도 있는 건강검진 서비스를 제공합니다.
+            </p>
+            <p style="color: #64748b; line-height: 1.6; font-size: 14px; margin-bottom: 24px; padding: 24px; background: #f1f5f9; border-radius: 8px; margin-top: 0;">
+              연령, 성별, 가족력, 생활습관 등을 고려한 전문 상담부터 원하는 병원과 검진 패키지를 직접 비교하고 예약하는 간편한 신청까지.<br/>
+              고객의 방식으로 맞는 건강검진 경험을 제공합니다.
+            </p>
+            <button class="auth-btn btn-primary" style="padding: 12px 24px; font-size: 15px; font-weight: 700; width: auto; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="window.showCheckupSupportModal()">건강검진 예약하기</button>
+
+            <!-- Form Area: 전화상담 신청 -->
+            <div id="checkup-design-form-area" style="margin-top: 40px; padding-top: 40px; border-top: 1px solid #e2e8f0; animation: fadeIn 0.4s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0;">전화상담 신청</h4>
+                <button class="auth-btn btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 13px; font-weight: 600; background: white; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer;" onclick="window.location.hash='#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/checkupAppt/checkupHistory'">상담 문의 이력</button>
+              </div>
+              <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; margin-top: 0;">평소 염려되시는 부위나 건강검진 관련 목적을 기반으로 전문 간호사의 개별 상담 전화 프로세스가 연계됩니다.</p>
+
+              <div class="consult-type-selector" style="margin-bottom: 20px; display: flex; gap: 24px;">
+                <label class="custom-radio" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #334155; cursor: pointer;">
+                  <input type="radio" name="checkup-consult-type" value="phone" checked onclick="window.updateCheckupConsultType('phone')" style="width: 16px; height: 16px; accent-color: #2563eb;">
+                  전화상담 신청
+                </label>
+                <label class="custom-radio" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #334155; cursor: pointer;">
+                  <input type="radio" name="checkup-consult-type" value="online" onclick="window.updateCheckupConsultType('online')" style="width: 16px; height: 16px; accent-color: #2563eb;">
+                  온라인 문의 신청
+                </label>
+              </div>
+
+              <div id="checkup-guidance-box" class="consulting-guide-box" style="margin-bottom: 24px; padding: 16px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #475569;">
+                <i style="display: block; margin-bottom: 6px; font-style: normal; font-weight: 700; color: #1e293b;">상담 가능 시간은 평일 오전 9시 ~ 오후 6시입니다.</i>
+                <i style="display: block; font-style: normal;">상담을 원하시는 날짜와 시간대를 선택하시고, 상담받고 싶은 내용을 간단히 작성해 주세요. 남겨주신 내용을 확인한 후 간호사가 직접 전화드리겠습니다.</i>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                  <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #334155;">상담 고객 성함</label>
+                  <input type="text" id="checkup-name" class="form-input" value="${state.currentUser.name}" readonly style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f1f5f9; font-size: 14px; color: #64748b; outline: none;">
+                </div>
+                <div class="form-group">
+                  <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #334155;">연락처 (핸드폰)</label>
+                  <input type="tel" id="checkup-phone" class="form-input" placeholder="상담을 수신할 연락처를 입력해 주세요." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;">
+                </div>
+              </div>
+
+              <div id="checkup-phone-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                  <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #334155;">상담 희망 일자</label>
+                  <input type="date" id="checkup-date" class="form-input" min="${new Date().toISOString().split('T')[0]}" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;">
+                </div>
+                <div class="form-group">
+                  <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #334155;">상담 희망 시간</label>
+                  <select id="checkup-time" class="form-input" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; font-size: 14px; outline: none;">
+                    <option value="anytime">전일 (언제든 통화 가능)</option>
+                    <option value="09:00">09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option><option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option><option value="14:00">14:00</option><option value="15:00">15:00</option><option value="16:00">16:00</option><option value="17:00">17:00</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #334155;">염려되시는 건강 우려사항 / 가족력 / 이전 질환 등</label>
+                <textarea id="checkup-memo" class="form-input" placeholder="예) 최근 혈압이 높아져 심혈관 정밀검사가 필요합니다 / 암 가족력이 있습니다" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; min-height: 120px; resize: vertical; font-size: 14px; outline: none;"></textarea>
+              </div>
+
+              <button onclick="submitCheckupDesign()" class="auth-btn btn-primary" style="width: 100%; padding: 14px; background: #2563eb; color: white; border: none; font-weight: 700; border-radius: 8px; font-size: 15px; cursor: pointer;">신청하기</button>
+            </div>
+          </div>

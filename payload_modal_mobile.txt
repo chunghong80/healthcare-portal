@@ -1,0 +1,30 @@
+window.showCheckupSupportModal = function () {
+  if (document.getElementById('checkup-support-modal')) return;
+
+  const modalHtml = `
+    <div id="checkup-support-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease;">
+      <div style="background: white; border-radius: 20px; width: 85%; max-width: 320px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease;">
+        <div style="padding: 32px 24px; text-align: center;">
+          <div style="width: 56px; height: 56px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+            <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">회사지원 확인</h3>
+          <p style="font-size: 14.5px; color: #475569; margin: 0 0 28px 0; font-weight: 600; line-height: 1.5;">회사지원 건강검진이신가요?</p>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="window.handleCheckupSupportChoice(false)" style="flex: 1; padding: 12px; background: #eff6ff; color: #2563eb; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">아니요(우대예약)</button>
+            <button onclick="window.handleCheckupSupportChoice(true)" style="flex: 1; padding: 12px; background: #2563eb; color: white; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">네(회사지원)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.handleCheckupSupportChoice = function (isCompanySupport) {
+  const modal = document.getElementById('checkup-support-modal');
+  if (modal) modal.remove();
+  
+  sessionStorage.setItem('isCompanySupport', isCompanySupport ? 'true' : 'false');
+  window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/checkupAppt/' + (isCompanySupport ? 'checkupCorporate' : 'checkupPreferred');
+};
