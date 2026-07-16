@@ -1,0 +1,1679 @@
+﻿========== STEP 69 : replace_file_content ==========
+--- TARGET ---
+const defaultMenus = [
+  { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
+  {
+    id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
+      { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: false, children: [] },
+      { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
+      { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
+      { id: "expert", defaultLabel: "명의안내", label: "병원 및 명의안내", isVisible: true, children: [
+        { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+      ] }
+    ]
+  },
+  {
+    id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
+      { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: true, children: [] },
+      { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
+];
+--- REPLACEMENT ---
+const defaultMenus = [
+  { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
+  {
+    id: "healthConsulting", defaultLabel: "상담·예약 신청", label: "상담·예약 신청", isVisible: true, children: [
+      { id: "general", defaultLabel: "일반 건강상담", label: "일반 건강상담", isVisible: false, children: [] },
+      { id: "appt", defaultLabel: "진료예약", label: "진료예약", isVisible: false, children: [] },
+      { id: "expert", defaultLabel: "병원 및 전문의료진 안내", label: "병원 및 전문의료진 안내", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: []
+  },
+  {
+    id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: false, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
+];
+
+========== STEP 73 : replace_file_content ==========
+--- TARGET ---
+      client.sites.forEach(site => {
+        if (site.menus) {
+          const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
+          if (checkupApptMenu && (!checkupApptMenu.children || checkupApptMenu.children.length === 0)) {
+            checkupApptMenu.children = [
+              { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+              { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+            ];
+          } else if (checkupApptMenu && checkupApptMenu.children) {
+            if (!checkupApptMenu.children.some(c => c.id === 'checkupPreferred')) {
+              checkupApptMenu.children.push({ id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] });
+            }
+            if (!checkupApptMenu.children.some(c => c.id === 'checkupHistory')) {
+              checkupApptMenu.children.push({ id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] });
+            }
+          }
+--- REPLACEMENT ---
+      client.sites.forEach(site => {
+        if (site.menus) {
+          // Clean up old menus and ensure search exists
+          site.menus = site.menus.filter(m => m.id !== 'hospitalGuide' && m.id !== 'medicalAppt');
+          if (!site.menus.some(m => m.id === 'search')) {
+            // Insert search menu after healthConsulting if possible
+            const hcIdx = site.menus.findIndex(m => m.id === 'healthConsulting');
+            if (hcIdx !== -1) {
+              site.menus.splice(hcIdx + 1, 0, { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] });
+            } else {
+              site.menus.push({ id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] });
+            }
+          }
+
+          // Force update checkupAppt children
+          const checkupApptMenu = site.menus.find(m => m.id === 'checkupAppt');
+          if (checkupApptMenu) {
+            checkupApptMenu.defaultLabel = "건강검진 예약";
+            checkupApptMenu.label = "건강검진 예약";
+            checkupApptMenu.children = [
+              { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: false, children: [] },
+              { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: false, children: [] }
+            ];
+          }
+
+          // Force update healthConsulting children
+          const healthConsultingMenu = site.menus.find(m => m.id === 'healthConsulting');
+          if (healthConsultingMenu) {
+            healthConsultingMenu.defaultLabel = "상담·예약 신청";
+            healthConsultingMenu.label = "상담·예약 신청";
+            healthConsultingMenu.children = [
+              { id: "general", defaultLabel: "일반 건강상담", label: "일반 건강상담", isVisible: false, children: [] },
+              { id: "appt", defaultLabel: "진료예약", label: "진료예약", isVisible: false, children: [] },
+              { id: "expert", defaultLabel: "병원 및 전문의료진 안내", label: "병원 및 전문의료진 안내", isVisible: false, children: [] }
+            ];
+          }
+          
+          // Force update psyCare label
+          const psyCareMenu = site.menus.find(m => m.id === 'psyCare');
+          if (psyCareMenu) {
+            psyCareMenu.defaultLabel = "심리케어";
+            psyCareMenu.label = "심리케어";
+          }
+        }
+      });
+
+========== STEP 77 : replace_file_content ==========
+--- TARGET ---
+window.submitConsulting = function () {
+  const type = document.querySelector('input[name="consult-type"]:checked').value;
+  const memo = document.getElementById('consult-memo').value;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const currentHour = now.getHours();
+
+  let category = '건강상담';
+  const menus = state.activeClient?.menus || [];
+  const activeMenu = state.activeMenuId ? menus.find(m => m.id === state.activeMenuId) : null;
+  const menuLabel = activeMenu ? activeMenu.label : '';
+  if (state.activeMenuId === 'hospitalGuide' || menuLabel.includes('병원안내')) {
+    category = '병원안내';
+  } else if (state.activeMenuId === 'medicalAppt' || menuLabel.includes('진료예약')) {
+    category = '진료예약';
+  }
+
+  const historySub = activeMenu?.children?.find(c => c.id.toLowerCase().includes('history') || c.label.includes('이력') || c.label.includes('내역'));
+  const historySubId = historySub ? historySub.id : (state.activeMenuId === 'medicalAppt' ? 'history' : 'consultHistory');
+
+  if (type === 'phone') {
+    const date = document.getElementById('consult-date').value;
+    const time = document.getElementById('consult-time').value;
+
+    if (!date || !memo) {
+      alert('상담 신청 일자와 요청 내용을 입력해주세요.');
+      return;
+    }
+
+    // Past date validation
+    if (date < todayStr) {
+      showModal('신청 불가', '과거 날짜로는 상담을 신청하실 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+      return;
+    }
+
+    // Today but past time validation
+    if (date === todayStr && time !== 'anytime') {
+      const selectedHour = parseInt(time.split(':')[0]);
+      if (selectedHour <= currentHour) {
+        showModal('신청 불가', '현재 시간 이전으로는 상담을 신청하실 수 없습니다. 현재 시간 이후의 상담 시간을 선택해주세요.');
+        return;
+      }
+    }
+
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: state.activeMenuId === 'medicalAppt' ? '진료예약 상담 신청' : (state.activeMenuId === 'hospitalGuide' ? '병원안내 상담 신청' : '전화 건강상담 신청'),
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null,
+      consultDate: date,
+      consultTime: time
+    };
+
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    showToast('전화상담신청이 등록되었습니다.');
+    setTimeout(() => {
+      window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/${historySubId}`;
+    }, 1500);
+  } else {
+    if (!memo) {
+      alert('문의 내용을 입력해주세요.');
+      return;
+    }
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: '온라인 건강 문의',
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null
+    };
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    alert('문의가 등록되었습니다.\n문의 등록 후 3일 이내에 답변이 등록됩니다.');
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/${historySubId}`;
+  }
+--- REPLACEMENT ---
+window.submitConsulting = function () {
+  const type = document.querySelector('input[name="consult-type"]:checked').value;
+  const memo = document.getElementById('consult-memo').value;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const currentHour = now.getHours();
+
+  let category = '건강상담';
+  let title = '전화 건강상담 신청';
+  
+  if (state.activeMenuId === 'healthConsulting') {
+    if (state.activeSubId === 'appt') {
+      category = '진료예약';
+      title = '진료예약 상담 신청';
+    } else if (state.activeSubId === 'expert') {
+      category = '병원안내';
+      title = '병원안내 상담 신청';
+    } else {
+      category = '건강상담';
+      title = type === 'phone' ? '전화 건강상담 신청' : '온라인 건강 문의';
+    }
+  } else {
+    // Fallback for safety
+    const menus = state.activeClient?.menus || [];
+    const activeMenu = state.activeMenuId ? menus.find(m => m.id === state.activeMenuId) : null;
+    const menuLabel = activeMenu ? activeMenu.label : '';
+    if (state.activeMenuId === 'hospitalGuide' || menuLabel.includes('병원안내')) {
+      category = '병원안내';
+      title = '병원안내 상담 신청';
+    } else if (state.activeMenuId === 'medicalAppt' || menuLabel.includes('진료예약')) {
+      category = '진료예약';
+      title = '진료예약 상담 신청';
+    }
+  }
+
+  if (type === 'phone') {
+    const date = document.getElementById('consult-date').value;
+    const time = document.getElementById('consult-time').value;
+
+    if (!date || !memo) {
+      alert('상담 신청 일자와 요청 내용을 입력해주세요.');
+      return;
+    }
+
+    // Past date validation
+    if (date < todayStr) {
+      showModal('신청 불가', '과거 날짜로는 상담을 신청하실 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+      return;
+    }
+
+    // Today but past time validation
+    if (date === todayStr && time !== 'anytime') {
+      const selectedHour = parseInt(time.split(':')[0]);
+      if (selectedHour <= currentHour) {
+        showModal('신청 불가', '현재 시간 이전으로는 상담을 신청하실 수 없습니다. 현재 시간 이후의 상담 시간을 선택해주세요.');
+        return;
+      }
+    }
+
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: title,
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null,
+      consultDate: date,
+      consultTime: time
+    };
+
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    showToast('전화상담신청이 등록되었습니다.');
+    setTimeout(() => {
+      window.mypageMainTab = 'history';
+      window.mypageHistoryTab = 'general';
+      window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+    }, 1500);
+  } else {
+    if (!memo) {
+      alert('문의 내용을 입력해주세요.');
+      return;
+    }
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: '온라인 건강 문의',
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null
+    };
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    alert('문의가 등록되었습니다.\n문의 등록 후 3일 이내에 답변이 등록됩니다.');
+    window.mypageMainTab = 'history';
+    window.mypageHistoryTab = 'general';
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }
+};
+
+========== STEP 84 : replace_file_content ==========
+--- TARGET ---
+    if (state.activeMenuId === 'mypage') {
+      contentHtml = `
+        <div class="mypage-wrapper" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          ${detailContentHtml}
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="subpage-wrapper">
+          <aside class="sidebar">
+            <ul class="sidebar-tree">${sidebarHtml}</ul>
+          </aside>
+          <section class="subpage-content fade-in">
+            <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
+              홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+              ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+            </div>
+            <div class="guide-content-box">
+               <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
+               <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
+               ${detailContentHtml}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+--- REPLACEMENT ---
+    if (state.activeMenuId === 'mypage') {
+      contentHtml = `
+        <div class="mypage-wrapper" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          ${detailContentHtml}
+        </div>
+      `;
+    } else if (state.activeMenuId === 'healthConsulting' || state.activeMenuId === 'checkupAppt' || state.activeMenuId === 'search') {
+      contentHtml = `
+        <div class="wide-page-wrapper" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b; text-align: left;">
+            홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+            ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children?.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+          </div>
+          <div class="wide-content-box" style="text-align: left;">
+             ${detailContentHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="subpage-wrapper">
+          <aside class="sidebar">
+            <ul class="sidebar-tree">${sidebarHtml}</ul>
+          </aside>
+          <section class="subpage-content fade-in">
+            <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
+              홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+              ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children?.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+            </div>
+            <div class="guide-content-box">
+               <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
+               <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
+               ${detailContentHtml}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+========== STEP 93 : replace_file_content ==========
+--- TARGET ---
+  // Redirection logic for healthInfo submenus
+--- REPLACEMENT ---
+  // Redirection logic for healthConsulting submenus
+  if (state.activeMenuId === 'healthConsulting' && !state.activeSubId) {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/healthConsulting/general`;
+    return;
+  }
+
+  // Redirection logic for healthInfo submenus
+
+========== STEP 107 : replace_file_content ==========
+--- TARGET ---
+    const isConsultingGroup = state.activeMenuId === 'healthConsulting' || activeMenu?.id === 'healthConsulting' || pageTitle.includes('상담');
+    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || state.activeSubId === 'history' || activeSub?.id === 'history' || ((pageTitle.includes('이력') || pageTitle.includes('내역')) && !pageTitle.includes('검진'));
+    const isCheckupHistoryPage = state.activeSubId === 'checkupHistory' || activeSub?.id === 'checkupHistory' || state.activeSubSubId === 'checkupHistory' || activeSubSub?.id === 'checkupHistory' || pageTitle.includes('신청이력');
+    const isHospitalGuideGroup = state.activeMenuId === 'hospitalGuide' || activeMenu?.id === 'hospitalGuide' || pageTitle.includes('병원안내');
+    const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
+    const isCheckupGroup = state.activeMenuId === 'checkupAppt' || activeMenu?.id === 'checkupAppt' || pageTitle.includes('건강검진');
+    const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+--- REPLACEMENT ---
+    const isConsultingGroup = state.activeMenuId === 'healthConsulting' && (state.activeSubId === 'general' || !state.activeSubId);
+    const isMedicalApptGroup = state.activeMenuId === 'healthConsulting' && state.activeSubId === 'appt';
+    const isHospitalGuideGroup = state.activeMenuId === 'healthConsulting' && state.activeSubId === 'expert';
+    const isHospitalSearchPage = state.activeMenuId === 'search' || state.activeMenuId === 'hospitalSearch';
+    const isHistoryPage = false;
+    const isCheckupHistoryPage = false;
+    const isCheckupGroup = state.activeMenuId === 'checkupAppt';
+    const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+
+========== STEP 137 : replace_file_content ==========
+--- TARGET ---
+    } else if (isHospitalGuideGroup) {
+      const hgMenu = visibleMenus.find(m => m.id === 'hospitalGuide' || m.label.includes('병원안내'));
+      const searchSubId = hgMenu?.children?.find(c => c.label.includes('검색'))?.id || 'search';
+      const expertSubId = hgMenu?.children?.find(c => c.label.includes('명의'))?.id || 'expert';
+      const hgMenuId = hgMenu ? hgMenu.id : 'hospitalGuide';
+
+      if (!state.activeSubId) {
+--- REPLACEMENT ---
+    } else if (isHospitalGuideGroup || isHospitalSearchPage) {
+      const searchSubId = 'search';
+      const expertSubId = 'expert';
+      const hgMenuId = 'search';
+
+      const targetSubId = isHospitalSearchPage ? 'search' : 'expert';
+
+      if (targetSubId === 'intro') {
+
+========== STEP 145 : multi_replace_file_content ==========
+--- TARGET ---
+      } else if (state.activeSubId === expertSubId) {
+--- REPLACEMENT ---
+      } else if (targetSubId === expertSubId) {
+
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">명의안내 전문가 상담 신청</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">명의안내 전문가 상담 신청</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+--- TARGET ---
+      } else if (state.activeSubId === searchSubId) {
+--- REPLACEMENT ---
+      } else if (targetSubId === searchSubId) {
+
+========== STEP 151 : multi_replace_file_content ==========
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">상담 신청 정보 입력</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">상담 신청 정보 입력</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">진료예약 상담 신청 정보 입력</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">진료예약 신청하기</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+========== STEP 155 : replace_file_content ==========
+--- TARGET ---
+      }
+    }
+
+    if (state.activeMenuId === 'mypage') {
+--- REPLACEMENT ---
+      }
+    }
+
+    if (state.activeMenuId === 'healthConsulting') {
+      const tabStyle = `
+        <style>
+          .consulting-tabs-container {
+            display: flex;
+            border-bottom: 2px solid #cbd5e1;
+            margin-bottom: 32px;
+            width: 100%;
+          }
+          .consulting-tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #64748b;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2.5px;
+          }
+          .consulting-tab-btn:hover {
+            color: var(--theme-color);
+          }
+          .consulting-tab-btn.active {
+            color: var(--theme-color);
+            font-weight: 800;
+            border-bottom-color: var(--theme-color);
+          }
+        </style>
+      `;
+      const tabHtml = `
+        ${tabStyle}
+        <div class="consulting-tabs-container">
+          <button class="consulting-tab-btn ${(!state.activeSubId || state.activeSubId === 'general') ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/general'">일반 건강상담</button>
+          <button class="consulting-tab-btn ${state.activeSubId === 'appt' ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/appt'">진료예약</button>
+          <button class="consulting-tab-btn ${state.activeSubId === 'expert' ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'">병원 및 전문의료진 안내</button>
+        </div>
+      `;
+      detailContentHtml = tabHtml + detailContentHtml;
+    }
+
+    if (state.activeMenuId === 'mypage') {
+
+========== STEP 159 : replace_file_content ==========
+--- TARGET ---
+};
+--- REPLACEMENT ---
+};
+
+window.showCheckupSupportModal = function () {
+  const client = state.activeClient;
+  const activeSite = state.activeSite;
+
+  const existing = document.getElementById('checkup-support-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'checkup-support-modal-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000';
+  overlay.style.animation = 'fadeIn 0.2s ease-out';
+
+  overlay.innerHTML = `
+    <div style="background: white; border-radius: 16px; width: 340px; padding: 28px 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); text-align: center; font-family: inherit;">
+      <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">회사지원 확인</h3>
+      <p style="font-size: 14.5px; color: #475569; margin: 0 0 28px 0; font-weight: 600; line-height: 1.5;">회사지원 건강검진이신가요?</p>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="window.handleCheckupSupportChoice(false)" style="flex: 1; padding: 12px; background: #eff6ff; color: #2563eb; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">아니오</button>
+        <button onclick="window.handleCheckupSupportChoice(true)" style="flex: 1; padding: 12px; background: #2563eb; color: white; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">네</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+};
+
+window.handleCheckupSupportChoice = function (isCorporate) {
+  const overlay = document.getElementById('checkup-support-modal-overlay');
+  if (overlay) overlay.remove();
+
+  const client = state.activeClient;
+  const activeSite = state.activeSite;
+
+  if (isCorporate) {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/checkupAppt/checkupCorporate`;
+  } else {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/checkupAppt/checkupPreferred`;
+  }
+};
+
+========== STEP 171 : replace_file_content ==========
+--- TARGET ---
+    }, 50);
+  }
+}
+--- REPLACEMENT ---
+    }, 50);
+  }
+
+  if (state.activeMenuId === 'checkupAppt' && !state.activeSubId) {
+    setTimeout(window.showCheckupSupportModal, 50);
+  }
+}
+
+========== STEP 177 : replace_file_content ==========
+--- TARGET ---
+const defaultMenus = [
+  { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
+  {
+    id: "healthConsulting", defaultLabel: "건강상담", label: "건강상담", isVisible: true, children: [
+      { id: "consultApply", defaultLabel: "건강상담 신청", label: "건강상담 신청", isVisible: false, children: [] },
+      { id: "consultHistory", defaultLabel: "전화상담 및 온라인 문의 이력", label: "전화상담 및 온라인 문의 이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "hospitalGuide", defaultLabel: "병원안내", label: "병원안내", isVisible: true, children: [
+      { id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: [] },
+      { id: "expert", defaultLabel: "명의안내", label: "병원 및 명의안내", isVisible: true, children: [
+        { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+      ] }
+    ]
+  },
+  {
+    id: "medicalAppt", defaultLabel: "진료예약", label: "진료예약", isVisible: true, children: [
+      { id: "history", defaultLabel: "상담 신청 이력", label: "상담 신청 이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "checkupAppt", defaultLabel: "건강검진", label: "건강검진", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: true, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: true, children: [] },
+      { id: "checkupHistory", defaultLabel: "건강검진 신청이력", label: "건강검진 신청이력", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "psyCare", defaultLabel: "마음 힐링케어", label: "마음 힐링케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
+];
+--- REPLACEMENT ---
+const defaultMenus = [
+  { id: "serviceGuide", defaultLabel: "서비스 안내", label: "서비스 안내", isVisible: true, children: [] },
+  {
+    id: "healthConsulting", defaultLabel: "상담·예약 신청", label: "상담·예약 신청", isVisible: true, children: [
+      { id: "general", defaultLabel: "일반 건강상담", label: "일반 건강상담", isVisible: false, children: [] },
+      { id: "appt", defaultLabel: "진료예약", label: "진료예약", isVisible: false, children: [] },
+      { id: "expert", defaultLabel: "병원 및 전문의료진 안내", label: "병원 및 전문의료진 안내", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "search", defaultLabel: "병원검색", label: "병원검색", isVisible: true, children: []
+  },
+  {
+    id: "checkupAppt", defaultLabel: "건강검진 예약", label: "건강검진 예약", isVisible: true, children: [
+      { id: "checkupPreferred", defaultLabel: "건강검진 우대예약", label: "건강검진 우대예약", isVisible: false, children: [] },
+      { id: "checkupCorporate", defaultLabel: "회사지원 건강검진", label: "회사지원 건강검진", isVisible: false, children: [] }
+    ]
+  },
+  {
+    id: "healthInfo", defaultLabel: "건강정보", label: "건강정보", isVisible: true, children: [
+      { id: "categoryInfo", defaultLabel: "분야별 건강정보", label: "분야별 건강정보", isVisible: true, children: [] },
+      { id: "contentSubscribe", defaultLabel: "건강콘텐츠 구독", label: "건강콘텐츠 구독", isVisible: true, children: [] },
+      { id: "healthNews", defaultLabel: "건강뉴스", label: "건강뉴스", isVisible: true, children: [] },
+      { id: "selfDiagnosis", defaultLabel: "키성장 예측 및 비만 자가진단", label: "키성장 예측 및 비만 자가진단", isVisible: true, children: [] }
+    ]
+  },
+  {
+    id: "psyCare", defaultLabel: "심리케어", label: "심리케어", isVisible: true, children: [
+      { id: "psyColumn", defaultLabel: "심리칼럼", label: "심리칼럼", isVisible: true, children: [] },
+      { id: "selfDiagnosisGroup", defaultLabel: "자가진단", label: "자가진단", isVisible: true, children: [
+        { id: "cognitiveDiag", defaultLabel: "인지기능 자가진단", label: "치매자가진단", isVisible: true, children: [] },
+        { id: "depressionDiag", defaultLabel: "우울증 자가진단", label: "우울증 자가진단", isVisible: true, children: [] },
+        { id: "childAdhdDiag", defaultLabel: "소아 ADHD 자가진단", label: "소아 ADHD 자가진단", isVisible: true, children: [] },
+        { id: "childDepressionDiag", defaultLabel: "소아 우울증 자가진단 ", label: "소아 우울증 자가진단 ", isVisible: true, children: [] }
+      ] },
+      { id: "asmrVideo", defaultLabel: "힐링 ASMR 영상", label: "힐링 ASMR 영상", isVisible: true, children: [] }
+    ]
+  }
+];
+
+========== STEP 185 : replace_file_content ==========
+--- TARGET ---
+        if (client.sites) {
+          client.sites.forEach(site => {
+            if (site.menus) {
+              const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+              if (healthMenu && healthMenu.children) {
+                const hasCustom = healthMenu.children.some(c => c.label === '분야별 건강정보' && c.id !== 'categoryInfo');
+                if (hasCustom) {
+                  healthMenu.children = healthMenu.children.filter(c => c.id !== 'categoryInfo');
+                }
+              }
+            }
+          });
+        }
+--- REPLACEMENT ---
+        if (client.sites) {
+          client.sites.forEach(site => {
+            if (site.menus) {
+              const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+              if (healthMenu && healthMenu.children) {
+                const hasCustom = healthMenu.children.some(c => c.label === '분야별 건강정보' && c.id !== 'categoryInfo');
+                if (hasCustom) {
+                  healthMenu.children = healthMenu.children.filter(c => c.id !== 'categoryInfo');
+                }
+              }
+
+              // Migration / cache correction for newly structured menus
+              site.menus = site.menus.filter(m => m.id !== 'hospitalGuide' && m.id !== 'medicalAppt');
+              
+              const defConsulting = defaultMenus.find(m => m.id === 'healthConsulting');
+              const defCheckup = defaultMenus.find(m => m.id === 'checkupAppt');
+              const defSearch = defaultMenus.find(m => m.id === 'search');
+              
+              let hasConsulting = false;
+              let hasCheckup = false;
+              let hasSearch = false;
+              
+              site.menus = site.menus.map(m => {
+                if (m.id === 'healthConsulting') {
+                  hasConsulting = true;
+                  return JSON.parse(JSON.stringify(defConsulting));
+                }
+                if (m.id === 'checkupAppt') {
+                  hasCheckup = true;
+                  return JSON.parse(JSON.stringify(defCheckup));
+                }
+                if (m.id === 'search') {
+                  hasSearch = true;
+                  return JSON.parse(JSON.stringify(defSearch));
+                }
+                return m;
+              });
+
+              if (!hasConsulting && defConsulting) {
+                site.menus.splice(1, 0, JSON.parse(JSON.stringify(defConsulting)));
+              }
+              if (!hasSearch && defSearch) {
+                site.menus.splice(2, 0, JSON.parse(JSON.stringify(defSearch)));
+              }
+              if (!hasCheckup && defCheckup) {
+                const idx = site.menus.findIndex(m => m.id === 'healthInfo');
+                if (idx !== -1) {
+                  site.menus.splice(idx, 0, JSON.parse(JSON.stringify(defCheckup)));
+                } else {
+                  site.menus.push(JSON.parse(JSON.stringify(defCheckup)));
+                }
+              }
+            }
+          });
+        }
+
+========== STEP 193 : replace_file_content ==========
+--- TARGET ---
+window.submitConsulting = function () {
+  const type = document.querySelector('input[name="consult-type"]:checked').value;
+  const memo = document.getElementById('consult-memo').value;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const currentHour = now.getHours();
+
+  let category = '건강상담';
+  const menus = state.activeClient?.menus || [];
+  const activeMenu = state.activeMenuId ? menus.find(m => m.id === state.activeMenuId) : null;
+  const menuLabel = activeMenu ? activeMenu.label : '';
+  if (state.activeMenuId === 'hospitalGuide' || menuLabel.includes('병원안내')) {
+    category = '병원안내';
+  } else if (state.activeMenuId === 'medicalAppt' || menuLabel.includes('진료예약')) {
+    category = '진료예약';
+  }
+
+  const historySub = activeMenu?.children?.find(c => c.id.toLowerCase().includes('history') || c.label.includes('이력') || c.label.includes('내역'));
+  const historySubId = historySub ? historySub.id : (state.activeMenuId === 'medicalAppt' ? 'history' : 'consultHistory');
+
+  if (type === 'phone') {
+    const date = document.getElementById('consult-date').value;
+    const time = document.getElementById('consult-time').value;
+
+    if (!date || !memo) {
+      alert('상담 신청 일자와 요청 내용을 입력해주세요.');
+      return;
+    }
+
+    // Past date validation
+    if (date < todayStr) {
+      showModal('신청 불가', '과거 날짜로는 상담을 신청하실 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+      return;
+    }
+
+    // Today but past time validation
+    if (date === todayStr && time !== 'anytime') {
+      const selectedHour = parseInt(time.split(':')[0]);
+      if (selectedHour <= currentHour) {
+        showModal('신청 불가', '현재 시간 이전으로는 상담을 신청하실 수 없습니다. 현재 시간 이후의 상담 시간을 선택해주세요.');
+        return;
+      }
+    }
+
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: state.activeMenuId === 'medicalAppt' ? '진료예약 상담 신청' : (state.activeMenuId === 'hospitalGuide' ? '병원안내 상담 신청' : '전화 건강상담 신청'),
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null,
+      consultDate: date,
+      consultTime: time
+    };
+
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    showToast('전화상담신청이 등록되었습니다.');
+    setTimeout(() => {
+      window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/${historySubId}`;
+    }, 1500);
+  } else {
+    if (!memo) {
+      alert('문의 내용을 입력해주세요.');
+      return;
+    }
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: '온라인 건강 문의',
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null
+    };
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    alert('문의가 등록되었습니다.\n문의 등록 후 3일 이내에 답변이 등록됩니다.');
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/${state.activeMenuId}/${historySubId}`;
+  }
+};
+--- REPLACEMENT ---
+window.submitConsulting = function () {
+  const type = document.querySelector('input[name="consult-type"]:checked').value;
+  const memo = document.getElementById('consult-memo').value;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const currentHour = now.getHours();
+
+  let category = '건강상담';
+  let title = '전화 건강상담 신청';
+  
+  if (state.activeSubId === 'appt') {
+    category = '진료예약';
+    title = '진료예약 상담 신청';
+  } else if (state.activeSubId === 'expert') {
+    category = '병원안내';
+    title = '병원안내 상담 신청';
+  }
+
+  if (type === 'phone') {
+    const date = document.getElementById('consult-date').value;
+    const time = document.getElementById('consult-time').value;
+
+    if (!date || !memo) {
+      alert('상담 신청 일자와 요청 내용을 입력해주세요.');
+      return;
+    }
+
+    // Past date validation
+    if (date < todayStr) {
+      showModal('신청 불가', '과거 날짜로는 상담을 신청하실 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+      return;
+    }
+
+    // Today but past time validation
+    if (date === todayStr && time !== 'anytime') {
+      const selectedHour = parseInt(time.split(':')[0]);
+      if (selectedHour <= currentHour) {
+        showModal('신청 불가', '현재 시간 이전으로는 상담을 신청하실 수 없습니다. 현재 시간 이후의 상담 시간을 선택해주세요.');
+        return;
+      }
+    }
+
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: title,
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null,
+      consultDate: date,
+      consultTime: time
+    };
+
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    showToast('전화상담신청이 등록되었습니다.');
+    setTimeout(() => {
+      window.mypageMainTab = 'history';
+      window.mypageHistoryTab = 'general';
+      window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+    }, 1500);
+  } else {
+    if (!memo) {
+      alert('문의 내용을 입력해주세요.');
+      return;
+    }
+    const inquiries = JSON.parse(localStorage.getItem('hc_inquiries') || '[]');
+    const newEntry = {
+      id: Date.now(),
+      clientId: state.activeClient.id,
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      type: type,
+      category: category,
+      title: '온라인 건강 문의',
+      content: memo,
+      date: todayStr,
+      status: '접수완료',
+      answer: null,
+      answerDate: null
+    };
+    inquiries.push(newEntry);
+    localStorage.setItem('hc_inquiries', JSON.stringify(inquiries));
+
+    alert('문의가 등록되었습니다.\n문의 등록 후 3일 이내에 답변이 등록됩니다.');
+    window.mypageMainTab = 'history';
+    window.mypageHistoryTab = 'general';
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }
+};
+
+========== STEP 199 : replace_file_content ==========
+--- TARGET ---
+  // Redirection logic for healthInfo submenus
+--- REPLACEMENT ---
+  // Redirection logic for healthConsulting submenus
+  if (state.activeMenuId === 'healthConsulting' && !state.activeSubId) {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/healthConsulting/general`;
+    return;
+  }
+
+  // Redirection logic for healthInfo submenus
+
+========== STEP 205 : replace_file_content ==========
+--- TARGET ---
+    const isConsultingGroup = state.activeMenuId === 'healthConsulting' || activeMenu?.id === 'healthConsulting' || pageTitle.includes('상담');
+    const isHistoryPage = state.activeSubId === 'consultHistory' || activeSub?.id === 'consultHistory' || state.activeSubId === 'history' || activeSub?.id === 'history' || ((pageTitle.includes('이력') || pageTitle.includes('내역')) && !pageTitle.includes('검진'));
+    const isCheckupHistoryPage = state.activeSubId === 'checkupHistory' || activeSub?.id === 'checkupHistory' || state.activeSubSubId === 'checkupHistory' || activeSubSub?.id === 'checkupHistory' || pageTitle.includes('신청이력');
+    const isHospitalGuideGroup = state.activeMenuId === 'hospitalGuide' || activeMenu?.id === 'hospitalGuide' || pageTitle.includes('병원안내');
+    const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
+    const isCheckupGroup = state.activeMenuId === 'checkupAppt' || activeMenu?.id === 'checkupAppt' || pageTitle.includes('건강검진');
+    const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+--- REPLACEMENT ---
+    const isConsultingGroup = state.activeMenuId === 'healthConsulting' && (state.activeSubId === 'general' || !state.activeSubId);
+    const isMedicalApptGroup = state.activeMenuId === 'healthConsulting' && state.activeSubId === 'appt';
+    const isHospitalGuideGroup = state.activeMenuId === 'healthConsulting' && state.activeSubId === 'expert';
+    const isHospitalSearchPage = state.activeMenuId === 'search' || state.activeMenuId === 'hospitalSearch';
+    const isHistoryPage = false;
+    const isCheckupHistoryPage = false;
+    const isCheckupGroup = state.activeMenuId === 'checkupAppt';
+    const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+
+========== STEP 211 : replace_file_content ==========
+--- TARGET ---
+    } else if (isHospitalGuideGroup) {
+      const hgMenu = visibleMenus.find(m => m.id === 'hospitalGuide' || m.label.includes('병원안내'));
+      const searchSubId = hgMenu?.children?.find(c => c.label.includes('검색'))?.id || 'search';
+      const expertSubId = hgMenu?.children?.find(c => c.label.includes('명의'))?.id || 'expert';
+      const hgMenuId = hgMenu ? hgMenu.id : 'hospitalGuide';
+
+      if (!state.activeSubId) {
+--- REPLACEMENT ---
+    } else if (isHospitalGuideGroup || isHospitalSearchPage) {
+      const searchSubId = 'search';
+      const expertSubId = 'expert';
+      const hgMenuId = 'search';
+
+      const targetSubId = isHospitalSearchPage ? 'search' : 'expert';
+
+      if (targetSubId === 'intro') {
+
+========== STEP 219 : multi_replace_file_content ==========
+--- TARGET ---
+      } else if (state.activeSubId === expertSubId) {
+--- REPLACEMENT ---
+      } else if (targetSubId === expertSubId) {
+
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">명의안내 전문가 상담 신청</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">명의안내 전문가 상담 신청</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+--- TARGET ---
+      } else if (state.activeSubId === searchSubId) {
+--- REPLACEMENT ---
+      } else if (targetSubId === searchSubId) {
+
+========== STEP 223 : multi_replace_file_content ==========
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">상담 신청 정보 입력</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">상담 신청 정보 입력</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+--- TARGET ---
+            <h3 style="margin-bottom:24px; font-size:20px; color:#1e293b;">진료예약 상담 신청 정보 입력</h3>
+--- REPLACEMENT ---
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h3 style="margin:0; font-size:20px; color:#1e293b;">진료예약 신청하기</h3>
+              <button onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/mypage'; window.mypageMainTab='history'; window.mypageHistoryTab='general'; render();" style="padding:8px 16px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; font-size:13.5px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">신청 이력</button>
+            </div>
+
+========== STEP 229 : replace_file_content ==========
+--- TARGET ---
+    if (state.activeMenuId === 'mypage') {
+      contentHtml = `
+        <div class="mypage-wrapper" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          ${detailContentHtml}
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="subpage-wrapper">
+          <aside class="sidebar">
+            <ul class="sidebar-tree">${sidebarHtml}</ul>
+          </aside>
+          <section class="subpage-content fade-in">
+            <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
+              홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+              ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+            </div>
+            <div class="guide-content-box">
+               <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
+               <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
+               ${detailContentHtml}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+--- REPLACEMENT ---
+    if (state.activeMenuId === 'mypage') {
+      contentHtml = `
+        <div class="mypage-wrapper" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          ${detailContentHtml}
+        </div>
+      `;
+    } else if (state.activeMenuId === 'healthConsulting' || state.activeMenuId === 'checkupAppt' || state.activeMenuId === 'search') {
+      contentHtml = `
+        <div class="wide-page-wrapper" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px; box-sizing: border-box; animation: fadeIn 0.4s ease-out;">
+          <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b; text-align: left;">
+            홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+            ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children?.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+          </div>
+          <div class="wide-content-box" style="text-align: left;">
+             ${detailContentHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="subpage-wrapper">
+          <aside class="sidebar">
+            <ul class="sidebar-tree">${sidebarHtml}</ul>
+          </aside>
+          <section class="subpage-content fade-in">
+            <div class="breadcrumb-nav" style="margin-bottom:20px; font-size:14px; color:#64748b;">
+              홈 &nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.label || ''}
+              ${state.activeSubId ? `&nbsp;/&nbsp; ${visibleMenus.find(m => m.id === state.activeMenuId)?.children?.find(c => c.id === state.activeSubId)?.label || ''}` : ''}
+            </div>
+            <div class="guide-content-box">
+               <h2 style="font-size:26px; font-weight:700; color:#1e293b;">${pageTitle}</h2>
+               <div style="width:40px; height:4px; background:var(--theme-color); margin:20px 0 30px;"></div>
+               ${detailContentHtml}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+========== STEP 235 : replace_file_content ==========
+--- TARGET ---
+      }
+    }
+
+    if (state.activeMenuId === 'mypage') {
+--- REPLACEMENT ---
+      }
+    }
+
+    if (state.activeMenuId === 'healthConsulting') {
+      const tabStyle = `
+        <style>
+          .consulting-tabs-container {
+            display: flex;
+            border-bottom: 2px solid #cbd5e1;
+            margin-bottom: 32px;
+            width: 100%;
+          }
+          .consulting-tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #64748b;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2.5px;
+          }
+          .consulting-tab-btn:hover {
+            color: var(--theme-color);
+          }
+          .consulting-tab-btn.active {
+            color: var(--theme-color);
+            font-weight: 800;
+            border-bottom-color: var(--theme-color);
+          }
+        </style>
+      `;
+      const tabHtml = `
+        ${tabStyle}
+        <div class="consulting-tabs-container">
+          <button class="consulting-tab-btn ${(!state.activeSubId || state.activeSubId === 'general') ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/general'">일반 건강상담</button>
+          <button class="consulting-tab-btn ${state.activeSubId === 'appt' ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/appt'">진료예약</button>
+          <button class="consulting-tab-btn ${state.activeSubId === 'expert' ? 'active' : ''}" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'">병원 및 전문의료진 안내</button>
+        </div>
+      `;
+      detailContentHtml = tabHtml + detailContentHtml;
+    }
+
+    if (state.activeMenuId === 'mypage') {
+
+========== STEP 239 : replace_file_content ==========
+--- TARGET ---
+};
+
+window.showModal = function (title, message) {
+--- REPLACEMENT ---
+};
+
+window.showCheckupSupportModal = function () {
+  const client = state.activeClient;
+  const activeSite = state.activeSite;
+
+  const existing = document.getElementById('checkup-support-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'checkup-support-modal-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000';
+  overlay.style.animation = 'fadeIn 0.2s ease-out';
+
+  overlay.innerHTML = `
+    <div style="background: white; border-radius: 16px; width: 340px; padding: 28px 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); text-align: center; font-family: inherit;">
+      <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">회사지원 확인</h3>
+      <p style="font-size: 14.5px; color: #475569; margin: 0 0 28px 0; font-weight: 600; line-height: 1.5;">회사지원 건강검진이신가요?</p>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="window.handleCheckupSupportChoice(false)" style="flex: 1; padding: 12px; background: #eff6ff; color: #2563eb; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">아니오</button>
+        <button onclick="window.handleCheckupSupportChoice(true)" style="flex: 1; padding: 12px; background: #2563eb; color: white; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">네</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+};
+
+window.handleCheckupSupportChoice = function (isCorporate) {
+  const overlay = document.getElementById('checkup-support-modal-overlay');
+  if (overlay) overlay.remove();
+
+  const client = state.activeClient;
+  const activeSite = state.activeSite;
+
+  if (isCorporate) {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/checkupAppt/checkupCorporate`;
+  } else {
+    window.location.hash = `#/portal/${client.id}/${activeSite.siteId}/checkupAppt/checkupPreferred`;
+  }
+};
+
+window.showModal = function (title, message) {
+
+========== STEP 245 : replace_file_content ==========
+--- TARGET ---
+    }, 50);
+  }
+}
+--- REPLACEMENT ---
+    }, 50);
+  }
+
+  if (state.activeMenuId === 'checkupAppt' && !state.activeSubId) {
+    setTimeout(window.showCheckupSupportModal, 50);
+  }
+}
+
+========== STEP 275 : replace_file_content ==========
+--- TARGET ---
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }
+};
+};
+
+window.showCheckupSupportModal = function () {
+--- REPLACEMENT ---
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }
+};
+
+window.showCheckupSupportModal = function () {
+
+========== STEP 331 : replace_file_content ==========
+--- TARGET ---
+          }
+        }
+      });
+
+          const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+--- REPLACEMENT ---
+          }
+
+          const healthMenu = site.menus.find(m => m.id === 'healthInfo');
+
+========== STEP 355 : replace_file_content ==========
+--- TARGET ---
+       <div class="quick-menu-grid">
+          <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'">
+             <h3>병원 찾기</h3>
+             <p>내 주변 제휴 병원 및 명의 검색</p>
+          </div>
+--- REPLACEMENT ---
+       <div class="quick-menu-grid">
+          <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'">
+             <h3>병원 찾기</h3>
+             <p>내 주변 제휴 병원 및 명의 검색</p>
+          </div>
+
+========== STEP 357 : replace_file_content ==========
+--- TARGET ---
+          <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'">
+--- REPLACEMENT ---
+          <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'">
+
+========== STEP 361 : replace_file_content ==========
+--- TARGET ---
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'">
+--- REPLACEMENT ---
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'">
+
+========== STEP 365 : replace_file_content ==========
+--- TARGET ---
+           <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
+--- REPLACEMENT ---
+           <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting/expert'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
+
+========== STEP 411 : replace_file_content ==========
+--- TARGET ---
+  showToast('전문가 건강검진 맞춤설계 신청이 접수되었습니다.');
+  setTimeout(() => {
+    let targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/checkupHistory`;
+    const site = state.activeClient.sites.find(s => s.siteId === state.activeSite.siteId);
+    const checkupMenu = site?.menus?.find(m => m.id === 'checkupAppt');
+    if (checkupMenu && checkupMenu.children) {
+        for (const sub of checkupMenu.children) {
+            if (sub.id === 'checkupHistory' || sub.label?.includes('신청이력')) {
+                targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/${sub.id}`;
+                break;
+            }
+            if (sub.children && sub.children.some(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'))) {
+                const subSub = sub.children.find(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'));
+                targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/${sub.id}/${subSub.id}`;
+                break;
+            }
+        }
+    }
+    window.location.hash = targetHash;
+  }, 1500);
+--- REPLACEMENT ---
+  showToast('전문가 건강검진 맞춤설계 신청이 접수되었습니다.');
+  setTimeout(() => {
+    window.mypageMainTab = 'history';
+    window.mypageHistoryTab = 'checkup';
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }, 1500);
+
+========== STEP 417 : replace_file_content ==========
+--- TARGET ---
+  showToast('건강검진 간편 예약 신청이 성공적으로 등록되었습니다.');
+  setTimeout(() => {
+    let targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/checkupHistory`;
+    const site = state.activeClient.sites.find(s => s.siteId === state.activeSite.siteId);
+    const checkupMenu = site?.menus?.find(m => m.id === 'checkupAppt');
+    if (checkupMenu && checkupMenu.children) {
+        for (const sub of checkupMenu.children) {
+            if (sub.id === 'checkupHistory' || sub.label?.includes('신청이력')) {
+                targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/${sub.id}`;
+                break;
+            }
+            if (sub.children && sub.children.some(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'))) {
+                const subSub = sub.children.find(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'));
+                targetHash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/${sub.id}/${subSub.id}`;
+                break;
+            }
+        }
+    }
+    window.location.hash = targetHash;
+  }, 1500);
+--- REPLACEMENT ---
+  showToast('건강검진 간편 예약 신청이 성공적으로 등록되었습니다.');
+  setTimeout(() => {
+    window.mypageMainTab = 'history';
+    window.mypageHistoryTab = 'checkup';
+    window.location.hash = `#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage`;
+  }, 1500);
+
+========== STEP 423 : replace_file_content ==========
+--- TARGET ---
+                // Find correct path for checkupHistory
+                let targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/checkupHistory';
+                const site = state.activeClient.sites.find(s => s.siteId === state.activeSite.siteId);
+                const checkupMenu = site?.menus?.find(m => m.id === 'checkupAppt');
+                if (checkupMenu && checkupMenu.children) {
+                    for (const sub of checkupMenu.children) {
+                        if (sub.id === 'checkupHistory' || sub.label?.includes('신청이력')) {
+                            targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/' + sub.id;
+                            break;
+                        }
+                        if (sub.children && sub.children.some(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'))) {
+                            const subSub = sub.children.find(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'));
+                            targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/' + sub.id + '/' + subSub.id;
+                            break;
+                        }
+                    }
+                }
+                alert('예약 신청이 성공적으로 완료되었습니다.\\n신청이력 화면으로 이동합니다.');
+                window.location.hash = targetHash;
+--- REPLACEMENT ---
+                alert('예약 신청이 성공적으로 완료되었습니다.\\\n신청이력 화면으로 이동합니다.');
+                window.mypageMainTab = 'history';
+                window.mypageHistoryTab = 'checkup';
+                window.location.hash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage';
+
+========== STEP 429 : replace_file_content ==========
+--- TARGET ---
+                // Find correct path for checkupHistory
+                let targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/checkupHistory';
+                const site = state.activeClient.sites.find(s => s.siteId === state.activeSite.siteId);
+                const checkupMenu = site?.menus?.find(m => m.id === 'checkupAppt');
+                if (checkupMenu && checkupMenu.children) {
+                    for (const sub of checkupMenu.children) {
+                        if (sub.id === 'checkupHistory' || sub.label?.includes('신청이력')) {
+                            targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/' + sub.id;
+                            break;
+                        }
+                        if (sub.children && sub.children.some(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'))) {
+                            const subSub = sub.children.find(c => c.id === 'checkupHistory' || c.label?.includes('신청이력'));
+                            targetHash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/checkupAppt/' + sub.id + '/' + subSub.id;
+                            break;
+                        }
+                    }
+                }
+                alert('예약 신청이 성공적으로 완료되었습니다.\\n신청이력 화면으로 이동합니다.');
+                window.location.hash = targetHash;
+--- REPLACEMENT ---
+                alert('예약 신청이 성공적으로 완료되었습니다.\\\n신청이력 화면으로 이동합니다.');
+                window.mypageMainTab = 'history';
+                window.mypageHistoryTab = 'checkup';
+                window.location.hash = '#/portal/${state.activeClient.id}/${state.activeSite.siteId}/mypage';
+
+========== STEP 497 : replace_file_content ==========
+--- TARGET ---
+  function findMenuInList(list, id) {
+    if (!list) return null;
+    for (let m of list) {
+--- REPLACEMENT ---
+  function findMenuInList(list, id) {
+    if (!list || !Array.isArray(list)) return null;
+    for (let m of list) {
+
+========== STEP 503 : replace_file_content ==========
+--- TARGET ---
+  function findMenuInList(list, id) {
+    if (!list) return null;
+    for (let m of list) {
+--- REPLACEMENT ---
+  function findMenuInList(list, id) {
+    if (!list || !Array.isArray(list)) return null;
+    for (let m of list) {
+
+========== STEP 539 : replace_file_content ==========
+--- TARGET ---
+function getMenuPath(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return `${fallback}/${subId}`;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return `${m.id}/${child.id}`;
+      }
+    }
+  }
+  return `${fallback}/${subId}`;
+}
+
+function getParentMenuLabel(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return fallback;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return m.label;
+      }
+    }
+  }
+  return fallback;
+}
+--- REPLACEMENT ---
+function getMenuPath(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return `${fallback}/${subId}`;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children && Array.isArray(m.children)) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return `${m.id}/${child.id}`;
+      }
+    }
+  }
+  return `${fallback}/${subId}`;
+}
+
+function getParentMenuLabel(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return fallback;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children && Array.isArray(m.children)) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return m.label;
+      }
+    }
+  }
+  return fallback;
+}
+
+========== STEP 545 : replace_file_content ==========
+--- TARGET ---
+function getMenuPath(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return `${fallback}/${subId}`;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return `${m.id}/${child.id}`;
+      }
+    }
+  }
+  return `${fallback}/${subId}`;
+}
+
+function getParentMenuLabel(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return fallback;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return m.label;
+      }
+    }
+  }
+  return fallback;
+}
+--- REPLACEMENT ---
+function getMenuPath(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return `${fallback}/${subId}`;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children && Array.isArray(m.children)) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return `${m.id}/${child.id}`;
+      }
+    }
+  }
+  return `${fallback}/${subId}`;
+}
+
+function getParentMenuLabel(subId, fallback) {
+  const client = state.activeClient;
+  if (!client) return fallback;
+  const activeSite = state.activeSite || client.sites[0];
+  const menus = activeSite?.menus || [];
+  for (const m of menus) {
+    if (m.children && Array.isArray(m.children)) {
+      const child = m.children.find(c => c.id === subId);
+      if (child) {
+        return m.label;
+      }
+    }
+  }
+  return fallback;
+}
+
+========== STEP 551 : replace_file_content ==========
+--- TARGET ---
+        if (site.menus) {
+--- REPLACEMENT ---
+        if (site.menus && Array.isArray(site.menus)) {
+
+========== STEP 555 : replace_file_content ==========
+--- TARGET ---
+        if (site.menus) {
+--- REPLACEMENT ---
+        if (site.menus && Array.isArray(site.menus)) {
+
+========== STEP 584 : replace_file_content ==========
+--- TARGET ---
+// Data Models (Default/Fallback)
+const clientConfigs = {
+--- REPLACEMENT ---
+try {
+// Data Models (Default/Fallback)
+const clientConfigs = {
+
+========== STEP 586 : replace_file_content ==========
+--- TARGET ---
+};
+
+render();
+--- REPLACEMENT ---
+};
+
+render();
+} catch (err) {
+  alert("app.js 런타임 에러 감지!\n\n스택:\n" + err.stack);
+}
+
+========== STEP 590 : replace_file_content ==========
+--- TARGET ---
+// Data Models (Default/Fallback)
+const clientConfigs = {
+--- REPLACEMENT ---
+try {
+// Data Models (Default/Fallback)
+const clientConfigs = {
+
+========== STEP 600 : replace_file_content ==========
+--- TARGET ---
+  window.addEventListener('hashchange', function(){ setTimeout(markMobileRoute, 80); });
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(markMobileRoute, 120); });
+  var mo = new MutationObserver(function(){ markMobileRoute(); });
+  window.addEventListener('DOMContentLoaded', function(){ if (document.body) mo.observe(document.body, {childList:true, subtree:true}); });
+})();
+--- REPLACEMENT ---
+  window.addEventListener('hashchange', function(){ setTimeout(markMobileRoute, 80); });
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(markMobileRoute, 120); });
+  var mo = new MutationObserver(function(){ markMobileRoute(); });
+  window.addEventListener('DOMContentLoaded', function(){ if (document.body) mo.observe(document.body, {childList:true, subtree:true}); });
+})();
+} catch (err) {
+  alert("m_app.js 런타임 에러 감지!\n\n스택:\n" + err.stack);
+}
+
+
