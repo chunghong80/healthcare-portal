@@ -17,6 +17,7 @@ const BRAND_DEFAULTS = {
 // --- Global State ---
 let adminClientConfigs = {
   kyobo: { id: "kyobo", name: "교보생명", serviceName: "교보생명 헬스케어", csNumber: "1588-7524", clientLink: "https://www.kyobo.com", dasomLink: "", tiers: ["VIP", "골드", "실버"], heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요." }, menus: [] },
+  dasom: { id: "dasom", name: "교보다솜케어", serviceName: "교보다솜헬스케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", tiers: ["통합등급", "우대등급"], heroText: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다." }, menus: [] },
   gs: { id: "gs", name: "GS리테일", serviceName: "교보다솜헬스케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", tiers: ["임직원", "경영진", "파트너", "협력사"], heroText: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다." }, menus: [] },
   other: { id: "other", name: "A기업", serviceName: "교보다솜헬스케어", csNumber: "1588-1003", clientLink: "", dasomLink: "", tiers: ["BASIC", "PREMIUM"], heroText: { title: "임직원 복지 라운지", subtitle: "A기업 임직원만을 위한 프리미엄 건강 관리 혜택을 만나보세요." }, menus: [] },
   b_corp: { id: "b_corp", name: "B기업", serviceName: "교보다솜헬스케어", csNumber: "1588-1004", clientLink: "", dasomLink: "", tiers: ["GOLD", "VIP", "VVIP"], heroText: { title: "B기업 헬스케어", subtitle: "B기업 임직원 맞춤형 건강 관리 포털" }, menus: [] },
@@ -147,6 +148,9 @@ function loadAllData() {
     }
     
     // Migration & Default initialization
+    if (adminClientConfigs.dasom) {
+      adminClientConfigs.dasom.name = "교보다솜케어";
+    }
     Object.values(adminClientConfigs).forEach(client => {
       if (!client.sites || client.sites.length === 0) {
         let currentMenus = client.menus;
@@ -164,30 +168,30 @@ function loadAllData() {
         }
         
         let siteName = "교보다솜헬스케어";
-        let siteUrl = "https://health.kyobodasomcare.co.kr";
+        let siteUrl = "https://kyobodasomcare.com/health";
         let siteType = "공통";
         let status = "active";
 
         if (client.id === "kyobo") {
           siteName = "교보생명 헬스케어";
-          siteUrl = "https://health.kyobolife.co.kr";
+          siteUrl = "https://kyobodasomcare.com/health/kyobo";
           siteType = "분기";
         } else if (client.id === "c_corp") {
           siteName = "C기업 헬스케어";
-          siteUrl = "https://health.ccompany.co.kr";
+          siteUrl = "https://kyobodasomcare.com/health/c-corp";
           siteType = "분기";
         } else if (client.id === "d_corp") {
           siteName = "D기업 헬스케어";
-          siteUrl = "https://health.dcompany.co.kr";
+          siteUrl = "https://kyobodasomcare.com/health/d-corp";
           siteType = "분기";
           status = "inactive";
         } else if (client.id === "f_corp") {
           siteName = "F기업 헬스케어";
-          siteUrl = "https://health.fcompany.co.kr";
+          siteUrl = "https://kyobodasomcare.com/health/f-corp";
           siteType = "분기";
         } else if (client.id === "g_corp") {
           siteName = "G기업 헬스케어";
-          siteUrl = "https://health.gcompany.co.kr";
+          siteUrl = "https://kyobodasomcare.com/health/g-corp";
           siteType = "분기";
         } else if (client.id === "u_corp") {
           status = "inactive";
@@ -913,22 +917,33 @@ function renderSiteManagementList(container) {
     if (client.sites && client.sites.length > 0) {
       client.sites.forEach(site => {
         let url = site.siteUrl || "";
-        if (!url) {
-          if (client.id === 'dasom' || site.siteName === '교보다솜헬스케어' || site.isCommonSite) {
-            url = 'https://health.kyobodasomcare.co.kr';
+        if (!url || url.includes("kyobodasomcare.co.kr") || url.includes("kyobolife.co.kr") || url.includes("company.co.kr") || url.includes("othercompany.co.kr")) {
+          if (client.id === 'dasom' || site.siteName === '교보다솜헬스케어' || site.isCommonSite || site.siteType === '공통') {
+            url = 'https://kyobodasomcare.com/health';
           } else if (client.id === 'kyobo') {
-            url = 'https://health.kyobolife.co.kr';
+            url = 'https://kyobodasomcare.com/health/kyobo';
+          } else if (client.id === 'c_corp') {
+            url = 'https://kyobodasomcare.com/health/c-corp';
+          } else if (client.id === 'd_corp') {
+            url = 'https://kyobodasomcare.com/health/d-corp';
+          } else if (client.id === 'f_corp') {
+            url = 'https://kyobodasomcare.com/health/f-corp';
+          } else if (client.id === 'g_corp') {
+            url = 'https://kyobodasomcare.com/health/g-corp';
           } else {
-            url = `https://health.${client.id}company.co.kr`;
+            url = `https://kyobodasomcare.com/health/${client.id}`;
           }
         } else if (!url.startsWith('http')) {
-          url = 'https://' + url;
+          url = 'https://kyobodasomcare.com/health/' + url.replace(/^\/+/, '');
         }
+
+        let rawClientName = client.name ? client.name.trim() : client.id;
+        rawClientName = rawClientName.replace(/\(슈퍼사이트\)/g, '').replace(/\(dasom\)/g, '').replace(/\(제휴사\)/g, '').trim();
 
         distinctSiteUrls.add(site.siteName || url);
         siteRows.push({
           clientId: client.id,
-          clientName: client.name ? client.name.trim() : client.id,
+          clientName: rawClientName,
           siteId: site.siteId,
           siteName: site.siteName || '기본 사이트',
           siteUrl: url,
@@ -1047,11 +1062,12 @@ function renderSiteManagementList(container) {
         <thead>
           <tr>
             <th style="width:140px;">고객사명</th>
-            <th style="width:180px;">사이트명</th>
+            <th style="width:160px;">사이트명</th>
+            <th style="width:80px;">유형</th>
             <th>접속 URL</th>
-            <th style="width:180px;">적용등급</th>
-            <th style="width:120px;">운영상태</th>
-            <th style="width:100px;">관리</th>
+            <th style="width:160px;">적용등급</th>
+            <th style="width:100px;">운영상태</th>
+            <th style="width:110px; min-width:110px;">관리</th>
           </tr>
         </thead>
         <tbody id="site-list-tbody">
@@ -1074,7 +1090,7 @@ window.renderSiteListTableRows = function(rows) {
   if (rows.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="padding:40px; text-align:center; color:#94a3b8; font-size:14px;">
+        <td colspan="7" style="padding:40px; text-align:center; color:#94a3b8; font-size:14px;">
           검색 결과가 없습니다.
         </td>
       </tr>
@@ -1098,11 +1114,16 @@ window.renderSiteListTableRows = function(rows) {
       : `<span class="site-status-badge inactive">미운영</span>`;
 
     const tiersTooltipStr = tiers.map(t => typeof t === 'object' ? (t.name || t.id) : t).join(', ');
+    const siteTypeLabel = row.siteType || (row.clientId === 'dasom' || row.siteName === '교보다솜헬스케어' ? '공통' : '분기');
+    const typeBadge = siteTypeLabel === '공통'
+      ? `<span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;">공통</span>`
+      : `<span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:#f8fafc; color:#475569; border:1px solid #cbd5e1;">분기</span>`;
 
     return `
       <tr>
         <td style="font-weight:600; color:#1e293b;">${row.clientName}</td>
         <td>${row.siteName}</td>
+        <td>${typeBadge}</td>
         <td>
           <div style="display:inline-flex; align-items:center; gap:8px;">
             <a href="${row.siteUrl}" target="_blank" class="site-url-link">
@@ -1121,8 +1142,8 @@ window.renderSiteListTableRows = function(rows) {
           </div>
         </td>
         <td>${statusBadge}</td>
-        <td>
-          <button class="btn btn-sm" style="border:1px solid #cbd5e1; background:#fff; color:#334155; padding:5px 16px; border-radius:6px; font-size:13px; font-weight:500;" onclick="enterSiteMenuEditor('${row.clientId}', '${row.siteId}')">수정</button>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-sm" style="border:1px solid #cbd5e1; background:#fff; color:#334155; padding:6px 20px; border-radius:6px; font-size:13px; font-weight:600; white-space:nowrap; word-break:keep-all; display:inline-block;" onclick="enterSiteMenuEditor('${row.clientId}', '${row.siteId}')">수정</button>
         </td>
       </tr>
     `;
@@ -1239,7 +1260,7 @@ function renderMenuSettingsEditor(container) {
           <div class="form-group" style="margin-bottom: 8px;">
             <label class="form-label" style="font-weight:600; color:#334155;">포털 URL명 <span id="site-url-required-badge" style="color:#ef4444; font-size:12px; margin-left:4px;">(분기사이트 필수 등록 요건)</span></label>
             <div style="display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden; background:#fff;">
-              <span style="padding:8px 10px; background:#f1f5f9; color:#64748b; font-size:13px; border-right:1px solid #cbd5e1; user-select:none; white-space:nowrap;">https://healthcare.co.kr/</span>
+              <span style="padding:8px 10px; background:#f1f5f9; color:#64748b; font-size:13px; border-right:1px solid #cbd5e1; user-select:none; white-space:nowrap;">https://kyobodasomcare.com/health/</span>
               <input type="text" id="input-siteUrl" style="flex:1; border:none; padding:8px 12px; font-size:13px; outline:none;" placeholder="branch-a">
             </div>
           </div>
@@ -2819,221 +2840,58 @@ window.submitEditSite = function() {
 };
 
 window.openAddSiteModal = function() {
-  const client = adminClientConfigs[currentClientId];
-  
-  // Calculate which tiers are already mapped to another site
-  const usedTiers = new Set();
-  (client.sites || []).forEach(s => {
-    (s.mappedTiers || []).forEach(t => {
-      const name = typeof t === 'object' ? (t.name || t.id) : t;
-      usedTiers.add(name);
-    });
-  });
-  
-  const allTiersMapped = (client.tiers || []).map(t => {
-    const name = typeof t === 'object' ? (t.name || t.id) : t;
-    return {
-      name: name,
-      isUsed: usedTiers.has(name)
-    };
-  });
-
-  window.addSiteShuttleState = {
-    left: allTiersMapped.filter(t => !t.isUsed),
-    leftUsed: allTiersMapped.filter(t => t.isUsed),
-    right: [],
-    leftSearch: "",
-    rightSearch: ""
-  };
-
   const modal = document.createElement("div");
   modal.id = "add-site-modal";
   modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;";
+  
+  const clientOptions = Object.values(adminClientConfigs).map(c => `
+    <option value="${c.id}" ${c.id === currentClientId ? 'selected' : ''}>${c.name} (${c.id})</option>
+  `).join('');
+
   modal.innerHTML = `
-    <div class="config-card" style="width:100%; max-width:700px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
-      <div class="card-header">
-        <h2 class="card-title">신규 사이트 추가</h2>
+    <div class="config-card" style="width:100%; max-width:540px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
+      <div class="card-header" style="background:#f8fafc; padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title" style="font-size:18px; font-weight:700; color:#1e293b; margin:0;">신규 사이트 생성</h2>
+        <button onclick="closeAddSiteModal()" style="background:none; border:none; font-size:20px; color:#94a3b8; cursor:pointer; line-height:1;">×</button>
       </div>
-      <div class="card-body">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div class="card-body" style="padding:24px;">
+        <!-- 1순위: 고객사 선택 -->
+        <div class="form-group" style="margin-bottom:20px;">
+          <label class="form-label" style="font-weight:700; color:#1e293b; margin-bottom:8px; display:block; font-size:14px;">
+            1. 대상 고객사 선택 <span style="color:#ef4444; font-size:12px;">(필수)</span>
+          </label>
+          <select id="new-site-client" class="form-select" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; font-weight:500; background:#fff; outline:none;">
+            ${clientOptions}
+          </select>
+          <p style="font-size:12px; color:#64748b; margin-top:4px; margin-bottom:0;">* 신규 사이트를 생성할 대상 고객사를 최상단에서 먼저 선택하세요.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px;">
           <div class="form-group">
-            <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">사이트명</label>
-            <input type="text" id="new-site-name" class="form-input" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
+            <label class="form-label" style="font-weight:700; color:#1e293b; margin-bottom:8px; display:block; font-size:14px;">
+              2. 사이트명 <span style="color:#ef4444; font-size:12px;">(필수)</span>
+            </label>
+            <input type="text" id="new-site-name" class="form-input" placeholder="예: 프리미엄 회원 사이트" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; outline:none;">
           </div>
           <div class="form-group">
-            <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">포털 URL명 <span style="color:#ef4444; font-size:12px;">(필수)</span></label>
+            <label class="form-label" style="font-weight:700; color:#1e293b; margin-bottom:8px; display:block; font-size:14px;">
+              3. 포털 URL명 <span style="color:#ef4444; font-size:12px;">(필수)</span>
+            </label>
             <div style="display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden; background:#fff;">
-              <span style="padding:10px 10px; background:#f1f5f9; color:#64748b; font-size:13px; border-right:1px solid #cbd5e1; user-select:none; white-space:nowrap;">https://healthcare.co.kr/</span>
-              <input type="text" id="new-site-url" placeholder="branch-b" style="flex:1; border:none; padding:10px 12px; font-size:14px; outline:none;">
+              <span style="padding:10px 8px; background:#f1f5f9; color:#64748b; font-size:12px; border-right:1px solid #cbd5e1; user-select:none; white-space:nowrap;">https://kyobodasomcare.com/health/</span>
+              <input type="text" id="new-site-url" placeholder="branch-a" style="flex:1; border:none; padding:10px 8px; font-size:13px; outline:none; min-width:0;">
             </div>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:24px;">
-          <label class="form-label" style="font-weight:600; color:#334155; margin-bottom:8px; display:block;">접근 허용 등급 선택 (Shuttle Box)</label>
-          
-          <div class="shuttle-box" style="display: flex; gap: 12px; align-items: stretch; margin-top: 8px;">
-            <!-- Left List Panel -->
-            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
-                전체 서비스 등급 목록
-              </div>
-              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
-                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteLeft(this.value)">
-              </div>
-              <div id="add-site-shuttle-left" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
-                <!-- Dynamic left items -->
-              </div>
-            </div>
 
-            <!-- Middle Action Buttons -->
-            <div class="shuttle-actions" style="display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 80px; align-items: center; padding: 0 4px;">
-              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('add')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background:#17B890; color:white; border:none; border-radius:6px; cursor:pointer;">
-                추가 ▶
-              </button>
-              <button type="button" class="btn btn-sm" onclick="moveAddSiteTiers('remove')" style="width: 100%; font-size: 14px; font-weight: 600; padding: 10px 4px; display: flex; align-items: center; justify-content: center; gap: 2px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
-                ◀ 제거
-              </button>
-            </div>
-
-            <!-- Right List Panel -->
-            <div class="shuttle-panel" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; background: white; display: flex; flex-direction: column; height: 260px; overflow: hidden;">
-              <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #cbd5e1; font-weight: 600; font-size: 14px; color: #334155;">
-                접속 허용할 등급 목록
-              </div>
-              <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background:#fff;">
-                <input type="text" placeholder="등급 검색..." style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" oninput="filterAddSiteRight(this.value)">
-              </div>
-              <div id="add-site-shuttle-right" style="flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; background:#f8fafc;">
-                <!-- Dynamic right items -->
-              </div>
-            </div>
-          </div>
-          
-          <p style="font-size:12px; color:#64748b; margin-top:8px;">* 선택된 등급의 회원만 이 사이트로 진입이 가능해집니다. 이미 다른 사이트에 지정된 등급은 좌측 목록에서 비활성화되어 중복 매핑이 방지됩니다.</p>
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn" onclick="closeAddSiteModal()">취소</button>
-          <button class="btn btn-primary" onclick="submitAddSite()">추가하기</button>
+        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #f1f5f9; padding-top:16px;">
+          <button class="btn" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:9px 20px; font-weight:500;" onclick="closeAddSiteModal()">취소</button>
+          <button class="btn btn-primary" style="background:#0f2942; color:#fff; padding:9px 24px; font-weight:600; border:none;" onclick="submitAddSite()">사이트 생성 및 이동</button>
         </div>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
-  window.renderAddSiteShuttle();
-};
-
-window.filterAddSiteLeft = function(val) {
-  window.addSiteShuttleState.leftSearch = val;
-  window.renderAddSiteShuttle();
-};
-
-window.filterAddSiteRight = function(val) {
-  window.addSiteShuttleState.rightSearch = val;
-  window.renderAddSiteShuttle();
-};
-
-window.renderAddSiteShuttle = function() {
-  const leftContainer = document.getElementById("add-site-shuttle-left");
-  const rightContainer = document.getElementById("add-site-shuttle-right");
-  if (!leftContainer || !rightContainer) return;
-
-  const leftSearchText = (window.addSiteShuttleState.leftSearch || "").toLowerCase();
-  const rightSearchText = (window.addSiteShuttleState.rightSearch || "").toLowerCase();
-
-  // Render Left
-  let leftHtml = "";
-  
-  // 1. Available active
-  const filteredActiveLeft = window.addSiteShuttleState.left.filter(t => 
-    t.name.toLowerCase().includes(leftSearchText)
-  );
-  filteredActiveLeft.forEach(t => {
-    leftHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
-        <input type="checkbox" class="add-site-left-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
-        <span style="font-weight:500;">${t.name}</span>
-      </label>
-    `;
-  });
-
-  // 2. Disabled used
-  const filteredUsedLeft = window.addSiteShuttleState.leftUsed.filter(t => 
-    t.name.toLowerCase().includes(leftSearchText)
-  );
-  filteredUsedLeft.forEach(t => {
-    leftHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#94a3b8; cursor:not-allowed; margin:0; background:#f8fafc; border-radius:4px; border:1px dashed #cbd5e1; opacity:0.75; user-select:none;">
-        <input type="checkbox" disabled checked style="width:14px; height:14px; cursor:not-allowed; opacity:0.5;">
-        <span style="text-decoration:line-through; font-weight:500;">${t.name}</span>
-        <span style="font-size:11px; color:#f97316; background:#fff7ed; padding:1px 6px; border-radius:4px; margin-left:auto; border:1px solid #ffedd5;">다른 사이트 지정됨</span>
-      </label>
-    `;
-  });
-
-  if (leftHtml === "") {
-    leftHtml = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin-top:20px;">검색 결과 또는 전체 등급이 없습니다.</div>`;
-  }
-  leftContainer.innerHTML = leftHtml;
-
-  // Render Right
-  let rightHtml = "";
-  const filteredRight = window.addSiteShuttleState.right.filter(t => 
-    t.name.toLowerCase().includes(rightSearchText)
-  );
-  filteredRight.forEach(t => {
-    rightHtml += `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:14px; color:#475569; cursor:pointer; margin:0; background:#fff; border-radius:4px; border:1px solid #e2e8f0; user-select:none;">
-        <input type="checkbox" class="add-site-right-chk" value="${t.name}" style="width:14px; height:14px; accent-color:#17B890;">
-        <span style="font-weight:500;">${t.name}</span>
-      </label>
-    `;
-  });
-
-  if (rightHtml === "") {
-    rightHtml = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin-top:20px;">선택된 등급이 없습니다.<br/>(좌측에서 선택 후 추가)</div>`;
-  }
-  rightContainer.innerHTML = rightHtml;
-};
-
-window.moveAddSiteTiers = function(action) {
-  if (action === 'add') {
-    const checked = Array.from(document.querySelectorAll('.add-site-left-chk:checked')).map(el => el.value);
-    if (checked.length === 0) {
-      alert("추가할 등급을 좌측 목록에서 선택해 주세요.");
-      return;
-    }
-    
-    // Safety check for used list
-    const alreadyUsed = checked.filter(name => window.addSiteShuttleState.leftUsed.some(u => u.name === name));
-    if (alreadyUsed.length > 0) {
-      alert(`이미 다른 사이트에 지정된 등급(${alreadyUsed.join(", ")})은 중복 지정할 수 없습니다.`);
-      return;
-    }
-
-    checked.forEach(name => {
-      const idx = window.addSiteShuttleState.left.findIndex(t => t.name === name);
-      if (idx !== -1) {
-        const item = window.addSiteShuttleState.left.splice(idx, 1)[0];
-        window.addSiteShuttleState.right.push(item);
-      }
-    });
-  } else if (action === 'remove') {
-    const checked = Array.from(document.querySelectorAll('.add-site-right-chk:checked')).map(el => el.value);
-    if (checked.length === 0) {
-      alert("제거할 등급을 우측 목록에서 선택해 주세요.");
-      return;
-    }
-
-    checked.forEach(name => {
-      const idx = window.addSiteShuttleState.right.findIndex(t => t.name === name);
-      if (idx !== -1) {
-        const item = window.addSiteShuttleState.right.splice(idx, 1)[0];
-        window.addSiteShuttleState.left.push(item);
-      }
-    });
-  }
-  
-  window.renderAddSiteShuttle();
 };
 
 window.closeAddSiteModal = function() {
@@ -3042,42 +2900,47 @@ window.closeAddSiteModal = function() {
 };
 
 window.submitAddSite = function() {
+  const targetClientId = document.getElementById("new-site-client").value;
   const name = document.getElementById("new-site-name").value.trim();
   if (!name) {
     alert("사이트명을 입력해 주세요.");
+    document.getElementById("new-site-name").focus();
     return;
   }
 
   const urlInput = document.getElementById("new-site-url");
-  const siteUrl = urlInput ? urlInput.value.trim() : "";
-  if (!siteUrl) {
+  const siteUrlVal = urlInput ? urlInput.value.trim() : "";
+  if (!siteUrlVal) {
     alert("포털 URL명(분기 경로)은 분기사이트의 필수 등록 요건입니다. (예: branch-a)");
     if (urlInput) urlInput.focus();
     return;
   }
   
-  const mappedTiers = window.addSiteShuttleState.right.map(t => t.name);
-  if (mappedTiers.length === 0) {
-    alert("사이트에 최소 하나의 접근 등급을 추가해 주세요.");
-    return;
-  }
-  
-  const client = adminClientConfigs[currentClientId];
+  const client = adminClientConfigs[targetClientId];
+  if (!client) return;
+
   const newSiteId = "site_" + Date.now();
+  const defaultSite = client.sites?.[0] || {};
   
-  const defaultSite = client.sites[0] || {};
+  let formattedUrl = siteUrlVal;
+  if (!formattedUrl.startsWith("http")) {
+    formattedUrl = `https://kyobodasomcare.com/health/${siteUrlVal.replace(/^\/+/, '')}`;
+  }
+
   const newSite = {
     siteId: newSiteId,
     siteName: name,
-    siteUrl: siteUrl,
-    mappedTiers: mappedTiers,
+    siteUrl: formattedUrl,
+    siteType: "분기",
+    status: "active",
+    mappedTiers: [...(client.tiers || [])],
     logoImage: defaultSite.logoImage || null,
     themeColor: defaultSite.themeColor || BRAND_DEFAULTS.themeColor,
     themeColorRgb: defaultSite.themeColorRgb || BRAND_DEFAULTS.themeColorRgb,
     menuTextColor: defaultSite.menuTextColor || BRAND_DEFAULTS.menuTextColor,
     heroText: { title: name + "에 오신 것을 환영합니다", subtitle: "고객님을 위한 특별한 혜택과 정보를 제공합니다." },
     serviceName: defaultSite.serviceName || client.serviceName || client.name || "",
-    csNumber: defaultSite.csNumber || client.csNumber || "",
+    csNumber: defaultSite.csNumber || client.csNumber || "1588-1004",
     name: defaultSite.name || client.name || "",
     clientLink: defaultSite.clientLink || "",
     providerName: defaultSite.providerName || BRAND_DEFAULTS.providerName,
@@ -3085,11 +2948,15 @@ window.submitAddSite = function() {
     menus: JSON.parse(JSON.stringify(defaultMenus))
   };
   
+  if (!client.sites) client.sites = [];
   client.sites.push(newSite);
+  
+  currentClientId = targetClientId;
   currentSiteId = newSiteId;
+  
   closeAddSiteModal();
-  showToast(`신규 사이트 '${name}'가 생성되었습니다. 메뉴 설정 화면으로 이동합니다.`);
-  enterSiteMenuEditor(currentClientId, newSiteId);
+  showToast(`'${client.name}'의 신규 사이트 '${name}'가 생성되었습니다. 메뉴 설정 화면으로 이동합니다.`);
+  enterSiteMenuEditor(targetClientId, newSiteId);
 };
 
 window.deleteActiveSite = function() {
