@@ -835,6 +835,7 @@ function getTierName(tier) {
 function getSortedAccessibleSites(client, userTiers) {
   if (!client || !client.sites) return [];
   const sites = client.sites.filter(site =>
+    site.operationStatus !== 'inactive' &&
     site.mappedTiers.some(t => {
       const tStr = getTierName(t);
       return userTiers.some(ut => getTierName(ut) === tStr);
@@ -2059,7 +2060,28 @@ window.scrollPortalTabs = function(direction) {
 
 function renderPortal() {
   const client = state.activeClient;
-  const activeSite = state.activeSite || client.sites[0];
+  const activeSite = state.activeSite || (client ? client.sites[0] : null);
+
+  if (activeSite && activeSite.operationStatus === 'inactive') {
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f8fafc; padding:20px; font-family:'Pretendard', -apple-system, sans-serif;">
+          <div style="max-width:460px; width:100%; background:#fff; border-radius:16px; padding:44px 32px; text-align:center; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05); border:1px solid #e2e8f0;">
+            <div style="width:64px; height:64px; background:#fef2f2; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin:0 auto 20px auto; color:#ef4444;">
+              <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-bottom:12px; line-height:1.4;">현재 운영하지 않는 헬스케어 사이트입니다.</h2>
+            <p style="font-size:14px; color:#64748b; margin-bottom:28px; line-height:1.6;">이용 관련 문의는 고객센터로 문의해 주세요.</p>
+            <a href="#/select" style="display:inline-block; padding:12px 28px; background:#2563eb; color:#fff; font-weight:600; font-size:14px; border-radius:8px; text-decoration:none; box-shadow:0 2px 4px rgba(37,99,235,0.2);">
+              서비스 선택으로 돌아가기
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    return;
+  }
 
   const userTiers = state.currentUser ? (state.currentUser.tiers[client.id] || []) : [];
 
@@ -2286,6 +2308,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
     const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
     const isCheckupGroup = state.activeMenuId === 'checkupAppt' || activeMenu?.id === 'checkupAppt' || pageTitle.includes('건강검진');
     const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+    const isSearchGroup = state.activeMenuId === 'search' || activeMenu?.id === 'search' || state.activeSubId === 'search' || activeSub?.id === 'search' || activeMenu?.label === '병원검색' || activeSub?.label === '병원검색' || pageTitle.includes('병원검색');
 
     const isCategoryInfoPage = state.activeSubId === 'categoryInfo' || activeSub?.label === '분야별 건강정보';
     const isContentSubscribePage = state.activeSubId === 'contentSubscribe' || activeSub?.label === '건강콘텐츠 구독';
@@ -2892,19 +2915,132 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
       } else if (currentTab === 'appt') {
         tabContent = `
           <div style="padding:32px; background:white; border:1px solid #cbd5e1; border-top:none; border-bottom-left-radius:16px; border-bottom-right-radius:16px; animation:fadeIn 0.3s ease;">
-            <div class="consulting-info" style="margin-bottom:32px;">
-              <div class="hg-hero-badge" style="background:#f3e8ff; color:#7e22ce; padding:6px 12px; border-radius:6px; font-weight:700; font-size:14px; display:inline-block; margin-bottom:16px;">진료예약 서비스</div>
-              <h3 style="font-size:22px; font-weight:800; color:#1e293b; margin-bottom:16px;">원활하고 빠른 진료예약을 도와드립니다</h3>
-              <p style="color:#334155; line-height:1.8; font-size:16px; margin-bottom:24px;">
-                원하시는 병원과 의료진을 선택하시면, 전문 상담원이 예약 가능 일정을 확인하여 신속하게 예약을 대행해 드립니다.
-              </p>
-              <div style="background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:32px; font-size:14px; color:#475569; line-height:1.7; border-left:4px solid #8b5cf6;">
-                본 서비스는 전국 협력 병원 네트워크를 통해 우선 예약 혜택 및 신속한 일정 조율을 제공합니다. (단, 상급종합병원의 경우 병원 사정에 따라 일정이 지연될 수 있습니다.)
-              </div>
-              <button class="auth-btn btn-primary" style="background:#8b5cf6; padding:16px 40px; font-size:18px; width:auto; border-radius:12px; box-shadow:0 4px 12px rgba(139,92,246,0.3);" onclick="document.getElementById('appt-form-area').style.display='block'">진료예약 신청하기</button>
+            <!-- Title Header -->
+            <div style="margin-bottom: 28px;">
+              <h3 style="font-size: 24px; font-weight: 800; color: #1e293b; margin: 0 0 6px 0; display: inline-block;">진료예약</h3>
+              <div style="width: 40px; height: 4px; background: #2563eb; border-radius: 2px;"></div>
             </div>
-            
-            <div id="appt-form-area" style="display:none; padding-top:32px; border-top:1px solid #e2e8f0; animation: fadeIn 0.4s ease;">
+
+            <!-- Hero Banner -->
+            <div style="background: #eff6ff; border-radius: 16px; padding: 36px 40px; margin-bottom: 40px; border: 1px solid #dbeafe;">
+              <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: white; border: 1px solid #bfdbfe; color: #2563eb; border-radius: 20px; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                진료예약 서비스
+              </div>
+              <div style="font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.35; margin-bottom: 16px;">
+                꼭 필요한 진료,<br/>
+                <span style="color: #2563eb;">정확한 의료진에게 빠르게 연결해드립니다</span>
+              </div>
+              <div style="font-size: 15px; color: #475569; line-height: 1.65;">
+                건강검진 결과 또는 증상에 따라 상급병원 진료가 필요한 경우,<br/>
+                간호사가 상태 및 소견을 검토하여 적절한 진료과와<br/>
+                전문의료진의 진료예약을 지원해드립니다.
+              </div>
+            </div>
+
+            <!-- Section 1: 이런 경우 사용하세요 -->
+            <div style="text-align: center; font-size: 18px; font-weight: 700; color: #1e293b; margin: 40px 0 24px;">
+              <span style="color: #2563eb; margin-right: 6px;">• •</span> 이런 경우 사용하세요 <span style="color: #2563eb; margin-left: 6px;">• •</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px;">
+              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">건강검진에서<br/>정밀검사 권고를<br/>받은 경우</div>
+              </div>
+              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">여러 병원을 다녀도<br/>원인을 찾기 어려운<br/>경우</div>
+              </div>
+              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">상급병원 진료가<br/>필요한 경우</div>
+              </div>
+              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">어떤 진료과를<br/>가야 할지<br/>어려운 경우</div>
+              </div>
+            </div>
+
+            <!-- Section 2: 서비스 진행 절차 -->
+            <div style="text-align: center; font-size: 18px; font-weight: 700; color: #1e293b; margin: 48px 0 28px;">
+              <span style="color: #2563eb; margin-right: 6px;">• •</span> 서비스 진행 절차 <span style="color: #2563eb; margin-left: 6px;">• •</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; position: relative;">
+              <div style="position: absolute; top: 30px; left: 8%; right: 8%; height: 2px; border-top: 2px dotted #cbd5e1; z-index: 0;"></div>
+
+              <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                  <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">1</span>
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                </div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">상담 신청</div>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.4;">전화로 상담을<br/>신청합니다.</div>
+              </div>
+
+              <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                  <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">2</span>
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">건강검진 결과 및<br/>증상 확인</div>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.4;">검사 결과 및 증상<br/>정보를 전달해 주세요.</div>
+              </div>
+
+              <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                  <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">3</span>
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">간호사 상담 진행</div>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.4;">간호사가 상태 및 소견을<br/>꼼꼼히 확인합니다.</div>
+              </div>
+
+              <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                  <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">4</span>
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">적절한 진료과 및<br/>의료진 검토</div>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.4;">가장 적합한 진료과와<br/>전문의료진을 검토합니다.</div>
+              </div>
+
+              <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                  <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">5</span>
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h4m-4 4h8"></path></svg>
+                </div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">상급병원<br/>진료예약 지원</div>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.4;">원하는 일정에 맞춰<br/>진료예약을 도와드립니다.</div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button class="auth-btn btn-primary" style="width:100%; padding:18px 24px; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:16px; border-radius:12px; background:#2563eb; color:white; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,0.25);" onclick="var f=document.getElementById('appt-form-area')||document.getElementById('medical-appt-form-area'); if(f) f.style.display = f.style.display==='none'?'block':'none';">
+              <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path></svg>
+              <div style="text-align:left;">
+                상담 신청하기 &gt;
+                <div style="font-size:13.5px; font-weight:400; opacity:0.95; margin-top:2px;">전문 간호사가 친절하게 상담해드립니다.</div>
+              </div>
+            </button>
+
+            <!-- Footer Disclaimer Note -->
+            <div style="margin-top:20px; padding:14px 20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:12px; color:#64748b; font-size:13px; line-height:1.5;">
+              <svg width="18" height="18" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="8.01"></line><line x1="12" y1="12" x2="12" y2="16"></line></svg>
+              <div>본 서비스는 의료행위가 아닌 의료정보 안내 및 진료 연계 지원 서비스입니다.<br/>최종 진단 및 치료 여부는 의료진의 판단에 따라 결정됩니다.</div>
+            </div>
+
+            <!-- Hidden/Toggle Form Area -->
+            <div id="appt-form-area" style="display:none; padding-top:32px; margin-top:32px; border-top:1px solid #e2e8f0; animation: fadeIn 0.4s ease;">
               <h4 style="margin-bottom:20px; font-size:18px; color:#1e293b; font-weight:700;">진료예약 정보 입력</h4>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                 <div class="form-group">
@@ -2924,7 +3060,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
                 <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600;">증상 및 희망 병원(선택)</label>
                 <textarea id="consult-memo" class="form-input" placeholder="현재 겪고 계신 증상이나, 희망하시는 특정 병원/의료진이 있다면 적어주세요." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; min-height:120px; resize:vertical;"></textarea>
               </div>
-              <button class="auth-btn btn-primary" style="background:#8b5cf6; width:100%; padding:16px; border-radius:12px;" onclick="submitConsulting()">예약 대행 신청 완료</button>
+              <button class="auth-btn btn-primary" style="background:#2563eb; width:100%; padding:16px; border-radius:12px;" onclick="submitConsulting()">예약 대행 신청 완료</button>
             </div>
           </div>
         `;
@@ -2997,12 +3133,15 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
       `;
 
 } else if (
-  state.activeMenuId === 'hospitalGuide' &&
+  isSearchGroup ||
   (
-    state.activeSubId === 'search' ||
-    !state.activeSubId ||
-    activeSub?.label === '병원검색' ||
-    pageTitle.includes('병원검색')
+    state.activeMenuId === 'hospitalGuide' &&
+    (
+      state.activeSubId === 'search' ||
+      !state.activeSubId ||
+      activeSub?.label === '병원검색' ||
+      pageTitle.includes('병원검색')
+    )
   )
 ) {
         detailContentHtml = `
@@ -3351,111 +3490,127 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
      else if (isMedicalApptGroup) {
       if (!state.activeSubId) {
         detailContentHtml = `
-          <div class="hg-hero">
-            <div class="hg-hero-content">
-              <div class="hg-hero-badge">📅 진료예약 서비스</div>
-              <div class="hg-hero-title">꼭 필요한 진료,<br/><span style="color:#2F4A9A;">정확한 의료진</span>에게 빠르게 연결해드립니다</div>
-              <div class="hg-hero-subtitle">건강검진 결과 또는 증상에 따라 상급병원 진료가 필요한 경우,<br/>간호사가 상태 및 소견을 검토하여 적절한 진료과와<br/>전문의료진의 진료예약을 지원해드립니다.</div>
+          <!-- Title Header -->
+          <div style="margin-bottom: 28px;">
+            <h3 style="font-size: 24px; font-weight: 800; color: #1e293b; margin: 0 0 6px 0; display: inline-block;">진료예약</h3>
+            <div style="width: 40px; height: 4px; background: #2563eb; border-radius: 2px;"></div>
+          </div>
+
+          <!-- Hero Banner -->
+          <div style="background: #eff6ff; border-radius: 16px; padding: 36px 40px; margin-bottom: 40px; border: 1px solid #dbeafe;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: white; border: 1px solid #bfdbfe; color: #2563eb; border-radius: 20px; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              진료예약 서비스
             </div>
-            <div style="flex-shrink:0;">
-              <img src="./images/medical_appt_hero.png" alt="진료예약" style="max-height:220px;" onerror="this.style.display='none'">
+            <div style="font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.35; margin-bottom: 16px;">
+              꼭 필요한 진료,<br/>
+              <span style="color: #2563eb;">정확한 의료진에게 빠르게 연결해드립니다</span>
+            </div>
+            <div style="font-size: 15px; color: #475569; line-height: 1.65;">
+              건강검진 결과 또는 증상에 따라 상급병원 진료가 필요한 경우,<br/>
+              간호사가 상태 및 소견을 검토하여 적절한 진료과와<br/>
+              전문의료진의 진료예약을 지원해드립니다.
             </div>
           </div>
 
-          <div class="hg-how-to-title" style="text-align:center; font-size:20px; font-weight:700; color:#1e293b; margin:48px 0 24px; position:relative;">
-            <span style="color:#2F4A9A;">•</span> 이런 경우 사용하세요 <span style="color:#2F4A9A;">•</span>
+          <!-- Section 1: 이런 경우 사용하세요 -->
+          <div style="text-align: center; font-size: 18px; font-weight: 700; color: #1e293b; margin: 40px 0 24px;">
+            <span style="color: #2563eb; margin-right: 6px;">• •</span> 이런 경우 사용하세요 <span style="color: #2563eb; margin-left: 6px;">• •</span>
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:48px;">
-            <div style="background:white; border:1px solid #cbd5e1; border-radius:16px; padding:24px 16px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.3s ease;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2F4A9A;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px;">
+            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
               </div>
-              <div style="font-weight:600; color:#334155; font-size:15px; line-height:1.4;">건강검진에서<br/>정밀검사 권고를<br/>받은 경우</div>
+              <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">건강검진에서<br/>정밀검사 권고를<br/>받은 경우</div>
             </div>
-            <div style="background:white; border:1px solid #cbd5e1; border-radius:16px; padding:24px 16px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.3s ease;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2F4A9A;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"></path></svg>
+            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"></path></svg>
               </div>
-              <div style="font-weight:600; color:#334155; font-size:15px; line-height:1.4;">여러 병원을 다녀도<br/>원인을 찾기 어려운<br/>경우</div>
+              <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">여러 병원을 다녀도<br/>원인을 찾기 어려운<br/>경우</div>
             </div>
-            <div style="background:white; border:1px solid #cbd5e1; border-radius:16px; padding:24px 16px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.3s ease;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2F4A9A;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
               </div>
-              <div style="font-weight:600; color:#334155; font-size:15px; line-height:1.4;">상급병원 진료가<br/>필요한 경우</div>
+              <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">상급병원 진료가<br/>필요한 경우</div>
             </div>
-            <div style="background:white; border:1px solid #cbd5e1; border-radius:16px; padding:24px 16px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.3s ease;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2F4A9A;">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
               </div>
-              <div style="font-weight:600; color:#334155; font-size:15px; line-height:1.4;">어떤 진료과를<br/>가야 할지<br/>어려운 경우</div>
-            </div>
-          </div>
-
-          <div class="hg-how-to-title" style="text-align:center; font-size:20px; font-weight:700; color:#1e293b; margin:48px 0 24px;">
-            <span style="color:#2F4A9A;">•</span> 서비스 진행 절차 <span style="color:#2F4A9A;">•</span>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:48px; position:relative;">
-            <div style="position:absolute; top:32px; left:10%; right:10%; height:2px; background:repeating-linear-gradient(90deg, #cbd5e1, #cbd5e1 4px, transparent 4px, transparent 8px); z-index:0;"></div>
-            
-            <div style="text-align:center; flex:1; position:relative; z-index:1; padding:0 10px;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:white; border-radius:50%; border:2px solid #2F4A9A; display:flex; align-items:center; justify-content:center; color:#2F4A9A; position:relative;">
-                <span style="position:absolute; top:-10px; left:-10px; background:#2F4A9A; color:white; width:24px; height:24px; border-radius:50%; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center;">1</span>
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-              </div>
-              <div style="font-weight:700; color:#1e293b; font-size:15px; margin-bottom:8px;">상담 신청</div>
-              <div style="font-size:13px; color:#64748b;">전화로 상담을<br/>신청합니다.</div>
-            </div>
-
-            <div style="text-align:center; flex:1; position:relative; z-index:1; padding:0 10px;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:white; border-radius:50%; border:2px solid #2F4A9A; display:flex; align-items:center; justify-content:center; color:#2F4A9A; position:relative;">
-                <span style="position:absolute; top:-10px; left:-10px; background:#2F4A9A; color:white; width:24px; height:24px; border-radius:50%; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center;">2</span>
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-              </div>
-              <div style="font-weight:700; color:#1e293b; font-size:15px; margin-bottom:8px;">건강검진 결과 및<br/>증상 확인</div>
-              <div style="font-size:13px; color:#64748b;">검사 결과 및 증상<br/>정보를 전달해 주세요.</div>
-            </div>
-
-            <div style="text-align:center; flex:1; position:relative; z-index:1; padding:0 10px;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:white; border-radius:50%; border:2px solid #2F4A9A; display:flex; align-items:center; justify-content:center; color:#2F4A9A; position:relative;">
-                <span style="position:absolute; top:-10px; left:-10px; background:#2F4A9A; color:white; width:24px; height:24px; border-radius:50%; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center;">3</span>
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-              </div>
-              <div style="font-weight:700; color:#1e293b; font-size:15px; margin-bottom:8px;">간호사 상담 진행</div>
-              <div style="font-size:13px; color:#64748b;">간호사가 상태 및 소견을<br/>꼼꼼히 확인합니다.</div>
-            </div>
-
-            <div style="text-align:center; flex:1; position:relative; z-index:1; padding:0 10px;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:white; border-radius:50%; border:2px solid #2F4A9A; display:flex; align-items:center; justify-content:center; color:#2F4A9A; position:relative;">
-                <span style="position:absolute; top:-10px; left:-10px; background:#2F4A9A; color:white; width:24px; height:24px; border-radius:50%; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center;">4</span>
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6"></path></svg>
-              </div>
-              <div style="font-weight:700; color:#1e293b; font-size:15px; margin-bottom:8px;">적절한 진료과 및<br/>의료진 검토</div>
-              <div style="font-size:13px; color:#64748b;">가장 적합한 진료과와<br/>전문의료진을 검토합니다.</div>
-            </div>
-
-            <div style="text-align:center; flex:1; position:relative; z-index:1; padding:0 10px;">
-              <div style="width:64px; height:64px; margin:0 auto 16px; background:white; border-radius:50%; border:2px solid #2F4A9A; display:flex; align-items:center; justify-content:center; color:#2F4A9A; position:relative;">
-                <span style="position:absolute; top:-10px; left:-10px; background:#2F4A9A; color:white; width:24px; height:24px; border-radius:50%; font-size:13px; font-weight:bold; display:flex; align-items:center; justify-content:center;">5</span>
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              </div>
-              <div style="font-weight:700; color:#1e293b; font-size:15px; margin-bottom:8px;">상급병원<br/>진료예약 지원</div>
-              <div style="font-size:13px; color:#64748b;">원하는 일정에 맞춰<br/>진료예약을 도와드립니다.</div>
+              <div style="font-weight: 700; color: #334155; font-size: 15px; line-height: 1.4;">어떤 진료과를<br/>가야 할지<br/>어려운 경우</div>
             </div>
           </div>
 
-          <button class="auth-btn btn-primary" style="width:100%; padding:20px; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:12px; border-radius:12px; background:#2563eb; color:white; border:none; cursor:pointer;" onclick="toggleMedicalApptForm()">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path></svg>
+          <!-- Section 2: 서비스 진행 절차 -->
+          <div style="text-align: center; font-size: 18px; font-weight: 700; color: #1e293b; margin: 48px 0 28px;">
+            <span style="color: #2563eb; margin-right: 6px;">• •</span> 서비스 진행 절차 <span style="color: #2563eb; margin-left: 6px;">• •</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; position: relative;">
+            <div style="position: absolute; top: 30px; left: 8%; right: 8%; height: 2px; border-top: 2px dotted #cbd5e1; z-index: 0;"></div>
+
+            <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">1</span>
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              </div>
+              <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">상담 신청</div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.4;">전화로 상담을<br/>신청합니다.</div>
+            </div>
+
+            <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">2</span>
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+              </div>
+              <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">건강검진 결과 및<br/>증상 확인</div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.4;">검사 결과 및 증상<br/>정보를 전달해 주세요.</div>
+            </div>
+
+            <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">3</span>
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              </div>
+              <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">간호사 상담 진행</div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.4;">간호사가 상태 및 소견을<br/>꼼꼼히 확인합니다.</div>
+            </div>
+
+            <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">4</span>
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6"></path></svg>
+              </div>
+              <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">적절한 진료과 및<br/>의료진 검토</div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.4;">가장 적합한 진료과와<br/>전문의료진을 검토합니다.</div>
+            </div>
+
+            <div style="text-align: center; flex: 1; position: relative; z-index: 1; padding: 0 8px;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 14px; background: white; border-radius: 50%; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; color: #2563eb; position: relative;">
+                <span style="position: absolute; top: -4px; left: -4px; background: #1e3a8a; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">5</span>
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h4m-4 4h8"></path></svg>
+              </div>
+              <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 6px;">상급병원<br/>진료예약 지원</div>
+              <div style="font-size: 13px; color: #64748b; line-height: 1.4;">원하는 일정에 맞춰<br/>진료예약을 도와드립니다.</div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button class="auth-btn btn-primary" style="width:100%; padding:18px 24px; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:16px; border-radius:12px; background:#2563eb; color:white; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,0.25);" onclick="var f=document.getElementById('appt-form-area')||document.getElementById('medical-appt-form-area'); if(f) f.style.display = f.style.display==='none'?'block':'none';">
+            <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path></svg>
             <div style="text-align:left;">
               상담 신청하기 &gt;
-              <div style="font-size:14px; font-weight:400; opacity:0.9; margin-top:4px;">전문 간호사가 친절하게 상담해드립니다.</div>
+              <div style="font-size:13.5px; font-weight:400; opacity:0.95; margin-top:2px;">전문 간호사가 친절하게 상담해드립니다.</div>
             </div>
           </button>
 
-          <div class="hg-footer-note" style="margin-top:24px; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:12px; color:#64748b; font-size:13px;">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+          <!-- Footer Disclaimer Note -->
+          <div style="margin-top:20px; padding:14px 20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:12px; color:#64748b; font-size:13px; line-height:1.5;">
+            <svg width="18" height="18" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="8.01"></line><line x1="12" y1="12" x2="12" y2="16"></line></svg>
             <div>본 서비스는 의료행위가 아닌 의료정보 안내 및 진료 연계 지원 서비스입니다.<br/>최종 진단 및 치료 여부는 의료진의 판단에 따라 결정됩니다.</div>
           </div>
 

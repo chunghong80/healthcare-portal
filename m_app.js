@@ -2355,6 +2355,7 @@ function renderPortal() {
     const isMedicalApptGroup = state.activeMenuId === 'medicalAppt' || activeMenu?.id === 'medicalAppt' || pageTitle.includes('진료예약');
     const isCheckupGroup = state.activeMenuId === 'checkupAppt' || activeMenu?.id === 'checkupAppt' || pageTitle.includes('건강검진');
     const isServiceGuideGroup = state.activeMenuId === 'serviceGuide';
+    const isSearchGroup = state.activeMenuId === 'search' || activeMenu?.id === 'search' || state.activeSubId === 'search' || activeSub?.id === 'search' || activeMenu?.label === '병원검색' || activeSub?.label === '병원검색' || pageTitle.includes('병원검색');
 
     const isCategoryInfoPage = state.activeSubId === 'categoryInfo' || activeSub?.label === '분야별 건강정보';
     const isContentSubscribePage = state.activeSubId === 'contentSubscribe' || activeSub?.label === '건강콘텐츠 구독';
@@ -3060,7 +3061,7 @@ function renderPortal() {
         </div>
       `;
 
-      } else if (state.activeSubId === searchSubId) {
+      } else if (isSearchGroup || state.activeSubId === 'search' || (state.activeMenuId === 'hospitalGuide' && (!state.activeSubId || state.activeSubId === 'search'))) {
         detailContentHtml = `
           <div class="hospital-search-wrapper" style="animation: fadeIn 0.4s ease;">
             
