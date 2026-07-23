@@ -1870,7 +1870,7 @@ function getProvidedServiceOrDefault(clientId, tierName) {
           <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: 0.5px;">${clientName} 헬스케어서비스 고객센터</div>
           <div style="font-size: 26px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; display:flex; align-items:center; gap:8px;">
             ${csNumber}
-            <span style="font-size:13.5px; font-weight:500; color:#94a3b8; margin-left: 8px;">평일 09:00 ~ 18:00 (토/일/공휴일 휴무)</span>
+            <span style="font-size:13.5px; font-weight:500; color:#94a3b8; margin-left: 8px;">평일 오전 9시 ~ 오후 6시 (토/일/공휴일 휴무)</span>
           </div>
         </div>
       </div>
@@ -2243,13 +2243,9 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
             <h3>병원 찾기</h3>
             <p>내 주변 제휴 병원 및 명의 검색</p>
          </div>
-         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting'">
-            <h3>상담 신청</h3>
-            <p>의료진과 1:1 건강 상담</p>
-         </div>
-         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/checkupAppt'">
-            <h3>검진 예약</h3>
-            <p>프리미엄 가족 건강검진 예약</p>
+         <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthInfo'">
+            <h3>건강 정보</h3>
+            <p>맞춤형 건강 콘텐츠 및 최신 정보</p>
          </div>
       </div>
     `;
@@ -4905,9 +4901,12 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
       <main class="dashboard container" style="flex:1;">${contentHtml}</main>
       <footer class="footer">
         <div class="container footer-content" style="text-align:center;">
-          <div class="cs-info" style="margin-bottom:32px;">
+          <div class="cs-info" style="margin-bottom:8px;">
             <span class="cs-title">${activeSite.serviceName} 고객센터</span>
             <span class="cs-number">${activeSite.csNumber}</span>
+          </div>
+          <div class="cs-time-sub" style="color:#64748b; font-size:13px; font-weight:500; margin-bottom:24px;">
+            운영시간: 평일 09:00 ~ 18:00 (토/일/공휴일 휴무)
           </div>
           
           <div class="footer-nav" style="padding:16px 0; margin-bottom:24px;">

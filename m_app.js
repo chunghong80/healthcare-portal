@@ -1848,7 +1848,7 @@ function getProvidedServiceOrDefault(clientId, tierName) {
           <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; letter-spacing: 0.5px;">${clientName} 헬스케어서비스 고객센터</div>
           <div style="font-size: 26px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; display:flex; align-items:center; gap:8px;">
             ${csNumber}
-            <span style="font-size:13.5px; font-weight:500; color:#94a3b8; margin-left: 8px;">평일 09:00 ~ 18:00 (토/일/공휴일 휴무)</span>
+            <span style="font-size:13.5px; font-weight:500; color:#94a3b8; margin-left: 8px;">평일 오전 9시 ~ 오후 6시 (토/일/공휴일 휴무)</span>
           </div>
         </div>
       </div>
@@ -2265,21 +2265,16 @@ function renderPortal() {
         </div>
 
         <!-- 3. 주요 서비스 바로가기 -->
-        <div class="quick-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; box-sizing: border-box; width: 100%;">
+        <div class="quick-menu-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; box-sizing: border-box; width: 100%;">
            <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/hospitalGuide'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
               <div style="font-size: 22px; margin-bottom: 4px;">🏥</div>
               <h3 style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0 0 2px 0;">병원 찾기</h3>
               <p style="font-size: 10px; color: #64748b; margin: 0; line-height: 1.2;">병원/명의</p>
            </div>
-           <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthConsulting'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
-              <div style="font-size: 22px; margin-bottom: 4px;">💬</div>
-              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0 0 2px 0;">상담 신청</h3>
-              <p style="font-size: 10px; color: #64748b; margin: 0; line-height: 1.2;">1:1 상담</p>
-           </div>
-           <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/checkupAppt'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
-              <div style="font-size: 22px; margin-bottom: 4px;">📅</div>
-              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0 0 2px 0;">검진 예약</h3>
-              <p style="font-size: 10px; color: #64748b; margin: 0; line-height: 1.2;">가족 검진</p>
+           <div class="quick-card" onclick="window.location.hash='#/portal/${client.id}/${activeSite.siteId}/healthInfo'" style="padding: 12px; text-align: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; width: 100%;">
+              <div style="font-size: 22px; margin-bottom: 4px;">📑</div>
+              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0 0 2px 0;">건강 정보</h3>
+              <p style="font-size: 10px; color: #64748b; margin: 0; line-height: 1.2;">건강 콘텐츠</p>
            </div>
         </div>
 
@@ -2288,7 +2283,7 @@ function renderPortal() {
           <div style="display: flex; align-items: center; gap: 10px;">
             <div style="font-size: 20px;">📞</div>
             <div>
-              <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 1px;">교보헬스케어 고객센터</div>
+              <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 1px;">${activeSite.serviceName || '교보헬스케어'} 고객센터</div>
               <div style="font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.2;">${activeSite.csNumber}</div>
             </div>
           </div>
@@ -4902,6 +4897,7 @@ function renderPortal() {
           <div class="drawer-cs-info">
             <span class="drawer-cs-title">${activeSite.serviceName || '교보헬스케어'} 고객센터</span>
             <span class="drawer-cs-number">${activeSite.csNumber}</span>
+            <span class="drawer-cs-hours" style="font-size: 10px; color: #64748b; display: block; margin-top: 2px;">평일 09:00 ~ 18:00</span>
           </div>
         </div>
         
@@ -4921,9 +4917,12 @@ function renderPortal() {
       <!-- Footer -->
       <footer class="footer">
         <div class="container footer-content" style="text-align:center;">
-          <div class="cs-info" style="margin-bottom:32px;">
+          <div class="cs-info" style="margin-bottom:8px;">
             <span class="cs-title">${activeSite.serviceName} 고객센터</span>
             <span class="cs-number">${activeSite.csNumber}</span>
+          </div>
+          <div class="cs-time-sub" style="color:#64748b; font-size:12px; font-weight:500; margin-bottom:24px;">
+            운영시간: 평일 09:00 ~ 18:00 (토/일/공휴일 휴무)
           </div>
           
           <div class="footer-nav" style="padding:16px 0; margin-bottom:24px;">
