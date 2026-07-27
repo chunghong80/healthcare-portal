@@ -1568,22 +1568,26 @@ window.updateConsultType = function (type) {
   const dateInput = document.getElementById('consult-date');
 
   if (type === 'phone') {
-    phoneFields.style.display = 'grid';
-    dateInput.required = true;
+    if(phoneFields) phoneFields.style.display = 'grid';
+    if(dateInput) dateInput.required = true;
     if (guidanceBox) {
-      guidanceBox.innerHTML = `
-        <i>상담 가능 시간은 평일 오전 9시 ~ 오후 6시입니다.</i>
-        <i>상담을 원하시는 날짜와 시간대를 선택하시고, 상담받고 싶은 내용을 간단히 작성해 주세요.</i>
-        <i>남겨주신 내용을 확인한 후 간호사가 직접 전화드리겠습니다.</i>
-      `;
+      guidanceBox.style.display = 'none';
     }
   } else {
-    phoneFields.style.display = 'none';
-    dateInput.required = false;
+    if(phoneFields) phoneFields.style.display = 'none';
+    if(dateInput) dateInput.required = false;
     if (guidanceBox) {
+      guidanceBox.style.display = 'block';
       guidanceBox.innerHTML = `
-        <i>상담받고 싶은 내용을 작성해 주세요.</i>
-        <i>접수된 문의는 확인 후 영업일 기준 3일 이내에 온라인으로 답변드리겠습니다.</i>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <p style="color:#64748b; font-size:15px; margin:0 0 8px 0;">상담받고 싶은 내용을 작성해 주세요.</p>
+            <p style="color:#64748b; font-size:15px; margin:0;">접수된 문의는 확인 후 영업일 기준 3일 이내에 온라인으로 답변드리겠습니다.</p>
+          </div>
+          <div style="background:#93c5fd; color:white; width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-family:serif; font-size:14px;">
+            i
+          </div>
+        </div>
       `;
     }
   }
@@ -2879,14 +2883,14 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
               <div class="consult-type-selector" style="margin-bottom:20px;">
                 <label class="custom-radio">
                   <input type="radio" name="consult-type" value="phone" checked onclick="updateConsultType('phone')">
-                  <span class="radio-mark"></span> 전화상담
+                  <span class="radio-mark"></span> 전화상담신청
                 </label>
                 <label class="custom-radio">
                   <input type="radio" name="consult-type" value="online" onclick="updateConsultType('online')">
-                  <span class="radio-mark"></span> 온라인 문의
+                  <span class="radio-mark"></span> 온라인 문의 신청
                 </label>
               </div>
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+              <div id="phone-only-fields" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                 <div class="form-group">
                   <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600;">상담 희망 일자</label>
                   <input type="date" id="consult-date" class="form-input" min="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px;">
@@ -2900,9 +2904,11 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
                   </select>
                 </div>
               </div>
+              <div id="consult-guidance-box" style="display:none; background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:20px; border:1px solid #e2e8f0;">
+              </div>
               <div class="form-group" style="margin-bottom:24px;">
-                <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600;">상담 내용</label>
-                <textarea id="consult-memo" class="form-input" placeholder="상담하실 내용을 간단히 적어주세요." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; min-height:120px; resize:vertical;"></textarea>
+                <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600;">상담 및 문의 내용</label>
+                <textarea id="consult-memo" class="form-input" placeholder="상담 및 문의하실 내용을 간단히 적어주세요." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; min-height:120px; resize:vertical;"></textarea>
               </div>
               <button class="auth-btn btn-primary" style="width:100%; padding:16px; border-radius:12px;" onclick="submitConsulting()">신청 완료</button>
             </div>
