@@ -1,0 +1,81 @@
+{"kind":"deck","id":"pr/1k6hu9","name":"Deck"}
+{"kind":"layout","layoutId":"8feeded2-5a7f-42a9-981f-63dd03e061d3","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"15d33fd0-e9bd-4495-90a6-1b3b5de35e01","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/o17zhr","slide":1,"title":"고객사·우리 회사·회원의 업무 관계","textShapes":16}
+{"kind":"textbox","id":"sh/36lsru18","slide":1,"text":"고객사·우리 회사·회원의 업무 관계","textPreview":"고객사·우리 회사·회원의 업무 관계","textChars":19,"textLines":1,"bbox":[64,45,1152,77]}
+{"kind":"textbox","id":"sh/47utkzit","slide":1,"text":"고객사는 이용 대상을 정하고, 우리 회사는 해당 회원의 서비스를 운영합니다","textPreview":"고객사는 이용 대상을 정하고, 우리 회사는 해당 회원의 서비스를 운영합니다","textChars":41,"textLines":1,"bbox":[66,129,1148,58]}
+{"kind":"textbox","id":"sh/p8nat4je","slide":1,"text":"헬스케어포털 업무 흐름","textPreview":"헬스케어포털 업무 흐름","textChars":12,"textLines":1,"bbox":[66,672,1000,28]}
+{"kind":"textbox","id":"sh/uhcrep0r","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1164,672,48,28]}
+{"kind":"shape","id":"sh/filsnu1c","slide":1,"bbox":[66,245,310,177]}
+{"kind":"textbox","id":"sh/g3u9gzix","slide":1,"text":"고객사","textPreview":"고객사","textChars":3,"textLines":1,"bbox":[78,263,286,50]}
+{"kind":"textbox","id":"sh/h43ap4j2","slide":1,"text":"회원정보 제공\n회원별 등급 결정","textPreview":"회원정보 제공 | 회원별 등급 결정","textChars":17,"textLines":2,"bbox":[80,321,282,95]}
+{"kind":"shape","id":"sh/6dsra50f","slide":1,"bbox":[485,245,310,177]}
+{"kind":"textbox","id":"sh/7e1sja10","slide":1,"text":"우리 회사","textPreview":"우리 회사","textChars":5,"textLines":1,"bbox":[497,263,286,50]}
+{"kind":"textbox","id":"sh/3qxsfits","slide":1,"text":"회원 확인\n등급별 서비스 연결","textPreview":"회원 확인 | 등급별 서비스 연결","textChars":16,"textLines":2,"bbox":[499,321,282,95]}
+{"kind":"shape","id":"sh/2pobmds7","slide":1,"bbox":[904,245,310,177]}
+{"kind":"textbox","id":"sh/psfuh8by","slide":1,"text":"회원","textPreview":"회원","textChars":2,"textLines":1,"bbox":[916,263,286,50]}
+{"kind":"textbox","id":"sh/or6to3ad","slide":1,"text":"로그인·인증\n서비스 확인·이용","textPreview":"로그인·인증 | 서비스 확인·이용","textChars":16,"textLines":2,"bbox":[918,321,282,95]}
+{"kind":"shape","id":"sh/buhcji94","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/qt8bqdsj","slide":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/dwzulsru","slide":1,"text":"정보 전달","textPreview":"정보 전달","textChars":5,"textLines":1,"bbox":[374,292,112,42]}
+{"kind":"textbox","id":"sh/cvqtsnap","slide":1,"text":"서비스 제공","textPreview":"서비스 제공","textChars":6,"textLines":1,"bbox":[788,292,124,36]}
+{"kind":"textbox","id":"sh/ryds7ytk","slide":1,"text":"헬스케어포털","textPreview":"헬스케어포털","textChars":6,"textLines":1,"bbox":[485,199,310,40]}
+{"kind":"textbox","id":"sh/6x4betsf","slide":1,"text":"제공 서비스 예시","textPreview":"제공 서비스 예시","textChars":9,"textLines":1,"bbox":[66,479,1148,43]}
+{"kind":"textbox","id":"sh/adcvm1cn","slide":1,"text":"건강상담      진료예약 지원      건강검진 예약      건강정보","textPreview":"건강상담      진료예약 지원      건강검진 예약      건강정보","textChars":40,"textLines":1,"bbox":[66,533,1148,52]}
+{"kind":"textbox","id":"sh/velwv6t8","slide":1,"text":"회원정보와 등급의 결정 주체는 고객사입니다.","textPreview":"회원정보와 등급의 결정 주체는 고객사입니다.","textChars":24,"textLines":1,"bbox":[66,610,1148,43]}
+{"kind":"notes","id":"nt/o17zhr","slide":1,"text":"이 그림은 고객사와 회사, 회원의 역할 관계입니다. 고객사는 회원정보와 등급을 결정해 제공합니다. 회사는 그 정보를 기준으로 로그인한 회원의 고객사와 등급을 확인하고 해당 서비스를 보여주고 제공합니다. 회원은 홈페이지에서 혜택을 확인하고 이용·신청합니다.\n근거: 사용자가 직접 설명한 업무 구조(2026.10.01). 고객사는 회원정보와 등급을 정해 제공하고, 회사는 로그인·인증을 통해 고객에게 해당하는 서비스를 보여주고 제공한다. 고객사와 기존 고객사의 등급은 계속 추가된다. 서비스 예시는 FEATURES.md 참고."}
+{"kind":"slide","id":"sl/868tle","slide":2,"title":"로그인부터 서비스 이용까지의 흐름","textShapes":15}
+{"kind":"textbox","id":"sh/xwnmhkze","slide":2,"text":"로그인부터 서비스 이용까지의 흐름","textPreview":"로그인부터 서비스 이용까지의 흐름","textChars":18,"textLines":1,"bbox":[64,45,1152,77]}
+{"kind":"textbox","id":"sh/atcnm50n","slide":2,"text":"고객사가 제공한 회원정보·등급을 기준으로 서비스가 달라집니다","textPreview":"고객사가 제공한 회원정보·등급을 기준으로 서비스가 달라집니다","textChars":33,"textLines":1,"bbox":[66,129,1148,58]}
+{"kind":"textbox","id":"sh/bu54fah8","slide":2,"text":"헬스케어포털 업무 흐름","textPreview":"헬스케어포털 업무 흐름","textChars":12,"textLines":1,"bbox":[66,672,1000,28]}
+{"kind":"textbox","id":"sh/o7u5kvix","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1164,672,48,28]}
+{"kind":"shape","id":"sh/p83md0z2","slide":2,"bbox":[365,208,250,82]}
+{"kind":"textbox","id":"sh/25c3il0r","slide":2,"text":"고객사 정보","textPreview":"고객사 정보","textChars":6,"textLines":1,"bbox":[377,228,226,50]}
+{"kind":"textbox","id":"sh/n6l4bqhc","slide":2,"text":"회원정보 + 회원별 등급","textPreview":"회원정보 + 회원별 등급","textChars":13,"textLines":1,"bbox":[350,170,280,35]}
+{"kind":"shape","id":"sh/83y5wzi1","slide":2,"bbox":[65,370,240,150]}
+{"kind":"textbox","id":"sh/9o7mp4zm","slide":2,"text":"로그인·인증","textPreview":"로그인·인증","textChars":6,"textLines":1,"bbox":[77,388,216,50]}
+{"kind":"textbox","id":"sh/54ji1ove","slide":2,"text":"회원 확인","textPreview":"회원 확인","textChars":5,"textLines":1,"bbox":[79,446,212,68]}
+{"kind":"shape","id":"sh/43a1sju9","slide":2,"bbox":[370,370,240,150]}
+{"kind":"textbox","id":"sh/3210zedo","slide":2,"text":"소속·등급","textPreview":"소속·등급","textChars":5,"textLines":1,"bbox":[382,388,216,50]}
+{"kind":"textbox","id":"sh/ihsjq9c3","slide":2,"text":"회원정보 기준 확인","textPreview":"회원정보 기준 확인","textChars":10,"textLines":1,"bbox":[384,446,212,68]}
+{"kind":"shape","id":"sh/hgzix4vi","slide":2,"bbox":[675,370,240,150]}
+{"kind":"textbox","id":"sh/gfq1ozux","slide":2,"text":"서비스 표시","textPreview":"서비스 표시","textChars":6,"textLines":1,"bbox":[687,388,216,50]}
+{"kind":"textbox","id":"sh/veh0vudc","slide":2,"text":"회원별 혜택 안내","textPreview":"회원별 혜택 안내","textChars":9,"textLines":1,"bbox":[689,446,212,68]}
+{"kind":"shape","id":"sh/ud8jmpcr","slide":2,"bbox":[980,370,235,150]}
+{"kind":"textbox","id":"sh/1c3298vm","slide":2,"text":"서비스 이용","textPreview":"서비스 이용","textChars":6,"textLines":1,"bbox":[992,388,211,50]}
+{"kind":"textbox","id":"sh/0bu103u1","slide":2,"text":"상담·예약 신청","textPreview":"상담·예약 신청","textChars":8,"textLines":1,"bbox":[994,446,207,68]}
+{"kind":"shape","id":"sh/0f2lc72d","slide":2,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/lgbm5c3y","slide":2,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/ydk3axk7","slide":2,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/zet432ls","slide":2,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/cbil872h","slide":2,"text":"같은 홈페이지를 이용해도 고객사와 등급에 따라 서비스가 달라집니다.","textPreview":"같은 홈페이지를 이용해도 고객사와 등급에 따라 서비스가 달라집니다.","textChars":37,"textLines":1,"bbox":[65,572,1150,72]}
+{"kind":"notes","id":"nt/868tle","slide":2,"text":"회원은 로그인과 인증을 거칩니다. 회사는 고객사가 제공한 회원정보에서 소속 고객사와 등급을 확인하고 그에 맞는 서비스를 보여줍니다. 회원은 표시된 혜택을 확인해 이용·신청합니다. 전달 방법이나 인증 기술을 정하는 그림이 아니라 업무 흐름입니다.\n근거: 사용자가 직접 설명한 업무 구조(2026.10.01). 고객사는 회원정보와 등급을 정해 제공하고, 회사는 로그인·인증을 통해 고객에게 해당하는 서비스를 보여주고 제공한다. 고객사와 기존 고객사의 등급은 계속 추가된다. 서비스 예시는 FEATURES.md 참고."}
+{"kind":"slide","id":"sl/zu845h","slide":3,"title":"고객사·등급 추가와 서비스 연결","textShapes":14}
+{"kind":"textbox","id":"sh/69gnydk7","slide":3,"text":"고객사·등급 추가와 서비스 연결","textPreview":"고객사·등급 추가와 서비스 연결","textChars":17,"textLines":1,"bbox":[64,45,1152,77]}
+{"kind":"textbox","id":"sh/tw769sjy","slide":3,"text":"처음 정한 구성에 고정하지 않고, 운영 중 추가되는 고객사·등급을 반영합니다","textPreview":"처음 정한 구성에 고정하지 않고, 운영 중 추가되는 고객사·등급을 반영합니다","textChars":42,"textLines":1,"bbox":[66,129,1148,58]}
+{"kind":"textbox","id":"sh/8byp0n2d","slide":3,"text":"헬스케어포털 업무 흐름","textPreview":"헬스케어포털 업무 흐름","textChars":12,"textLines":1,"bbox":[66,672,1000,28]}
+{"kind":"textbox","id":"sh/vy9ob21o","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1164,672,48,28]}
+{"kind":"textbox","id":"sh/ux072xkj","slide":3,"text":"기존 고객사에 새로운 등급 추가","textPreview":"기존 고객사에 새로운 등급 추가","textChars":17,"textLines":1,"bbox":[66,198,1148,43]}
+{"kind":"shape","id":"sh/h0r6dsju","slide":3,"bbox":[66,282,245,96]}
+{"kind":"textbox","id":"sh/gzip4n29","slide":3,"text":"고객사 A사","textPreview":"고객사 A사","textChars":6,"textLines":1,"bbox":[78,309,221,50]}
+{"kind":"shape","id":"sh/329of210","slide":3,"bbox":[463,250,308,69]}
+{"kind":"textbox","id":"sh/i1076xkf","slide":3,"text":"기본·VIP 등급","textPreview":"기본·VIP 등급","textChars":9,"textLines":1,"bbox":[475,264,284,50]}
+{"kind":"shape","id":"sh/8vu1g3qx","slide":3,"bbox":[463,356,308,69]}
+{"kind":"textbox","id":"sh/9wn2p87i","slide":3,"text":"새 등급 추가","textPreview":"새 등급 추가","textChars":7,"textLines":1,"bbox":[475,370,284,50]}
+{"kind":"shape","id":"sh/mtcjet8r","slide":3,"bbox":[944,282,270,96]}
+{"kind":"textbox","id":"sh/nulknypc","slide":3,"text":"서비스 연결","textPreview":"서비스 연결","textChars":6,"textLines":1,"bbox":[956,309,246,50]}
+{"kind":"shape","id":"sh/wze1k3qt","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/x0n2t87e","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/axwjid83","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/vy5krip8","slide":3,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/kny1onq5","slide":3,"text":"신규 고객사 추가","textPreview":"신규 고객사 추가","textChars":9,"textLines":1,"bbox":[66,452,1148,43]}
+{"kind":"shape","id":"sh/5o72xs7q","slide":3,"bbox":[66,519,245,82]}
+{"kind":"textbox","id":"sh/tk321szu","slide":3,"text":"신규 B사","textPreview":"신규 B사","textChars":5,"textLines":1,"bbox":[78,539,221,50]}
+{"kind":"shape","id":"sh/sju18ni9","slide":3,"bbox":[463,519,308,82]}
+{"kind":"textbox","id":"sh/rilkziho","slide":3,"text":"회원정보·등급 반영","textPreview":"회원정보·등급 반영","textChars":10,"textLines":1,"bbox":[475,539,284,50]}
+{"kind":"shape","id":"sh/6hsj6d03","slide":3,"bbox":[944,519,270,82]}
+{"kind":"textbox","id":"sh/18325szq","slide":3,"text":"서비스 연결","textPreview":"서비스 연결","textChars":6,"textLines":1,"bbox":[956,539,246,50]}
+{"kind":"shape","id":"sh/gnu1cni5","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/fmlk3ihk","slide":3,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/elcjax0f","slide":3,"text":"홈페이지에 필요한 관리 기능: 고객사 등록, 등급 추가, 등급별 제공서비스 설정","textPreview":"홈페이지에 필요한 관리 기능: 고객사 등록, 등급 추가, 등급별 제공서비스 설정","textChars":44,"textLines":1,"bbox":[66,622,1148,42]}
+{"kind":"notes","id":"nt/zu845h","slide":3,"text":"A사와 B사는 설명용 가상 사례입니다. 기존 고객사 A사에 신규 등급이 생기면 A사의 등급 목록에 추가하고 해당 등급 서비스를 연결합니다. 신규 고객사 B사가 추가되면 B사의 회원정보와 등급을 반영하고 등급별 서비스를 연결합니다. 따라서 홈페이지에는 고객사·등급·제공서비스를 계속 추가하고 관리하는 기능이 필요합니다.\n근거: 사용자가 직접 설명한 업무 구조(2026.10.01). 고객사는 회원정보와 등급을 정해 제공하고, 회사는 로그인·인증을 통해 고객에게 해당하는 서비스를 보여주고 제공한다. 고객사와 기존 고객사의 등급은 계속 추가된다. 서비스 예시는 FEATURES.md 참고."}

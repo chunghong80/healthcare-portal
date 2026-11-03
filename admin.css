@@ -1448,3 +1448,51 @@ input:checked + .slider:before {
 
 
 
+.menu-content-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .48);
+}
+.menu-content-dialog {
+  width: 660px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .2);
+}
+.menu-content-dialog header, .menu-content-dialog footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+}
+.menu-content-dialog header { justify-content: space-between; border-bottom: 1px solid #e2e8f0; }
+.menu-content-dialog h2 { margin: 0; font-size: 20px; }
+.menu-content-dialog h3 { margin: 16px 0 12px; font-size: 15px; }
+.menu-content-dialog footer { border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+.menu-content-dialog footer > span { flex: 1; font-size: 12px; color: #64748b; }
+.menu-content-body { padding: 24px; }
+.menu-content-help { margin: 0 0 16px; font-size: 13px; color: #64748b; line-height: 1.6; }
+.menu-content-types { border: 0; padding: 0; margin: 24px 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.menu-content-types legend { margin-bottom: 12px; font-size: 14px; font-weight: 600; }
+.menu-content-type { display: flex; align-items: flex-start; gap: 10px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; cursor: pointer; }
+.menu-content-type:has(input:checked) { border-color: #17b890; background: #effcf8; }
+.menu-content-type input { margin-top: 4px; accent-color: #17b890; }
+.menu-content-type strong, .menu-content-type small { display: block; }
+.menu-content-type small { margin-top: 6px; color: #64748b; font-size: 12px; line-height: 1.5; }
+.menu-content-textarea { min-height: 180px; resize: vertical; line-height: 1.6; }
+.menu-content-error { color: #dc2626; font-size: 13px; margin-bottom: 0; }
+.menu-content-badge { font-size: 11px; padding: 3px 7px; border-radius: 4px; background: #effcf8; color: #087c60; white-space: nowrap; }
+.menu-content-entry { display: flex; gap: 6px; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.menu-content-entry span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .menu-content-types { grid-template-columns: 1fr; }
+  .menu-content-dialog footer > span { flex-basis: 100%; }
+}

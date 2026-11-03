@@ -1,855 +1,380 @@
-/**
- * Hospital Reservation Schedule and Deadline Management (병원별 일정/마감 관리)
- * Overhauled code with interactive Tree Category checklist, repeating weekday filters,
- * top filter bar, and Monthly/Yearly view toggles.
- */
-
-// --- Global States ---
-let currentHosp = "pohang";
-let currentYear = 2026;
-let currentMonth = 6;
-let viewMode = "month"; // "month" or "year"
-
-// Airbnb style range selection variables (Date strings: "YYYY-MM-DD")
-let rangeStart = null;
-let rangeEnd = null;
-
-// Weekdays selected for repeating filter (0 = Sun, 1 = Mon, ..., 6 = Sat)
-let selectedWeekdays = new Set();
-
-// Local memory representation of schedules
-// Structure: { [hospId]: { [year]: { [month]: { [day]: { status: 'avail'|'closed'|'holiday', closedTests: [] } } } } }
-let scheduleData = {};
-
-const HOSP_NAMES = {
-  pohang: "포항세명기독병원",
-  "green-gn": "GC녹십자아이메드 강남센터",
-  "kmi-yyd": "KMI 한국의학연구소 여의도"
-};
-
-const CHECKUP_LABELS = {
-  colon_all: "대장내시경 전체",
-  colon_sleep: "대장내시경(수면)",
-  colon_nonsleep: "대장내시경(비수면)",
-  stomach_all: "위내시경 전체",
-  stomach_sleep: "위내시경(수면)",
-  stomach_nonsleep: "위내시경(비수면)",
-  mri_all: "MRI 전체",
-  mri_brain: "뇌 MRI",
-  mri_liver: "간 MRI",
-  mri_neck: "경추 MRI",
-  mri_spine: "요추 MRI"
-};
-
-// --- Initialization ---
-document.addEventListener("DOMContentLoaded", () => {
-  loadData();
-  setupEventListeners();
-  syncFiltersFromDropdowns();
-  
-  // Set default initial range selection to 2026-06-01 to 2026-06-30
-  rangeStart = "2026-06-01";
-  rangeEnd = "2026-06-30";
-  document.getElementById("start-date-input").value = rangeStart;
-  document.getElementById("end-date-input").value = rangeEnd;
-  
-  initTreeCheckboxes();
-  updateWeekdayButtonsState();
-  renderAll();
-  setupOptionTreeListeners();
-});
-
-// --- Data Loading & Mock Defaults ---
-function loadData() {
-  const saved = localStorage.getItem("hc_hospital_schedules");
-  if (saved) {
-    try {
-      scheduleData = JSON.parse(saved);
-      return;
-    } catch (e) {
-      console.error("Failed to parse saved schedule data:", e);
-    }
-  }
-  
-  // Set default initial mock data for 2026 Pohang Hospital to match user screenshot EXACTLY
-  initializeDefaultMockData();
+/* Hospital schedule editor. Storage adapter remains local until the service API is connected. */
+const SCHEDULE_KEY = 'hc_hospital_schedules';
+const KIND_NAMES = { holiday: '휴일', day: '일자마감', items: '특정항목마감' };
+const HOSPITAL_ALIASES = { h1: 'green-gn', h2: 'kmi-yyd' };
+const DEFAULT_HOSPITALS = [
+  { id: 'pohang', name: '포항세명기독병원' },
+  { id: 'green-gn', name: 'GC녹십자아이메드 강남센터' },
+  { id: 'kmi-yyd', name: 'KMI 한국의학연구소 여의도' }
+];
+const EXAMPLE_ITEMS = [
+  { code: 'DEMO_CT_CHEST', name: '흉부 CT', closureCheckYn: 'Y', closureType: 'CT' },
+  { code: 'DEMO_CT_BRAIN', name: '뇌 CT', closureCheckYn: 'Y', closureType: 'CT' },
+  { code: 'C029002', name: '위내시경(수면)', closureCheckYn: 'Y', closureType: '내시경' },
+  { code: 'C029003', name: '위내시경(비수면)', closureCheckYn: 'Y', closureType: '내시경' },
+  { code: 'C029004', name: '대장내시경(수면)', closureCheckYn: 'Y', closureType: '내시경' },
+  { code: 'C030002', name: '유방초음파(여)', closureCheckYn: 'Y', closureType: '초음파' },
+  { code: 'C030003', name: '갑상선초음파', closureCheckYn: 'Y', closureType: '초음파' },
+  { code: 'C030006', name: '경동맥초음파', closureCheckYn: 'Y', closureType: '초음파' },
+  { code: 'C030007', name: '복부초음파', closureCheckYn: 'Y', closureType: '초음파' },
+  { code: 'C028003', name: '파노라마촬영', closureCheckYn: 'N', closureType: 'X-ray' }
+];
+const EXAMPLE_PACKAGES = [
+  { hospitalId: 'pohang', year: 2026, items: { basic: ['C028003','C029002','C029003'], optional: ['C029004','C030002','C030003','C030006','C030007'] } },
+  { hospitalId: 'pohang', year: 2026, items: { basic: ['C029002'], optional: ['C030003'] } },
+  { hospitalId: 'green-gn', year: 2026, items: { basic: ['C029002','C029003'], optional: ['C030003','C030007'] } },
+  { hospitalId: 'kmi-yyd', year: 2026, items: { basic: ['C029004'], optional: ['C030002','C030006'] } },
+  { hospitalId: 'pohang', year: 2027, items: { basic: ['C029002','C029003'], optional: ['C030007'] } }
+];
+EXAMPLE_PACKAGES.forEach(pkg => pkg.items.optional.push('DEMO_CT_CHEST', 'DEMO_CT_BRAIN'));
+const LEGACY_CODES = { stomach_sleep: ['C029002'], stomach_nonsleep: ['C029003'], stomach_all: ['C029002','C029003'], colon_sleep: ['C029004'], colon_all: ['C029004','colon_nonsleep'], mri_all: ['mri_brain','mri_liver','mri_neck','mri_spine'] };
+const LEGACY_NAMES = { colon_nonsleep:'대장내시경(비수면)',mri_brain:'뇌 MRI',mri_liver:'간 MRI',mri_neck:'경추 MRI',mri_spine:'요추 MRI' };
+const canonicalHospital = id => HOSPITAL_ALIASES[String(id)] || String(id);
+const escapeSchedule = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const copySchedule = value => JSON.parse(JSON.stringify(value));
+const dateKey = date => date.toISOString().slice(0, 10);
+function parseScheduleDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+  const date = new Date(value + 'T00:00:00.000Z');
+  return Number.isNaN(date.getTime()) || dateKey(date) !== value ? null : date;
 }
-
-function initializeDefaultMockData() {
-  scheduleData = {
-    pohang: {
-      2026: {}
-    }
+function rangeDates(start, end, weekdays = []) {
+  const first = parseScheduleDate(start), last = parseScheduleDate(end);
+  if (!first || !last || start > end) throw new Error('시작일과 종료일을 올바르게 입력해 주세요. 시작일은 종료일보다 늦을 수 없습니다.');
+  const days = [];
+  for (let date = first; date <= last; date.setUTCDate(date.getUTCDate() + 1)) {
+    if (!weekdays.length || weekdays.includes(date.getUTCDay())) days.push(dateKey(date));
+  }
+  if (!days.length) throw new Error('선택한 기간에 해당 요일이 없습니다.');
+  return days;
+}
+function normalizeScheduleDay(raw = {}) {
+  return {
+    holidayOverride: typeof raw.holidayOverride === 'boolean' ? raw.holidayOverride : null,
+    holiday: raw.holiday ?? (raw.status === 'holiday'),
+    dayClosed: raw.dayClosed ?? (raw.status === 'closed'),
+    closedTests: [...new Set((Array.isArray(raw.closedTests) ? raw.closedTests : []).flatMap(code => LEGACY_CODES[code] || [String(code)]))]
   };
-
-  // Pre-fill 12 months for 2026 Pohang
-  for (let m = 1; m <= 12; m++) {
-    scheduleData.pohang[2026][m] = {};
-    const daysInMonth = new Date(2026, m, 0).getDate();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateObj = new Date(2026, m - 1, d);
-      const dayOfWeek = dateObj.getDay();
-
-      if (dayOfWeek === 0) {
-        // Sundays are Holidays (7, 14, 21, 28 etc)
-        scheduleData.pohang[2026][m][d] = { status: "holiday", closedTests: [] };
-      } else if (m === 6 && [1, 3, 8, 11, 17, 22, 25, 29].includes(d)) {
-        // June closed days (Grey badge in mockup)
-        scheduleData.pohang[2026][m][d] = { status: "closed", closedTests: [] };
-      } else if (m === 6 && [2, 6, 9, 13, 16, 20, 23, 27, 30].includes(d)) {
-        // June available days with some closed items
-        scheduleData.pohang[2026][m][d] = { 
-          status: "avail", 
-          closedTests: ["colon_sleep", "mri_brain"] 
-        };
-      } else {
-        // Regular available days
-        scheduleData.pohang[2026][m][d] = { status: "avail", closedTests: [] };
+}
+function normalizeScheduleStore(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('일정 데이터 형식을 확인해 주세요.');
+  const output = { __meta: { revision: raw.__meta?.revision || 0, history: raw.__meta?.history || [] } };
+  for (const [hospital, years] of Object.entries(raw)) {
+    if (hospital === '__meta') continue;
+    if (!years || typeof years !== 'object') throw new Error('병원 일정 데이터를 확인해 주세요.');
+    const key = canonicalHospital(hospital);
+    output[key] ||= {};
+    for (const [year, months] of Object.entries(years)) {
+      output[key][year] ||= {};
+      for (const [month, days] of Object.entries(months)) {
+        output[key][year][month] ||= {};
+        for (const [day, config] of Object.entries(days)) output[key][year][month][day] = normalizeScheduleDay(config);
       }
     }
   }
-  
-  saveDataToStorage(false); // Silent save
+  return output;
 }
-
-function saveDataToStorage(showToastMsg = true) {
-  localStorage.setItem("hc_hospital_schedules", JSON.stringify(scheduleData));
-  if (showToastMsg) {
-    showToast("병원 예약 일정 설정이 성공적으로 저장되었습니다!");
+function readScheduleDay(store, hospital, date) {
+  const [year, month, day] = date.split('-').map(Number);
+  return normalizeScheduleDay(store[canonicalHospital(hospital)]?.[year]?.[month]?.[day]);
+}
+function setScheduleDay(store, hospital, date, day) {
+  const [year, month, number] = date.split('-').map(Number), key = canonicalHospital(hospital);
+  store[key] ||= {}; store[key][year] ||= {}; store[key][year][month] ||= {};
+  // Keep the previous status field readable while retaining independent restrictions.
+  store[key][year][month][number] = { ...day, status: day.holiday ? 'holiday' : day.dayClosed ? 'closed' : 'avail' };
+}
+function applyScheduleOperation(store, operation) {
+  for (const date of operation.dates) {
+    const day = readScheduleDay(store, operation.hospital, date);
+    const enabled = operation.action === 'set';
+    if (operation.kind === 'holiday') { day.holiday = enabled; day.holidayOverride = enabled; }
+    else if (operation.kind === 'day') day.dayClosed = enabled;
+    else if (operation.kind === 'items') day.closedTests = enabled
+      ? [...new Set([...day.closedTests, ...operation.codes])]
+      : day.closedTests.filter(code => !operation.codes.includes(code));
+    setScheduleDay(store, operation.hospital, date, day);
   }
+  return store;
+}
+function packageCodes(pkg) {
+  const items = pkg.items || {};
+  const references = Array.isArray(items) ? items : [...(items.basic || []), ...(items.optional || [])];
+  return references.map(item => String(typeof item === 'object' ? (item.code ?? item.id) : item));
+}
+function eligibleScheduleItems(hospital, year, items, packages) {
+  const codes = new Set(packages.filter(pkg => canonicalHospital(pkg.hospitalId) === canonicalHospital(hospital) && String(pkg.year) === String(year)).flatMap(packageCodes));
+  const unique = new Map();
+  for (const item of items) {
+    const code = String(item.code ?? item.id);
+    if (codes.has(code) && item.closureCheckYn === 'Y' && item.closureType && item.name) unique.set(code, { code, name: item.name, type: item.closureType });
+  }
+  return [...unique.values()];
+}
+function schedulerHoliday(hospital, date, scheduler) {
+  const rule = scheduler[canonicalHospital(hospital)] || scheduler[Object.keys(HOSPITAL_ALIASES).find(id => HOSPITAL_ALIASES[id] === canonicalHospital(hospital))] || {};
+  return (rule.dates || []).includes(date) || (rule.weekdays || []).includes(parseScheduleDate(date).getUTCDay());
+}
+function effectiveSchedule(day, baseHoliday = false) {
+  if (day.holidayOverride === true || (day.holidayOverride !== false && (baseHoliday || day.holiday))) return 'holiday';
+  if (day.dayClosed) return 'day';
+  return day.closedTests.length ? 'items' : 'available';
+}
+function scheduleItemLabels(codes, items) {
+  const types = new Map();
+  items.forEach(item => { if (!types.has(item.type)) types.set(item.type, []); types.get(item.type).push(item); });
+  const remaining = new Set(codes), labels = [];
+  for (const [type, children] of types) {
+    if (children.every(item => remaining.has(item.code))) {
+      labels.push(type + ' 마감'); children.forEach(item => remaining.delete(item.code));
+    }
+  }
+  for (const code of remaining) labels.push((items.find(item => item.code === code)?.name || EXAMPLE_ITEMS.find(item => item.code === code)?.name || LEGACY_NAMES[code] || code) + ' 마감');
+  return labels;
 }
 
-// --- Setup Checkbox Tree Interactivity ---
-function setupOptionTreeListeners() {
-  // Parent check triggers child checks
-  document.querySelectorAll(".parent-cb").forEach(parent => {
-    parent.addEventListener("change", (e) => {
-      const category = parent.dataset.target;
-      const checked = parent.checked;
-      const children = document.querySelectorAll(`.child-cb[data-parent="${category}"]`);
-      children.forEach(child => {
-        child.checked = checked;
-      });
-      updateSelectedCount();
+let savedSchedule, draftSchedule, scheduleSources, baselineScheduleRaw;
+let pendingScheduleChanges = [];
+let scheduleHospital = 'pohang', scheduleYear = 2026, scheduleMonth = 11, selectedScheduleDate = null;
+let scheduleSelectedCodes = new Set();
+let scheduleSelectedDates = new Set();
+const scheduleElement = id => document.getElementById(id);
+function scheduleReadJSON(key, fallback) {
+  const value = localStorage.getItem(key);
+  return value === null ? fallback : JSON.parse(value);
+}
+function loadScheduleSources() {
+  const storedHospitals = scheduleReadJSON('hc_hospitals', DEFAULT_HOSPITALS);
+  const hospitals = (storedHospitals.length ? storedHospitals : DEFAULT_HOSPITALS).map(hospital => ({ ...hospital, id: canonicalHospital(hospital.id) }));
+  let items = scheduleReadJSON('hc_checkup_items', []);
+  let packages = scheduleReadJSON('hc_packages', []);
+  if (!Array.isArray(items) || !Array.isArray(packages)) throw new Error('병원·패키지 정보를 확인해 주세요.');
+  const example = !packages.some(pkg => eligibleScheduleItems(pkg.hospitalId, pkg.year, items, packages).length);
+  if (example) {
+    items = EXAMPLE_ITEMS;
+    const year = Number(new Intl.DateTimeFormat('sv-SE', { timeZone:'Asia/Seoul' }).format(new Date()).slice(0,4));
+    packages = hospitals.flatMap(hospital => [year-1,year,year+1].map(value => ({ hospitalId: hospital.id, year: value, items: { basic: ['C028003'], optional: EXAMPLE_ITEMS.filter(item => item.closureCheckYn === 'Y').map(item => item.code) } })));
+  }
+  const scheduler = scheduleReadJSON('hc_holiday_scheduler', example ? Object.fromEntries(hospitals.map(h => [h.id, { weekdays: [0] }])) : {});
+  return { example, hospitals, items, packages, scheduler };
+}
+
+function currentScheduleItems(year = scheduleYear) {
+  return eligibleScheduleItems(scheduleHospital, year, scheduleSources.items, scheduleSources.packages);
+}
+function currentScheduleKind() { return document.querySelector('input[name="schedule-kind"]:checked').value; }
+function currentScheduleAction() { return document.querySelector('input[name="schedule-action"]:checked').value; }
+function scheduleDateContext(date, store = draftSchedule) {
+  const day = readScheduleDay(store, scheduleHospital, date);
+  const baseHoliday = schedulerHoliday(scheduleHospital, date, scheduleSources.scheduler);
+  return { day, baseHoliday, effective: effectiveSchedule(day, baseHoliday) };
+}
+function renderScheduleTree() {
+  const query = scheduleElement('tree-search-input').value.trim().toLowerCase(), items = currentScheduleItems();
+  const groups = [...new Set(items.map(item => item.type))].sort((a,b) => { const order = ['내시경','CT','초음파']; return (order.includes(a) ? order.indexOf(a) : 99) - (order.includes(b) ? order.indexOf(b) : 99); });
+  scheduleElement('checkup-tree-container').innerHTML = groups.map((type, index) => {
+    const children = items.filter(item => item.type === type);
+    const visible = children.filter(item => [type,item.name,item.code].some(value => value.toLowerCase().includes(query)));
+    if (!visible.length) return '';
+    return `<div class="schedule-item-group"><label><input type="checkbox" data-type-index="${index}" ${children.every(item => scheduleSelectedCodes.has(item.code)) ? 'checked' : ''}><span>${escapeSchedule(type)}</span><small>전체 ${children.length}개</small></label>${visible.map(item => `<label class="schedule-item-row"><input type="checkbox" data-item-code="${escapeSchedule(item.code)}" ${scheduleSelectedCodes.has(item.code) ? 'checked' : ''}><span>${escapeSchedule(item.name)}<small>${escapeSchedule(item.code)}</small></span></label>`).join('')}</div>`;
+  }).join('') || `<div class="schedule-empty">${items.length ? '검색 결과가 없습니다.' : '해당 병원·연도의 마감 대상 검사가 없습니다.'}</div>`;
+  scheduleElement('checkup-tree-container').querySelectorAll('[data-type-index]').forEach(input => {
+    const children = items.filter(item => item.type === groups[Number(input.dataset.typeIndex)]);
+    input.indeterminate = children.some(item => scheduleSelectedCodes.has(item.code)) && !input.checked;
+    input.addEventListener('change', () => { children.forEach(item => input.checked ? scheduleSelectedCodes.add(item.code) : scheduleSelectedCodes.delete(item.code)); renderScheduleTree(); updateScheduleForm(); });
+  });
+  scheduleElement('checkup-tree-container').querySelectorAll('[data-item-code]').forEach(input => input.addEventListener('change', () => {
+    input.checked ? scheduleSelectedCodes.add(input.dataset.itemCode) : scheduleSelectedCodes.delete(input.dataset.itemCode);
+    renderScheduleTree(); updateScheduleForm();
+  }));
+  scheduleElement('selected-items-count').textContent = scheduleSelectedCodes.size + '개 선택';
+}
+function updateScheduleForm() {
+  const kind = currentScheduleKind(), action = currentScheduleAction(), release = action === 'release';
+  scheduleElement('schedule-items-panel').hidden = kind !== 'items';
+  document.querySelectorAll('input[name="schedule-action"] + span').forEach((span,index) => span.textContent = KIND_NAMES[kind] + (index ? ' 해제' : ' 설정'));
+  const helps = { holiday: release ? '선택한 날짜는 스케줄러 휴일보다 병원의 휴일 해제를 우선합니다. 다른 마감은 유지됩니다.' : '병원 전체 예약을 제한하는 자체 휴일을 추가합니다.', day: release ? '일자마감만 해제합니다. 휴일·항목마감은 유지됩니다.' : '선택한 기간의 병원 전체 예약을 제한합니다.', items: release ? '선택한 검사만 해제합니다. 다른 검사·휴일·일자마감은 유지됩니다.' : '선택한 검사만 예약을 제한하며, 나머지 검사는 유지됩니다.' };
+  scheduleElement('schedule-action-help').textContent = helps[kind];
+  const label = KIND_NAMES[kind] + (release ? ' 해제' : ' 설정');
+  scheduleElement('btn-stage-change').textContent = label + ' 목록에 추가';
+  scheduleElement('btn-stage-change').classList.toggle('is-release', release);
+  scheduleElement('btn-stage-change').disabled = kind === 'items' && !currentScheduleItems().length;
+  const start = scheduleElement('start-date-input').value, end = scheduleElement('end-date-input').value;
+  const target = kind === 'items' ? `${scheduleSelectedCodes.size}개 검사` : '병원 전체';
+  scheduleElement('schedule-operation-summary').textContent = `${label} · ${target}\n${start || '시작일 미선택'} ~ ${end || '종료일 미선택'}`;
+  scheduleElement('schedule-form-error').textContent = '';
+  scheduleElement('schedule-selected-dates').textContent = scheduleSelectedDates.size ? '선택한 날짜 (' + scheduleSelectedDates.size + '일): ' + [...scheduleSelectedDates].sort().join(', ') : '달력에서 날짜를 여러 개 선택하거나 시작일·종료일을 입력하세요.';
+  if (scheduleSelectedDates.size) scheduleElement('schedule-operation-summary').textContent = label + ' · ' + target + ' · 선택한 ' + scheduleSelectedDates.size + '일';
+}
+function operationTarget(operation) {
+  if (operation.kind !== 'items') return '병원 전체';
+  return operation.targetLabels.join(', ');
+}
+function stageScheduleChange() {
+  try {
+    const kind = currentScheduleKind(), action = currentScheduleAction();
+    const start = scheduleElement('start-date-input').value, end = scheduleElement('end-date-input').value;
+    const weekdays = [...document.querySelectorAll('#schedule-weekdays input:checked')].map(input => Number(input.value));
+    const multiple = scheduleSelectedDates.size > 0;
+    const dates = multiple ? [...scheduleSelectedDates].sort() : rangeDates(start, end, weekdays), codes = [...scheduleSelectedCodes];
+
+    if (kind === 'items') {
+      if (!codes.length) throw new Error('마감 설정 또는 해제할 검사를 선택해 주세요.');
+      for (const year of new Set(dates.map(date => date.slice(0,4)))) {
+        const available = new Set(currentScheduleItems(year).map(item => item.code));
+        if (codes.some(code => !available.has(code))) throw new Error(`${year}년 패키지에 선택한 마감 대상 검사가 없습니다. 연도별 대상 확인 후 기간을 나누어 설정해 주세요.`);
+      }
+    }
+    const operation = { id: 'change-' + Date.now() + '-' + Math.random().toString(36).slice(2), hospital: scheduleHospital, hospitalName: scheduleSources.hospitals.find(h => h.id === scheduleHospital)?.name || scheduleHospital, kind, action, start: dates[0], end: dates[dates.length-1], multiple, weekdays: multiple ? [] : weekdays, dates, codes: kind === 'items' ? codes : [], targetLabels: kind === 'items' ? scheduleItemLabels(codes, currentScheduleItems()).map(label => label.replace(/ 마감$/, '')) : [] };
+    const overlaps = pendingScheduleChanges.some(previous => previous.hospital === operation.hospital && previous.kind === kind && previous.action !== action && previous.dates.some(date => dates.includes(date)) && (kind !== 'items' || previous.codes.some(code => codes.includes(code))));
+    if (overlaps) throw new Error('같은 날짜·대상에 설정과 해제가 겹칩니다. 변경 목록에서 기존 건을 제거한 뒤 추가해 주세요.');
+    const hasChange = dates.some(date => {
+      const day = readScheduleDay(draftSchedule, scheduleHospital, date);
+      return kind === 'holiday' ? day.holidayOverride !== (action === 'set') : kind === 'day' ? day.dayClosed !== (action === 'set') : codes.some(code => day.closedTests.includes(code) !== (action === 'set'));
     });
-  });
-
-  // Child check updates parent check state
-  document.querySelectorAll(".child-cb").forEach(child => {
-    child.addEventListener("change", (e) => {
-      const category = child.dataset.parent;
-      const siblings = document.querySelectorAll(`.child-cb[data-parent="${category}"]`);
-      const checkedSiblings = document.querySelectorAll(`.child-cb[data-parent="${category}"]:checked`);
-      const parent = document.querySelector(`.parent-cb[data-target="${category}"]`);
-      
-      if (checkedSiblings.length === siblings.length) {
-        parent.checked = true;
-        parent.indeterminate = false;
-      } else if (checkedSiblings.length === 0) {
-        parent.checked = false;
-        parent.indeterminate = false;
-      } else {
-        parent.checked = false;
-        parent.indeterminate = true;
+    if (!hasChange) throw new Error('이미 같은 상태이거나 해제할 설정이 없습니다.');
+    pendingScheduleChanges.push(operation);
+    rebuildDraftSchedule(); renderSchedulePending(); renderScheduleCalendar(); updateScheduleForm();
+    scheduleElement('schedule-notice').textContent = '변경 목록에 추가했습니다. 달력은 저장 전 미리보기이며, 최종 저장 후 반영됩니다.';
+  } catch (error) { scheduleElement('schedule-form-error').textContent = error.message; }
+}
+function rebuildDraftSchedule() {
+  draftSchedule = copySchedule(savedSchedule);
+  pendingScheduleChanges.forEach(operation => applyScheduleOperation(draftSchedule, operation));
+}
+function renderSchedulePending() {
+  const count = pendingScheduleChanges.length;
+  scheduleElement('pending-count').textContent = count + '건';
+  scheduleElement('schedule-save-status').textContent = count ? `저장 전 변경 ${count}건` : '저장 전 변경 없음';
+  scheduleElement('btn-save-all').disabled = !count;
+  scheduleElement('btn-save-all').textContent = count ? `${count}건 최종 저장` : '최종 저장';
+  scheduleElement('btn-discard-changes').disabled = !count;
+  scheduleElement('schedule-notice').classList.toggle('is-dirty', !!count);
+  scheduleElement('schedule-pending-rows').innerHTML = count ? pendingScheduleChanges.map((operation,index) => `<tr><td>${escapeSchedule(operation.hospitalName)}</td><td>${KIND_NAMES[operation.kind]}</td><td>${operation.multiple ? operation.dates.join(', ') : operation.start + ' ~ ' + operation.end}<br><small>${operation.dates.length}일${operation.weekdays.length ? ' · 매주 ' + operation.weekdays.map(day => '일월화수목금토'[day]).join('·') : ''}</small></td><td>${escapeSchedule(operationTarget(operation))}</td><td class="${operation.action === 'set' ? 'set' : 'release'}-label">${operation.action === 'set' ? '설정' : '해제'}</td><td><button type="button" class="btn btn-secondary" data-remove-change="${index}">제거</button></td></tr>`).join('') : '<tr><td colspan="6" class="schedule-empty">추가한 변경이 없습니다. 오른쪽에서 설정 또는 해제할 내용을 추가하세요.</td></tr>';
+  scheduleElement('schedule-pending-rows').querySelectorAll('[data-remove-change]').forEach(button => button.addEventListener('click', () => {
+    pendingScheduleChanges.splice(Number(button.dataset.removeChange),1); rebuildDraftSchedule(); renderSchedulePending(); renderScheduleCalendar();
+    if (!pendingScheduleChanges.length) scheduleElement('schedule-notice').textContent = '저장된 일정입니다. 변경 목록에 추가한 내용은 최종 저장 후 반영됩니다.';
+  }));
+}
+function renderScheduleCalendar() {
+  scheduleElement('calendar-month-label').textContent = `${scheduleYear}년 ${scheduleMonth}월`;
+  const first = new Date(Date.UTC(scheduleYear, scheduleMonth - 1, 1)).getUTCDay();
+  const days = new Date(Date.UTC(scheduleYear, scheduleMonth, 0)).getUTCDate();
+  const today = new Intl.DateTimeFormat('sv-SE', { timeZone:'Asia/Seoul' }).format(new Date());
+  const start = scheduleElement('start-date-input').value, end = scheduleElement('end-date-input').value;
+  let html = [...'일월화수목금토'].map(day => `<div class="schedule-calendar-weekday">${day}</div>`).join('');
+  html += '<div class="schedule-calendar-cell empty" aria-hidden="true"></div>'.repeat(first);
+  for (let number = 1; number <= days; number++) {
+    const date = `${scheduleYear}-${String(scheduleMonth).padStart(2,'0')}-${String(number).padStart(2,'0')}`;
+    const { day, effective } = scheduleDateContext(date);
+    const labels = effective === 'holiday' ? ['휴일'] : effective === 'day' ? ['예약마감'] : effective === 'items' ? scheduleItemLabels(day.closedTests, currentScheduleItems()) : [];
+    const visual = effective === 'day' ? 'closed' : effective;
+    const pending = pendingScheduleChanges.some(change => change.hospital === scheduleHospital && change.dates.includes(date));
+    const weekday = (first + number - 1) % 7;
+    const classes = ['schedule-calendar-cell',`is-${visual}`,weekday === 0 ? 'sun' : weekday === 6 ? 'sat' : '',date === today ? 'is-today' : '',scheduleSelectedDates.has(date) ? 'selected' : '',!scheduleSelectedDates.size && start && end && date >= start && date <= end ? 'in-range' : '',pending ? 'has-pending' : ''].join(' ');
+    html += `<button type="button" class="${classes}" data-date="${date}" aria-label="${date} ${escapeSchedule(labels.join(', ') || '예약 가능')}${pending ? ' 저장 전 변경' : ''}"><span class="schedule-day-number">${number}</span>${labels.map(label => `<span class="schedule-day-badge ${visual}">${escapeSchedule(label)}</span>`).join('')}</button>`;
+  }
+  const padding = (7 - ((first + days) % 7)) % 7;
+  html += '<div class="schedule-calendar-cell empty" aria-hidden="true"></div>'.repeat(padding);
+  scheduleElement('admin-calendar-grid').innerHTML = html;
+  scheduleElement('admin-calendar-grid').querySelectorAll('[data-date]').forEach(button => button.addEventListener('click', () => {
+    selectedScheduleDate = button.dataset.date;
+    scheduleSelectedDates.has(selectedScheduleDate) ? scheduleSelectedDates.delete(selectedScheduleDate) : scheduleSelectedDates.add(selectedScheduleDate);
+    scheduleElement('start-date-input').value = ''; scheduleElement('end-date-input').value = '';
+    renderScheduleCalendar(); updateScheduleForm();
+  }));
+  renderScheduleDateDetail();
+}
+function renderScheduleDateDetail() {
+  if (!selectedScheduleDate) { scheduleElement('schedule-day-detail').textContent = '날짜를 선택하면 해당 일자의 설정 내역을 확인할 수 있습니다.'; return; }
+  const {day, baseHoliday, effective} = scheduleDateContext(selectedScheduleDate);
+  const labels = effective === 'items' ? scheduleItemLabels(day.closedTests,currentScheduleItems()) : [effective === 'day' ? '예약마감' : KIND_NAMES[effective] || '예약 가능'];
+  const records = [baseHoliday ? (day.holidayOverride === false ? '스케줄러 휴일 → 병원에서 해당 날짜 휴일 해제' : '스케줄러 휴일') : '',day.holiday ? '병원 자체 휴일' : '',day.dayClosed ? '일자마감' : '',...day.closedTests.map(code => (scheduleSources.items.find(item => String(item.code ?? item.id) === code)?.name || LEGACY_NAMES[code] || code) + ' 마감')].filter(Boolean);
+  scheduleElement('schedule-day-detail').innerHTML = `<strong>${selectedScheduleDate} · ${escapeSchedule(labels.join(', '))}</strong>${baseHoliday ? (day.holidayOverride === false ? '<div>병원의 날짜별 휴일 해제를 우선 적용했습니다.</div>' : '<div>내부 휴일 스케줄러 기준 휴일입니다.</div>') : ''}${records.length ? `<details><summary>관리용 개별 설정 확인 (${records.length}건)</summary><ul>${records.map(record=>`<li>${escapeSchedule(record)}</li>`).join('')}</ul><p class="schedule-help">달력에는 우선순위가 가장 높은 상태만 표시됩니다.</p></details>` : '<div>등록된 예약 제한이 없습니다.</div>'}`;
+}
+function scheduleRefreshContext() {
+  scheduleSelectedDates.clear();
+  scheduleSelectedCodes.clear(); scheduleElement('tree-search-input').value = '';
+  scheduleElement('schedule-year').value = String(scheduleYear);
+  renderScheduleTree(); renderScheduleCalendar(); updateScheduleForm();
+}
+function scheduleOpenDialog(title, body) {
+  const dialog = document.createElement('dialog'); dialog.className = 'schedule-dialog';
+  dialog.setAttribute('aria-label',title);
+  dialog.innerHTML = `<header><h2>${escapeSchedule(title)}</h2><button type="button" class="btn btn-secondary">닫기</button></header>${body}`;
+  dialog.querySelector('button').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>dialog.remove(),{once:true}); document.body.appendChild(dialog); dialog.showModal();
+}
+function saveScheduleChanges() {
+  if (!pendingScheduleChanges.length) return;
+  try {
+    if (localStorage.getItem(SCHEDULE_KEY) !== baselineScheduleRaw) throw new Error('다른 화면에서 일정이 변경되었습니다. 변경 목록을 확인한 뒤 새로고침하여 다시 적용해 주세요.');
+    const next = copySchedule(draftSchedule);
+    const now = new Date().toISOString();
+    next.__meta = { revision: (savedSchedule.__meta.revision || 0) + 1, history: [...(savedSchedule.__meta.history || []), ...pendingScheduleChanges.map(operation => ({ ...operation, savedAt:now }))] };
+    const serialized = JSON.stringify(next);
+    localStorage.setItem(SCHEDULE_KEY, serialized);
+    baselineScheduleRaw = serialized; savedSchedule = next; pendingScheduleChanges = []; rebuildDraftSchedule();
+    renderSchedulePending(); renderScheduleCalendar();
+    scheduleElement('schedule-notice').textContent = '변경 내용을 저장했습니다. 기존 예약은 유지됩니다.';
+  } catch(error) { scheduleElement('schedule-notice').textContent = error.message || '저장하지 못했습니다. 변경 목록을 유지합니다.'; }
+}
+function initializeScheduleEditor() {
+  try {
+    scheduleSources = loadScheduleSources(); baselineScheduleRaw = localStorage.getItem(SCHEDULE_KEY);
+    savedSchedule = normalizeScheduleStore(baselineScheduleRaw === null ? {} : JSON.parse(baselineScheduleRaw));
+    rebuildDraftSchedule();
+    const parts = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date()).split('-').map(Number);
+    scheduleYear = parts[0]; scheduleMonth = parts[1];
+    scheduleHospital = scheduleSources.hospitals.some(h=>h.id==='pohang') ? 'pohang' : scheduleSources.hospitals[0].id;
+    scheduleElement('hosp-select').innerHTML = scheduleSources.hospitals.map(h=>`<option value="${escapeSchedule(h.id)}">${escapeSchedule(h.name)}</option>`).join('');
+    scheduleElement('hosp-select').value = scheduleHospital;
+    const years = [...new Set([scheduleYear-1,scheduleYear,scheduleYear+1,...scheduleSources.packages.map(pkg=>Number(pkg.year))])].filter(year=>Number.isInteger(year)&&year>1900&&year<10000).sort();
+    scheduleElement('schedule-year').innerHTML = years.map(year=>`<option value="${year}">${year}년</option>`).join('');
+    scheduleElement('schedule-data-label').textContent = scheduleSources.example ? '예시 데이터 · 내시경 / CT / 초음파' : '등록된 병원·패키지 기준';
+    scheduleElement('hosp-select').addEventListener('change',event=>{scheduleHospital=event.target.value;selectedScheduleDate=null;scheduleRefreshContext();});
+    scheduleElement('schedule-year').addEventListener('change',event=>{scheduleYear=Number(event.target.value);selectedScheduleDate=null;scheduleElement('start-date-input').value='';scheduleElement('end-date-input').value='';scheduleRefreshContext();});
+    const navigate = amount => {
+      const date = new Date(Date.UTC(scheduleYear,scheduleMonth-1+amount,1)), oldYear=scheduleYear;
+      scheduleYear=date.getUTCFullYear();scheduleMonth=date.getUTCMonth()+1;selectedScheduleDate=null;
+      if (![...scheduleElement('schedule-year').options].some(option=>option.value===String(scheduleYear))) scheduleElement('schedule-year').add(new Option(scheduleYear+'년',scheduleYear));
+      if(oldYear!==scheduleYear)scheduleRefreshContext();else renderScheduleCalendar();
+    };
+    scheduleElement('btn-prev-month').addEventListener('click',()=>navigate(-1));scheduleElement('btn-next-month').addEventListener('click',()=>navigate(1));
+    scheduleElement('btn-calendar-today').addEventListener('click',()=>{scheduleYear=parts[0];scheduleMonth=parts[1];selectedScheduleDate=null;scheduleRefreshContext();});
+    document.querySelectorAll('input[name="schedule-kind"], input[name="schedule-action"], #schedule-weekdays input').forEach(input=>input.addEventListener('change',updateScheduleForm));
+    ['start-date-input','end-date-input'].forEach(id=>scheduleElement(id).addEventListener('change',()=>{scheduleSelectedDates.clear();updateScheduleForm();renderScheduleCalendar();}));
+    scheduleElement('tree-search-input').addEventListener('input',renderScheduleTree);
+    scheduleElement('btn-reset-tree').addEventListener('click',()=>{scheduleSelectedCodes.clear();renderScheduleTree();updateScheduleForm();});
+    document.querySelectorAll('[data-period]').forEach(button=>button.addEventListener('click',()=>{
+      scheduleSelectedDates.clear();
+      const first = parseScheduleDate(scheduleElement('start-date-input').value) || new Date(Date.UTC(scheduleYear,scheduleMonth-1,1));
+      const last = new Date(first);
+      if(button.dataset.period==='week')last.setUTCDate(last.getUTCDate()+6);
+      if(['month','quarter'].includes(button.dataset.period)) {
+        const months=button.dataset.period==='month'?1:3, targetMonth=first.getUTCMonth()+months;
+        const anniversary = new Date(Date.UTC(first.getUTCFullYear(),targetMonth,Math.min(first.getUTCDate(),new Date(Date.UTC(first.getUTCFullYear(),targetMonth+1,0)).getUTCDate())));
+        last.setTime(anniversary.getTime()); last.setUTCDate(last.getUTCDate()-1);
       }
-      updateSelectedCount();
+      scheduleElement('start-date-input').value=dateKey(first);scheduleElement('end-date-input').value=dateKey(last);updateScheduleForm();renderScheduleCalendar();
+    }));
+    scheduleElement('btn-clear-dates').addEventListener('click',()=>{scheduleSelectedDates.clear();selectedScheduleDate=null;updateScheduleForm();renderScheduleCalendar();});
+    scheduleElement('btn-stage-change').addEventListener('click',stageScheduleChange);
+    scheduleElement('btn-save-all').addEventListener('click',saveScheduleChanges);
+    scheduleElement('btn-discard-changes').addEventListener('click',()=>{
+      if(!confirm('저장 전 변경 내용을 모두 취소하시겠습니까?'))return;
+      pendingScheduleChanges=[];rebuildDraftSchedule();renderSchedulePending();renderScheduleCalendar();scheduleElement('schedule-notice').textContent='변경을 취소했습니다. 저장된 일정입니다.';
     });
-  });
-
-  // Tree Node row caret toggle collapses tree
-  document.querySelectorAll(".tree-node-row").forEach(row => {
-    const caret = row.querySelector(".tree-caret");
-    const childrenDiv = row.nextElementSibling;
-
-    row.addEventListener("click", (e) => {
-      // Prevent collapse when clicking directly on checkbox or checkbox labels
-      if (e.target.tagName === "INPUT" || e.target.closest(".tree-label")) {
-        return;
-      }
-
-      caret.classList.toggle("collapsed");
-      if (caret.classList.contains("collapsed")) {
-        childrenDiv.style.display = "none";
-        caret.innerText = "▶";
-      } else {
-        childrenDiv.style.display = "flex";
-        caret.innerText = "▼";
-      }
+    scheduleElement('btn-view-history').addEventListener('click',()=>{
+      const history=(savedSchedule.__meta.history || []).filter(operation=>operation.hospital===scheduleHospital).slice().reverse();
+      scheduleOpenDialog('변경 이력',history.length ? history.map(operation=>`<article class="schedule-history-entry"><strong>${KIND_NAMES[operation.kind]} ${operation.action==='set'?'설정':'해제'} · ${escapeSchedule(operationTarget(operation))}</strong><div>${escapeSchedule(operation.start)} ~ ${escapeSchedule(operation.end)} · ${operation.dates.length}일</div><small>${escapeSchedule(new Date(operation.savedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}))}</small></article>`).join('') : '<p class="schedule-empty">기록된 변경 이력이 없습니다.</p>');
     });
-  });
-
-  // Search feature for checkups tree
-  document.getElementById("tree-search-input").addEventListener("input", (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    const parents = document.querySelectorAll(".tree-parent");
-
-    parents.forEach(parent => {
-      const childrenRows = parent.querySelectorAll(".tree-child-row");
-      let visibleChildren = 0;
-
-      childrenRows.forEach(row => {
-        const text = row.querySelector(".tree-text").innerText.toLowerCase();
-        if (text.includes(query)) {
-          row.style.display = "flex";
-          visibleChildren++;
-        } else {
-          row.style.display = "none";
-        }
-      });
-
-      const parentText = parent.querySelector(".tree-node-row .tree-text").innerText.toLowerCase();
-      if (visibleChildren > 0 || parentText.includes(query)) {
-        parent.style.display = "block";
-      } else {
-        parent.style.display = "none";
-      }
-    });
-  });
-
-  // Reset tree selections
-  document.getElementById("btn-reset-tree").addEventListener("click", () => {
-    document.querySelectorAll(".tree-cb").forEach(cb => {
-      cb.checked = false;
-      cb.indeterminate = false;
-    });
-    updateSelectedCount();
-    showToast("검사항목 선택이 모두 해제되었습니다.");
-  });
-
-  // Confirm selection button
-  document.getElementById("btn-confirm-selection").addEventListener("click", () => {
-    const checked = [];
-    document.querySelectorAll(".child-cb:checked").forEach(cb => {
-      const label = cb.nextElementSibling.innerText;
-      checked.push(label);
-    });
-    if (checked.length === 0) {
-      alert("선택된 검사 항목이 없습니다. 좌측에서 항목을 체크하세요.");
-    } else {
-      alert(`[선택 확인] 총 ${checked.length}개 항목:\n- ` + checked.join("\n- "));
-    }
-  });
-}
-
-function initTreeCheckboxes() {
-  // Pre-check colon children
-  document.querySelectorAll(`.child-cb[data-parent="colon"]`).forEach(cb => cb.checked = true);
-  document.querySelector(`.parent-cb[data-target="colon"]`).checked = true;
-
-  // Pre-check stomach children
-  document.querySelectorAll(`.child-cb[data-parent="stomach"]`).forEach(cb => cb.checked = true);
-  document.querySelector(`.parent-cb[data-target="stomach"]`).checked = true;
-
-  // Pre-check some mri children
-  document.querySelector(`.child-cb[value="mri_all"]`).checked = true;
-  document.querySelector(`.child-cb[value="mri_brain"]`).checked = true;
-  
-  // Set indeterminate for parent mri
-  document.querySelector(`.parent-cb[data-target="mri"]`).indeterminate = true;
-
-  updateSelectedCount();
-}
-
-function updateSelectedCount() {
-  const checked = document.querySelectorAll(".child-cb:checked").length;
-  document.getElementById("selected-items-count").innerText = checked;
-}
-
-// --- Setup Event Listeners ---
-function setupEventListeners() {
-  // Dropdown filter changes
-  document.getElementById("hosp-select").addEventListener("change", (e) => {
-    currentHosp = e.target.value;
-    clearRangeSelection();
-    renderAll();
-  });
-
-  // Date inputs change
-  document.getElementById("start-date-input").addEventListener("change", handleDateInputsChange);
-  document.getElementById("end-date-input").addEventListener("change", handleDateInputsChange);
-
-  // View mode switcher (Monthly vs Yearly)
-  document.getElementById("view-mode-select").addEventListener("change", (e) => {
-    viewMode = e.target.value;
-    const navLabel = document.getElementById("calendar-month-label");
-    
-    if (viewMode === "year") {
-      document.getElementById("admin-calendar-grid").style.display = "none";
-      document.getElementById("admin-calendar-yearly-grid").style.display = "grid";
-      navLabel.innerText = `${currentYear}년`;
-    } else {
-      document.getElementById("admin-calendar-grid").style.display = "grid";
-      document.getElementById("admin-calendar-yearly-grid").style.display = "none";
-      navLabel.innerText = `${currentYear}년 ${currentMonth}월`;
-    }
-    renderAll();
-  });
-
-  // Calendar navigation arrows
-  document.getElementById("btn-prev-month").addEventListener("click", () => {
-    navigateCalendar(-1);
-  });
-  
-  document.getElementById("btn-next-month").addEventListener("click", () => {
-    navigateCalendar(1);
-  });
-
-  // Quick Range buttons
-  document.querySelectorAll(".btn-quick").forEach(btn => {
-    btn.addEventListener("click", handleQuickRangeClick);
-  });
-
-  // Weekday toggle buttons
-  document.querySelectorAll(".btn-weekday").forEach(btn => {
-    btn.addEventListener("click", handleWeekdayToggle);
-  });
-
-  // Action Apply buttons
-  document.getElementById("btn-apply-avail").addEventListener("click", () => applyStatus("avail"));
-  document.getElementById("btn-apply-closed").addEventListener("click", () => applyStatus("closed"));
-  document.getElementById("btn-apply-holiday").addEventListener("click", () => applyStatus("holiday"));
-
-  // Copy previous settings
-  document.getElementById("btn-copy-prev").addEventListener("click", copyPrevMonthSettings);
-
-  // Save Settings button
-  document.getElementById("btn-save-all").addEventListener("click", () => {
-    saveDataToStorage(true);
-  });
-
-  // View applied history (Demonstrative modal/alert)
-  document.getElementById("btn-view-history").addEventListener("click", () => {
-    alert("최근 설정 이력:\n1. 2026-06-01 ~ 2026-06-30 기간 내 대장/위내시경 마감 설정 적용 완료\n2. 매주 일요일 공휴일 지정 자동화");
-  });
-}
-
-function syncFiltersFromDropdowns() {
-  currentHosp = document.getElementById("hosp-select").value;
-}
-
-// --- Quick Date Range Handlers ---
-function handleQuickRangeClick(e) {
-  const btn = e.currentTarget;
-  document.querySelectorAll(".btn-quick").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-
-  const range = btn.dataset.range;
-  const today = new Date();
-  let start = new Date(today);
-  let end = new Date(today);
-
-  if (range === "1m") {
-    end.setMonth(today.getMonth() + 1);
-  } else if (range === "3m") {
-    end.setMonth(today.getMonth() + 3);
-  } else if (range === "6m") {
-    end.setMonth(today.getMonth() + 6);
-  } else if (range === "1y") {
-    end.setFullYear(today.getFullYear() + 1);
-  }
-
-  rangeStart = formatDateStr(start);
-  rangeEnd = formatDateStr(end);
-
-  document.getElementById("start-date-input").value = rangeStart;
-  document.getElementById("end-date-input").value = rangeEnd;
-
-  // Jump monthly calendar to start date's year/month
-  currentYear = start.getFullYear();
-  currentMonth = start.getMonth() + 1;
-
-  updateWeekdayButtonsState();
-  renderAll();
-  updateHighlights();
-}
-
-// --- Date Inputs Handlers ---
-function handleDateInputsChange() {
-  const startVal = document.getElementById("start-date-input").value;
-  const endVal = document.getElementById("end-date-input").value;
-
-  rangeStart = startVal || null;
-  rangeEnd = endVal || null;
-
-  // Swap dates if start is later than end
-  if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
-    const temp = rangeStart;
-    rangeStart = rangeEnd;
-    rangeEnd = temp;
-    document.getElementById("start-date-input").value = rangeStart;
-    document.getElementById("end-date-input").value = rangeEnd;
-  }
-
-  // Auto-navigate calendar to start date if possible
-  if (rangeStart) {
-    const parts = rangeStart.split("-");
-    currentYear = parseInt(parts[0]);
-    currentMonth = parseInt(parts[1]);
-  }
-
-  updateWeekdayButtonsState();
-  renderAll();
-  updateHighlights();
-}
-
-function updateWeekdayButtonsState() {
-  const buttons = document.querySelectorAll(".btn-weekday");
-  if (rangeStart && rangeEnd) {
-    buttons.forEach(btn => {
-      btn.removeAttribute("disabled");
-      btn.removeAttribute("data-tooltip");
-    });
-  } else {
-    buttons.forEach(btn => {
-      btn.setAttribute("disabled", "true");
-      btn.setAttribute("data-tooltip", "기간 설정 후 선택 가능");
-      btn.classList.remove("active");
-    });
-    selectedWeekdays.clear();
+    window.addEventListener('beforeunload',event=>{if(pendingScheduleChanges.length){event.preventDefault();event.returnValue='';}});
+    scheduleRefreshContext();renderSchedulePending();
+  } catch(error) {
+    scheduleElement('schedule-notice').textContent = '설정 정보를 불러오지 못했습니다. ' + error.message;
+    scheduleElement('btn-stage-change').disabled=true;scheduleElement('btn-save-all').disabled=true;
   }
 }
-
-// --- Weekday Repeat Filter Handlers ---
-function handleWeekdayToggle(e) {
-  const btn = e.currentTarget;
-  const day = btn.dataset.day;
-
-  if (day === "all") {
-    const allActive = btn.classList.contains("active");
-    document.querySelectorAll(".btn-weekday").forEach(b => {
-      if (b.dataset.day !== "all") {
-        if (allActive) {
-          b.classList.remove("active");
-          selectedWeekdays.delete(parseInt(b.dataset.day));
-        } else {
-          b.classList.add("active");
-          selectedWeekdays.add(parseInt(b.dataset.day));
-        }
-      }
-    });
-    btn.classList.toggle("active");
-  } else {
-    btn.classList.toggle("active");
-    const dayNum = parseInt(day);
-    if (selectedWeekdays.has(dayNum)) {
-      selectedWeekdays.delete(dayNum);
-    } else {
-      selectedWeekdays.add(dayNum);
-    }
-
-    // Sync "all" button state
-    const allBtn = document.querySelector('.btn-weekday[data-day="all"]');
-    if (selectedWeekdays.size === 7) {
-      allBtn.classList.add("active");
-    } else {
-      allBtn.classList.remove("active");
-    }
-  }
-}
-
-// --- Calendar Navigation ---
-function navigateCalendar(dir) {
-  if (viewMode === "year") {
-    // Navigate years
-    currentYear += dir;
-    document.getElementById("calendar-month-label").innerText = `${currentYear}년`;
-  } else {
-    // Navigate months
-    currentMonth += dir;
-    if (currentMonth < 1) {
-      currentMonth = 12;
-      currentYear -= 1;
-    } else if (currentMonth > 12) {
-      currentMonth = 1;
-      currentYear += 1;
-    }
-    document.getElementById("calendar-month-label").innerText = `${currentYear}년 ${currentMonth}월`;
-  }
-  renderAll();
-  updateHighlights();
-}
-
-function clearRangeSelection() {
-  rangeStart = null;
-  rangeEnd = null;
-  document.getElementById("start-date-input").value = "";
-  document.getElementById("end-date-input").value = "";
-  document.querySelectorAll(".btn-quick").forEach(b => b.classList.remove("active"));
-  updateWeekdayButtonsState();
-  updateHighlights();
-}
-
-// --- Schedule Applier (예약가능, 마감, 휴일 버튼) ---
-function applyStatus(status) {
-  if (!rangeStart || !rangeEnd) {
-    alert("일정을 적용할 기간(시작일 및 종료일)을 먼저 입력하거나 달력에서 드래그하여 선택하세요.");
-    return;
-  }
-
-  const startDate = new Date(rangeStart);
-  const endDate = new Date(rangeEnd);
-
-  // Get selected tree items
-  const selectedItems = [];
-  document.querySelectorAll(".child-cb:checked").forEach(cb => {
-    selectedItems.push(cb.value);
-  });
-
-  let currentDate = new Date(startDate);
-  let appliedCount = 0;
-
-  while (currentDate <= endDate) {
-    const y = currentDate.getFullYear();
-    const m = currentDate.getMonth() + 1;
-    const d = currentDate.getDate();
-    const dayOfWeek = currentDate.getDay();
-
-    // Check if weekday filter is matched (or if no weekdays are selected, apply to all)
-    if (selectedWeekdays.size === 0 || selectedWeekdays.has(dayOfWeek)) {
-      ensureScheduleSpaceForMonth(y, m);
-      const dayConfig = scheduleData[currentHosp][y][m][d];
-
-      if (status === "holiday") {
-        dayConfig.status = "holiday";
-        dayConfig.closedTests = [];
-      } else if (status === "closed") {
-        // If all 11 items are selected or none is checked, close the whole day
-        if (selectedItems.length === 11 || selectedItems.length === 0) {
-          dayConfig.status = "closed";
-          dayConfig.closedTests = [];
-        } else {
-          dayConfig.status = "avail";
-          // Add items to closedTests uniquely
-          selectedItems.forEach(item => {
-            if (!dayConfig.closedTests.includes(item)) {
-              dayConfig.closedTests.push(item);
-            }
-          });
-        }
-      } else if (status === "avail") {
-        if (selectedItems.length === 11 || selectedItems.length === 0) {
-          dayConfig.status = "avail";
-          dayConfig.closedTests = [];
-        } else {
-          dayConfig.status = "avail";
-          // Remove selected items from closedTests
-          dayConfig.closedTests = dayConfig.closedTests.filter(item => !selectedItems.includes(item));
-        }
-      }
-      appliedCount++;
-    }
-
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  renderAll();
-  updateHighlights();
-
-  let msg = `[${status === "avail" ? "예약가능" : status === "closed" ? "마감" : "휴일"}] 상태가 ${appliedCount}개 일자에 적용되었습니다.`;
-  if (selectedWeekdays.size > 0) {
-    msg += " (※ 요일 필터 반복 적용됨)";
-  }
-  showToast(msg);
-}
-
-// --- Admin Range Selection Engine ---
-function handleAdminCellClick(dateStr) {
-  if (rangeStart === null) {
-    rangeStart = dateStr;
-    rangeEnd = null;
-  } else if (rangeEnd === null) {
-    if (dateStr >= rangeStart) {
-      rangeEnd = dateStr;
-    } else {
-      rangeStart = dateStr;
-      rangeEnd = null;
-    }
-  } else {
-    rangeStart = dateStr;
-    rangeEnd = null;
-  }
-
-  document.getElementById("start-date-input").value = rangeStart || "";
-  document.getElementById("end-date-input").value = rangeEnd || rangeStart || "";
-
-  updateWeekdayButtonsState();
-  updateHighlights();
-}
-
-function updateHighlights() {
-  const cells = document.querySelectorAll(".admin-day-cell");
-  cells.forEach(cell => {
-    const d = parseInt(cell.dataset.day);
-    if (!d) return;
-
-    const dateStr = formatDateStrFromYMD(currentYear, currentMonth, d);
-    cell.classList.remove("range-start", "range-mid", "range-end");
-
-    if (rangeStart !== null && rangeEnd !== null) {
-      if (dateStr === rangeStart) {
-        cell.classList.add("range-start");
-      } else if (dateStr === rangeEnd) {
-        cell.classList.add("range-end");
-      } else if (dateStr > rangeStart && dateStr < rangeEnd) {
-        cell.classList.add("range-mid");
-      }
-    } else if (rangeStart !== null) {
-      if (dateStr === rangeStart) {
-        cell.classList.add("range-start", "range-end");
-      }
-    }
-  });
-}
-
-// --- Render Operations ---
-function renderAll() {
-  ensureScheduleSpaceForMonth(currentYear, currentMonth);
-  if (viewMode === "year") {
-    renderYearlyCalendar();
-  } else {
-    renderMonthlyCalendar();
-  }
-}
-
-function ensureScheduleSpaceForMonth(year, month) {
-  if (!scheduleData[currentHosp]) {
-    scheduleData[currentHosp] = {};
-  }
-  if (!scheduleData[currentHosp][year]) {
-    scheduleData[currentHosp][year] = {};
-  }
-  if (!scheduleData[currentHosp][year][month]) {
-    scheduleData[currentHosp][year][month] = {};
-    
-    // Automatically generate basic defaults
-    const daysInMonth = new Date(year, month, 0).getDate();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateObj = new Date(year, month - 1, d);
-      const dayOfWeek = dateObj.getDay();
-      if (dayOfWeek === 0) {
-        scheduleData[currentHosp][year][month][d] = { status: "holiday", closedTests: [] };
-      } else {
-        scheduleData[currentHosp][year][month][d] = { status: "avail", closedTests: [] };
-      }
-    }
-  }
-}
-
-// --- Render Monthly Calendar Grid ---
-function renderMonthlyCalendar() {
-  const container = document.getElementById("admin-calendar-grid");
-  container.innerHTML = "";
-
-  // Add weekday headers
-  const headers = ["일", "월", "화", "수", "목", "금", "토"];
-  headers.forEach((h, idx) => {
-    const el = document.createElement("div");
-    el.className = "calendar-day-header";
-    if (idx === 0) el.classList.add("sun");
-    if (idx === 6) el.classList.add("sat");
-    el.innerText = h;
-    container.appendChild(el);
-  });
-
-  const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay();
-  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-  const monthData = scheduleData[currentHosp][currentYear][currentMonth];
-
-  // 1. Padding days
-  for (let i = 0; i < firstDayIndex; i++) {
-    const el = document.createElement("div");
-    el.className = "admin-day-cell other-month";
-    container.appendChild(el);
-  }
-
-  // 2. Active days of month
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dayConfig = monthData[d] || { status: "avail", closedTests: [] };
-    const dateObj = new Date(currentYear, currentMonth - 1, d);
-    const dayOfWeek = dateObj.getDay();
-
-    const cell = document.createElement("div");
-    cell.className = "admin-day-cell";
-    if (dayOfWeek === 0) cell.classList.add("sun");
-    if (dayOfWeek === 6) cell.classList.add("sat");
-    cell.dataset.day = d;
-    
-    let statusText = "예약가능";
-    let statusClass = "avail";
-    if (dayConfig.status === "closed") {
-      statusText = "마감";
-      statusClass = "closed";
-    } else if (dayConfig.status === "holiday") {
-      statusText = "휴일";
-      statusClass = "holiday";
-    }
-
-    let closedTagsHtml = "";
-    if (dayConfig.status === "avail" && dayConfig.closedTests && dayConfig.closedTests.length > 0) {
-      closedTagsHtml = `<div class="closed-items-list">`;
-      dayConfig.closedTests.forEach(test => {
-        const label = CHECKUP_LABELS[test] || test;
-        closedTagsHtml += `<span class="closed-item-tag" title="${label} 마감">· ${label} 마감</span>`;
-      });
-      closedTagsHtml += `</div>`;
-    }
-
-    cell.innerHTML = `
-      <div class="day-num-row">
-        <span class="day-num">${d}</span>
-        <span class="day-status-badge ${statusClass}">${statusText}</span>
-      </div>
-      ${closedTagsHtml}
-    `;
-
-    const dateStr = formatDateStrFromYMD(currentYear, currentMonth, d);
-    cell.addEventListener("click", () => {
-      handleAdminCellClick(dateStr);
-    });
-
-    container.appendChild(cell);
-  }
-}
-
-// --- Render Yearly Calendar Grid ---
-function renderYearlyCalendar() {
-  const container = document.getElementById("admin-calendar-yearly-grid");
-  container.innerHTML = "";
-
-  for (let m = 1; m <= 12; m++) {
-    ensureScheduleSpaceForMonth(currentYear, m);
-    const monthData = scheduleData[currentHosp][currentYear][m];
-    const daysInMonth = new Date(currentYear, m, 0).getDate();
-    const firstDayIndex = new Date(currentYear, m - 1, 1).getDay();
-
-    // Mini month wrapper
-    const monthBox = document.createElement("div");
-    monthBox.className = "mini-month-box";
-    monthBox.dataset.month = m;
-
-    monthBox.innerHTML = `
-      <div class="mini-month-title">${currentYear}년 ${m}월</div>
-      <div class="mini-month-days-header">
-        <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span>
-      </div>
-    `;
-
-    const daysGrid = document.createElement("div");
-    daysGrid.className = "mini-month-days-grid";
-
-    // 1. Padding days
-    for (let i = 0; i < firstDayIndex; i++) {
-      const pad = document.createElement("span");
-      pad.className = "mini-day-cell other-month";
-      daysGrid.appendChild(pad);
-    }
-
-    // 2. Active days
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dayConfig = monthData[d] || { status: "avail", closedTests: [] };
-      const dayCell = document.createElement("span");
-      dayCell.className = `mini-day-cell ${dayConfig.status}`;
-      dayCell.innerText = d;
-
-      // Add tooltip text
-      let tooltipMsg = `${m}월 ${d}일: `;
-      if (dayConfig.status === "holiday") {
-        tooltipMsg += "휴일";
-      } else if (dayConfig.status === "closed") {
-        tooltipMsg += "예약 마감";
-      } else {
-        tooltipMsg += "예약 가능";
-        if (dayConfig.closedTests.length > 0) {
-          const names = dayConfig.closedTests.map(test => CHECKUP_LABELS[test] || test);
-          tooltipMsg += ` (${names.join(", ")} 마감)`;
-        }
-      }
-      dayCell.setAttribute("data-tooltip", tooltipMsg);
-
-      daysGrid.appendChild(dayCell);
-    }
-
-    monthBox.appendChild(daysGrid);
-
-    // Click on mini calendar switches view to Monthly view of that month
-    monthBox.addEventListener("click", () => {
-      viewMode = "month";
-      currentMonth = m;
-      document.getElementById("view-mode-select").value = "month";
-      document.getElementById("admin-calendar-grid").style.display = "grid";
-      document.getElementById("admin-calendar-yearly-grid").style.display = "none";
-      document.getElementById("calendar-month-label").innerText = `${currentYear}년 ${currentMonth}월`;
-      renderAll();
-      updateHighlights();
-    });
-
-    container.appendChild(monthBox);
-  }
-}
-
-// --- Copy Settings Engine ---
-function copyPrevMonthSettings() {
-  let prevMonth = currentMonth - 1;
-  let prevYear = currentYear;
-  if (prevMonth < 1) {
-    prevMonth = 12;
-    prevYear -= 1;
-  }
-
-  const prevData = scheduleData[currentHosp]?.[prevYear]?.[prevMonth];
-  if (!prevData) {
-    alert(`${prevYear}년 ${prevMonth}월의 기존 설정 데이터가 존재하지 않습니다.`);
-    return;
-  }
-
-  if (confirm(`${prevYear}년 ${prevMonth}월의 마감 설정을 현재 달(${currentYear}년 ${currentMonth}월)로 복사하시겠습니까?\n(일치하는 날짜까지만 복사됩니다)`)) {
-    const daysInCurrent = new Date(currentYear, currentMonth, 0).getDate();
-    const daysInPrev = new Date(prevYear, prevMonth, 0).getDate();
-    const limit = Math.min(daysInCurrent, daysInPrev);
-
-    for (let d = 1; d <= limit; d++) {
-      if (prevData[d]) {
-        scheduleData[currentHosp][currentYear][currentMonth][d] = JSON.parse(JSON.stringify(prevData[d]));
-      }
-    }
-
-    clearRangeSelection();
-    renderAll();
-    showToast(`${prevYear}년 ${prevMonth}월 설정을 성공적으로 복사해왔습니다.`);
-  }
-}
-
-// --- Utilities ---
-function formatDateStr(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function formatDateStrFromYMD(y, m, d) {
-  const mStr = String(m).padStart(2, "0");
-  const dStr = String(d).padStart(2, "0");
-  return `${y}-${mStr}-${dStr}`;
-}
-
-// --- Toast Utility ---
-function showToast(msg) {
-  const container = document.getElementById("toast-container");
-  if (!container) return;
-
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.innerHTML = `
-    <span style="color:#10b981; font-weight:bold;">✓</span>
-    <span>${msg}</span>
-  `;
-  container.appendChild(el);
-
-  setTimeout(() => {
-    el.style.animation = "fadeOut 0.4s ease-out forwards";
-    setTimeout(() => {
-      el.remove();
-    }, 400);
-  }, 3000);
-}
+if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded',initializeScheduleEditor);
+if (typeof module !== 'undefined') module.exports = { rangeDates, normalizeScheduleDay, normalizeScheduleStore, readScheduleDay, applyScheduleOperation, eligibleScheduleItems, effectiveSchedule, scheduleItemLabels, schedulerHoliday, EXAMPLE_ITEMS, EXAMPLE_PACKAGES };

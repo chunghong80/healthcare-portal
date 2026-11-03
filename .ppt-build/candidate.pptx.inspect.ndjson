@@ -1,0 +1,229 @@
+{"kind":"deck","id":"pr/phjmdd","name":"Deck"}
+{"kind":"layout","layoutId":"ecb1e29f-ddcc-493e-8c98-c1516e2b0175","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"9bdf2ed3-9a69-40cf-bfa7-90a3605c7776","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/gsdq81","slide":1,"title":"헬스케어포털","textShapes":3}
+{"kind":"textbox","id":"sh/0bitwfel","slide":1,"name":"헬스케어포털","text":"헬스케어포털","textPreview":"헬스케어포털","textChars":6,"textLines":1,"bbox":[76,210,1110,100]}
+{"kind":"textbox","id":"sh/fa9c3ax0","slide":1,"name":"개발팀 업무 설명 및\n상세 요구사항 보완","text":"개발팀 업무 설명 및\n상세 요구사항 보완","textPreview":"개발팀 업무 설명 및 | 상세 요구사항 보완","textChars":22,"textLines":2,"bbox":[80,326,1100,130]}
+{"kind":"textbox","id":"sh/e9gbu5wv","slide":1,"name":"1차 기획서 보완 설명 자료  /  2026.10.01","text":"1차 기획서 보완 설명 자료  /  2026.10.01","textPreview":"1차 기획서 보완 설명 자료  /  2026.10.01","textChars":30,"textLines":1,"bbox":[80,599,1100,46]}
+{"kind":"notes","id":"nt/gsdq81","slide":1,"text":"발표 목적: 1차 기획서에서 생략한 업무 맥락과 운영 규칙을 개발팀에 설명한다. 화면 정의서를 함께 열고 이 자료로 배경과 관계를 설명한다. 권장 진행은 사업·권한 10분, 서비스·운영 15분, 범위·협의 10분이다. 이 자료는 보완 설명 초안이며 계약 범위나 확정 정책의 대체 문서가 아니다. 근거 자료: FEATURES.md 및 요청사항 이력."}
+{"kind":"slide","id":"sl/ob9ati","slide":2,"title":"이 자료의 사용 기준","textShapes":5}
+{"kind":"textbox","id":"sh/ulwn698f","slide":2,"name":"이 자료의 사용 기준","text":"이 자료의 사용 기준","textPreview":"이 자료의 사용 기준","textChars":11,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/ho76h4r6","slide":2,"name":"화면 정의서와 함께 읽는 업무 설명 자료","text":"화면 정의서와 함께 읽는 업무 설명 자료","textPreview":"화면 정의서와 함께 읽는 업무 설명 자료","textChars":22,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/wne58zql","slide":2,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/3apoje9w","slide":2,"name":"02","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/5c76lor2","slide":2,"name":"계약 범위와 최종 운영 정책은 별도 확인","text":"계약 범위와 최종 운영 정책은 별도 확인","textPreview":"계약 범위와 최종 운영 정책은 별도 확인","textChars":22,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/n65gj698","slide":2,"name":"","rows":5,"cols":3,"preview":"구분 | 의미 | 개발팀이 할 일","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/ob9ati","slide":2,"text":"기존 자료에서 확인한 기능은 기존 기획으로 표시한다. 업무 목적과 역할은 자료 구조를 바탕으로 정리한 설명이므로 담당자가 사실 관계를 확인한다. 새로 필요한 상세 규칙은 제안 또는 협의로 표시하며 개발 확정으로 간주하지 않는다. 회의에서 결론이 난 항목은 상세 요구사항과 화면 정의서에 같은 버전으로 반영한다.\n\n근거 자료: FEATURES.md; CHANGELOG.md\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/fhma63","slide":3,"title":"사업 목적과 서비스 구조","textShapes":13}
+{"kind":"textbox","id":"sh/f65cfi9g","slide":3,"name":"사업 목적과 서비스 구조","text":"사업 목적과 서비스 구조","textPreview":"사업 목적과 서비스 구조","textChars":13,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/07etonq1","slide":3,"name":"업무 설명 · 고객사별 건강관리 혜택을 회원의 서비스 이용","text":"업무 설명 · 고객사별 건강관리 혜택을 회원의 서비스 이용으로 연결","textPreview":"업무 설명 · 고객사별 건강관리 혜택을 회원의 서비스 이용으로 연결","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/18nuh876","slide":3,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/q1cbit8j","slide":3,"name":"03","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/r25cby94","slide":3,"name":"고객사 관점","text":"고객사 관점","textPreview":"고객사 관점","textChars":6,"textLines":1,"bbox":[66,205,270,72]}
+{"kind":"textbox","id":"sh/s3etk3qp","slide":3,"name":"계약·제휴 조건에 맞는 서비스와 대상 등급을 설정","text":"계약·제휴 조건에 맞는 서비스와 대상 등급을 설정","textPreview":"계약·제휴 조건에 맞는 서비스와 대상 등급을 설정","textChars":27,"textLines":1,"bbox":[356,205,854,83]}
+{"kind":"textbox","id":"sh/d4nud8ra","slide":3,"name":"회원 관점","text":"회원 관점","textPreview":"회원 관점","textChars":5,"textLines":1,"bbox":[66,305,270,72]}
+{"kind":"textbox","id":"sh/ixcbet8n","slide":3,"name":"자신의 혜택을 확인하고 상담·검진 등을 신청","text":"자신의 혜택을 확인하고 상담·검진 등을 신청","textPreview":"자신의 혜택을 확인하고 상담·검진 등을 신청","textChars":24,"textLines":1,"bbox":[356,305,854,83]}
+{"kind":"textbox","id":"sh/3ylcny98","slide":3,"name":"운영 관점","text":"운영 관점","textPreview":"운영 관점","textChars":5,"textLines":1,"bbox":[66,405,270,72]}
+{"kind":"textbox","id":"sh/jml0v6dk","slide":3,"name":"고객사별 자격과 정책을 확인하면서 신청을 처리","text":"고객사별 자격과 정책을 확인하면서 신청을 처리","textPreview":"고객사별 자격과 정책을 확인하면서 신청을 처리","textChars":25,"textLines":1,"bbox":[356,405,854,83]}
+{"kind":"textbox","id":"sh/ylcj21wf","slide":3,"name":"포털의 역할","text":"포털의 역할","textPreview":"포털의 역할","textChars":6,"textLines":1,"bbox":[66,505,270,72]}
+{"kind":"textbox","id":"sh/l8nixgvq","slide":3,"name":"이용 안내, 신청 접수, 처리 이력 조회를 연결","text":"이용 안내, 신청 접수, 처리 이력 조회를 연결","textPreview":"이용 안내, 신청 접수, 처리 이력 조회를 연결","textChars":26,"textLines":1,"bbox":[356,505,854,83]}
+{"kind":"textbox","id":"sh/k7e14be5","slide":3,"name":"협의 필요: 계약 유형, 유료·무료 범위, 비용 부담 및 ","text":"협의 필요: 계약 유형, 유료·무료 범위, 비용 부담 및 정산 주체","textPreview":"협의 필요: 계약 유형, 유료·무료 범위, 비용 부담 및 정산 주체","textChars":37,"textLines":1,"bbox":[66,612,1140,48]}
+{"kind":"notes","id":"nt/fhma63","slide":3,"text":"현재 자료에는 사업계약이나 수익구조가 없다. 따라서 수수료, 계약 단가, 매출 모델을 추정하지 않는다. 포털 구조에서 읽을 수 있는 목적은 고객사별 서비스를 안내하고 자격에 맞는 신청을 받아 운영자가 처리하게 하는 것이다. 고객사는 기업·보험사 등 제휴 주체를 포괄하는 용어로 사용하되 실제 고객사 유형은 확인한다.\n\n근거 자료: FEATURES.md; admin.js; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/kqx8lb","slide":4,"title":"참여 주체와 업무 책임","textShapes":4}
+{"kind":"textbox","id":"sh/ofyxcvq1","slide":4,"name":"참여 주체와 업무 책임","text":"참여 주체와 업무 책임","textPreview":"참여 주체와 업무 책임","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/nepg3q9g","slide":4,"name":"업무 설명 · 실제 조직명과 권한 범위는 착수 시 확정","text":"업무 설명 · 실제 조직명과 권한 범위는 착수 시 확정","textPreview":"업무 설명 · 실제 조직명과 권한 범위는 착수 시 확정","textChars":30,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/2dgfal8b","slide":4,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/1s7e1grq","slide":4,"name":"04","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/x47upgju","slide":4,"name":"","rows":6,"cols":3,"preview":"주체 | 주요 역할 | 확인할 책임 경계","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/kqx8lb","slide":4,"text":"교보다솜케어는 자료상 운영·서비스 제공 주체로 해석해 설명한다. 실제 상담 조직, 검진 예약 담당, 고객사 관리 담당이 같은 조직인지 분리되어 있는지는 확인한다. 외주 개발팀은 정책을 정하는 주체가 아니라 합의된 정책을 시스템에 반영한다. 고객사 담당자의 관리자 계정 제공 여부는 기존 자료만으로 확정하지 않는다.\n\n근거 자료: FEATURES.md; 20260723_요청사항_이력.md\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/ojn8ee","slide":5,"title":"핵심 업무 용어","textShapes":4}
+{"kind":"textbox","id":"sh/5c7i98r2","slide":5,"name":"핵심 업무 용어","text":"핵심 업무 용어","textPreview":"핵심 업무 용어","textChars":8,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/ipwzydsr","slide":5,"name":"고객사·사이트·등급·서비스·정책은 각각 다른 관리 대상","text":"고객사·사이트·등급·서비스·정책은 각각 다른 관리 대상","textPreview":"고객사·사이트·등급·서비스·정책은 각각 다른 관리 대상","textChars":30,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/3q507i9c","slide":5,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/sfyh4nat","slide":5,"name":"05","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/sra5ony9","slide":5,"name":"","rows":6,"cols":3,"preview":"용어 | 업무 의미 | 연결 기준","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/ojn8ee","slide":5,"text":"같은 등급명이 여러 고객사에 있어도 같은 등급으로 처리하지 않는다. 등급은 고객사 기준 식별이 필요하다. 사이트는 이용 화면과 메뉴를 담는 구성 단위이고 고객사 자체와 동일하지 않다. 서비스 안내 문구, 신청 권한, 검진 지원 정책은 서로 연결하지만 별개의 관리 대상이다.\n\n근거 자료: FEATURES.md; admin.js; checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/bpuybm","slide":6,"title":"공통 사이트와 분기 사이트","textShapes":5}
+{"kind":"textbox","id":"sh/p8nypoze","slide":6,"name":"공통 사이트와 분기 사이트","text":"공통 사이트와 분기 사이트","textPreview":"공통 사이트와 분기 사이트","textChars":14,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/25cfu9gn","slide":6,"name":"기존 기획 · 공통 화면을 쓰더라도 고객사별 등급 설정은 ","text":"기존 기획 · 공통 화면을 쓰더라도 고객사별 등급 설정은 유지","textPreview":"기존 기획 · 공통 화면을 쓰더라도 고객사별 등급 설정은 유지","textChars":34,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/36lgneh8","slide":6,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/cvex0jyp","slide":6,"name":"06","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/qtwfytgj","slide":6,"name":"미운영 상태에서도 관리자는 기존 설정을 조회·수정","text":"미운영 상태에서도 관리자는 기존 설정을 조회·수정","textPreview":"미운영 상태에서도 관리자는 기존 설정을 조회·수정","textChars":27,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/gvq1snah","slide":6,"name":"","rows":5,"cols":3,"preview":"항목 | 공통 사이트 | 분기 사이트","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/bpuybm","slide":6,"text":"공통 사이트는 분기 사이트를 만들지 않는 고객사들이 함께 사용하는 사이트다. 1단계에서 이용 고객사를 복수 선택하고 2단계에서 고객사별 허용 등급을 설정한다. 분기 사이트는 대상 고객사, 사이트명, 경로로 생성한 뒤 메뉴·브랜드·등급을 설정한다. 현재 기획의 공통 사이트 URL 경로 입력 제외 규칙을 설명한다. 실제 도메인은 운영 환경에 맞춰 별도 확정한다.\n\n근거 자료: 20260723_요청사항_이력.md; admin.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/wtffqy","slide":7,"title":"고객사·등급·사이트 연결 예시","textShapes":5}
+{"kind":"textbox","id":"sh/pc325kvm","slide":7,"name":"고객사·등급·사이트 연결 예시","text":"고객사·등급·사이트 연결 예시","textPreview":"고객사·등급·사이트 연결 예시","textChars":16,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/29cjupcv","slide":7,"name":"설명용 가상 사례 · 실제 고객사 구성이나 계약 조건을 뜻","text":"설명용 가상 사례 · 실제 고객사 구성이나 계약 조건을 뜻하지 않음","textPreview":"설명용 가상 사례 · 실제 고객사 구성이나 계약 조건을 뜻하지 않음","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/nalk3udg","slide":7,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/cfe10zud","slide":7,"name":"07","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/adcjypc7","slide":7,"name":"동일한 등급명이나 공통 화면이 동일한 혜택을 의미하지 않음","text":"동일한 등급명이나 공통 화면이 동일한 혜택을 의미하지 않음","textPreview":"동일한 등급명이나 공통 화면이 동일한 혜택을 의미하지 않음","textChars":32,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/on2hofqh","slide":7,"name":"","rows":5,"cols":3,"preview":"고객사 / 등급 | 이용 사이트 | 설명용 서비스 구성","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/wtffqy","slide":7,"text":"가상의 A사와 B사를 사용한다. A사 기본등급과 B사 기본등급은 이름만 같으며 권한은 독립적이다. C사는 분기 사이트를 이용한다. 다중 사이트 자격을 가진 회원은 허용된 사이트를 선택한다. 공통 사이트를 보더라도 회원의 자격은 해당 고객사 기준으로 판정한다. 한 회원의 복수 고객사·등급 처리 및 권한 합산 방식은 협의한다.\n\n근거 자료: FEATURES.md; 20260723_요청사항_이력.md\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/2drxqp","slide":8,"title":"이용 권한의 판단 기준","textShapes":13}
+{"kind":"textbox","id":"sh/xg36lsz2","slide":8,"name":"이용 권한의 판단 기준","text":"이용 권한의 판단 기준","textPreview":"이용 권한의 판단 기준","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/adcnqd0r","slide":8,"name":"기존 기획과 구현 제안 · 메뉴 노출과 신청 자격을 함께 ","text":"기존 기획과 구현 제안 · 메뉴 노출과 신청 자격을 함께 확인","textPreview":"기존 기획과 구현 제안 · 메뉴 노출과 신청 자격을 함께 확인","textChars":34,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/belozihc","slide":8,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/kju5wnyt","slide":8,"name":"08","text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/l4n6psze","slide":8,"name":"사이트 자격","text":"사이트 자격","textPreview":"사이트 자격","textChars":6,"textLines":1,"bbox":[66,205,270,72]}
+{"kind":"textbox","id":"sh/yhcnuxgn","slide":8,"name":"사이트 운영 여부와 고객사·등급 연결 확인","text":"사이트 운영 여부와 고객사·등급 연결 확인","textPreview":"사이트 운영 여부와 고객사·등급 연결 확인","textChars":23,"textLines":1,"bbox":[356,205,854,83]}
+{"kind":"textbox","id":"sh/jilon2h8","slide":8,"name":"메뉴 노출","text":"메뉴 노출","textPreview":"메뉴 노출","textChars":5,"textLines":1,"bbox":[66,305,270,72]}
+{"kind":"textbox","id":"sh/0na5k3ip","slide":8,"name":"허용 등급에 맞는 메뉴와 하위 메뉴만 표시","text":"허용 등급에 맞는 메뉴와 하위 메뉴만 표시","textPreview":"허용 등급에 맞는 메뉴와 하위 메뉴만 표시","textChars":23,"textLines":1,"bbox":[356,305,854,83]}
+{"kind":"textbox","id":"sh/18jmt8zu","slide":8,"name":"신청 자격","text":"신청 자격","textPreview":"신청 자격","textChars":5,"textLines":1,"bbox":[66,405,270,72]}
+{"kind":"textbox","id":"sh/t0by9gvq","slide":8,"name":"대상자·기간·지원 정책을 신청 시점에 재확인","text":"대상자·기간·지원 정책을 신청 시점에 재확인","textPreview":"대상자·기간·지원 정책을 신청 시점에 재확인","textChars":24,"textLines":1,"bbox":[356,405,854,83]}
+{"kind":"textbox","id":"sh/8z2xgbu5","slide":8,"name":"자료 접근","text":"자료 접근","textPreview":"자료 접근","textChars":5,"textLines":1,"bbox":[66,505,270,72]}
+{"kind":"textbox","id":"sh/7etg76d0","slide":8,"name":"본인 이력과 관리자 업무 범위에 맞춰 조회 제한","text":"본인 이력과 관리자 업무 범위에 맞춰 조회 제한","textPreview":"본인 이력과 관리자 업무 범위에 맞춰 조회 제한","textChars":26,"textLines":1,"bbox":[356,505,854,83]}
+{"kind":"textbox","id":"sh/6dkfe1wf","slide":8,"name":"협의 필요: 복수 등급 우선순위, 자격 변경 시 기존 신청","text":"협의 필요: 복수 등급 우선순위, 자격 변경 시 기존 신청의 처리","textPreview":"협의 필요: 복수 등급 우선순위, 자격 변경 시 기존 신청의 처리","textChars":36,"textLines":1,"bbox":[66,612,1140,48]}
+{"kind":"notes","id":"nt/2drxqp","slide":8,"text":"기존 자료에는 등급별 메뉴 노출이 있다. 실제 운영에서는 URL 직접 접속과 신청 저장에도 권한 확인을 적용하는 것을 제안한다. 조회 요청과 저장 요청을 서버에서 재검증하고 화면에서만 숨기는 방식으로 권한을 구현하지 않는다. 여러 등급의 합산·우선순위와 자격 갱신 시점은 협의 항목이다.\n\n근거 자료: FEATURES.md; admin.js; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/bat0d3","slide":9,"title":"로그인과 사이트 진입","textShapes":4}
+{"kind":"textbox","id":"sh/6x4zm9wb","slide":9,"name":"로그인과 사이트 진입","text":"로그인과 사이트 진입","textPreview":"로그인과 사이트 진입","textChars":11,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/t0vyh4fm","slide":9,"name":"기존 기획 · 일반 로그인과 제휴사 SSO, 복수 사이트 ","text":"기존 기획 · 일반 로그인과 제휴사 SSO, 복수 사이트 선택 지원","textPreview":"기존 기획 · 일반 로그인과 제휴사 SSO, 복수 사이트 선택 지원","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/szmhoje1","slide":9,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/jutgbuxk","slide":9,"name":"09","text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/r690v25k","slide":9,"name":"","rows":6,"cols":3,"preview":"상황 | 기존 기획 / 처리 제안 | 연동 협의 항목","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/bat0d3","slide":9,"text":"SSO는 제휴사에서 확인한 회원을 포털로 연결하는 로그인 방식이다. 자료에는 SSO 기능 의도가 있지만 인증 규격·토큰·회원 식별 규칙은 없다. 로그인 방식과 무관하게 같은 회원 식별 기준과 자격 확인 절차를 적용하는 것을 제안한다. SSO 실패나 유효하지 않은 자격은 운영자가 대응할 수 있도록 안내와 기록이 필요하다.\n\n근거 자료: FEATURES.md; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/5p2640","slide":10,"title":"서비스 안내와 실제 신청","textShapes":13}
+{"kind":"textbox","id":"sh/l0vuts76","slide":10,"name":"서비스 안내와 실제 신청","text":"서비스 안내와 실제 신청","textPreview":"서비스 안내와 실제 신청","textChars":13,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/yd4bixov","slide":10,"name":"기존 기획 · 혜택 소개와 이용 가능 여부를 구분","text":"기존 기획 · 혜택 소개와 이용 가능 여부를 구분","textPreview":"기존 기획 · 혜택 소개와 이용 가능 여부를 구분","textChars":27,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/zydcrip0","slide":10,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/83mdo76x","slide":10,"name":"10","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/94fuxcni","slide":10,"name":"내가 가입한 서비스","text":"내가 가입한 서비스","textPreview":"내가 가입한 서비스","textChars":10,"textLines":1,"bbox":[66,205,270,72]}
+{"kind":"textbox","id":"sh/m14vmxor","slide":10,"name":"회원의 고객사별 가입 등급에 연결된 혜택 안내","text":"회원의 고객사별 가입 등급에 연결된 혜택 안내","textPreview":"회원의 고객사별 가입 등급에 연결된 혜택 안내","textChars":25,"textLines":1,"bbox":[356,205,854,83]}
+{"kind":"textbox","id":"sh/n2dcv2pc","slide":10,"name":"전체 서비스","text":"전체 서비스","textPreview":"전체 서비스","textChars":6,"textLines":1,"bbox":[66,305,270,72]}
+{"kind":"textbox","id":"sh/w76ds76t","slide":10,"name":"해당 고객사의 전체 등급별 서비스 소개","text":"해당 고객사의 전체 등급별 서비스 소개","textPreview":"해당 고객사의 전체 등급별 서비스 소개","textChars":21,"textLines":1,"bbox":[356,305,854,83]}
+{"kind":"textbox","id":"sh/x8fu1cne","slide":10,"name":"신청 연결","text":"신청 연결","textPreview":"신청 연결","textChars":5,"textLines":1,"bbox":[66,405,270,72]}
+{"kind":"textbox","id":"sh/d83qh0zi","slide":10,"name":"선택 서비스의 자격과 신청 경로를 별도로 확인","text":"선택 서비스의 자격과 신청 경로를 별도로 확인","textPreview":"선택 서비스의 자격과 신청 경로를 별도로 확인","textChars":25,"textLines":1,"bbox":[356,405,854,83]}
+{"kind":"textbox","id":"sh/cnup8vyx","slide":10,"name":"관리자 변경","text":"관리자 변경","textPreview":"관리자 변경","textChars":6,"textLines":1,"bbox":[66,505,270,72]}
+{"kind":"textbox","id":"sh/bm18fqhc","slide":10,"name":"등급별 안내 내용을 관리하고 사용자 화면에 반영","text":"등급별 안내 내용을 관리하고 사용자 화면에 반영","textPreview":"등급별 안내 내용을 관리하고 사용자 화면에 반영","textChars":26,"textLines":1,"bbox":[356,505,854,83]}
+{"kind":"textbox","id":"sh/qls765gr","slide":10,"name":"협의 필요: 안내 문구 승인 주체, 무료 횟수·이용 제한·","text":"협의 필요: 안내 문구 승인 주체, 무료 횟수·이용 제한·노출 시점","textPreview":"협의 필요: 안내 문구 승인 주체, 무료 횟수·이용 제한·노출 시점","textChars":37,"textLines":1,"bbox":[66,612,1140,48]}
+{"kind":"notes","id":"nt/5p2640","slide":10,"text":"서비스 안내는 내가 가입한 서비스와 전체 서비스를 등급별로 보여 준다. 전체 서비스에서 다른 등급의 혜택을 보더라도 신청 권한을 부여한다는 뜻은 아니다. 평상시·주요질병·건강검진·심리상담·만성질환은 안내 분류다. 시안의 서비스 횟수·할인율·병원 수·무료 혜택은 계약 근거를 확인하기 전 실제 정책으로 확정하지 않는다.\n\n근거 자료: FEATURES.md; provided_services.js; service_guide_portal.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/3qdi5a","slide":11,"title":"상담예약신청의 세 가지 업무","textShapes":5}
+{"kind":"textbox","id":"sh/lcbuhg7m","slide":11,"name":"상담예약신청의 세 가지 업무","text":"상담예약신청의 세 가지 업무","textPreview":"상담예약신청의 세 가지 업무","textChars":15,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/y90bm1ob","slide":11,"name":"기존 기획 · 한 메뉴 안에서 상담·예약·병원안내를 구분","text":"기존 기획 · 한 메뉴 안에서 상담·예약·병원안내를 구분","textPreview":"기존 기획 · 한 메뉴 안에서 상담·예약·병원안내를 구분","textChars":31,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/za9cf6pg","slide":11,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/8f2tsv6d","slide":11,"name":"11","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/mdkbqlo7","slide":11,"name":"협의 필요: 필수 입력값, 접수 채널, 배정·응답 기한, ","text":"협의 필요: 필수 입력값, 접수 채널, 배정·응답 기한, 결과 안내 방식","textPreview":"협의 필요: 필수 입력값, 접수 채널, 배정·응답 기한, 결과 안내 방식","textChars":40,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/gb21gnel","slide":11,"name":"","rows":5,"cols":3,"preview":"업무 | 회원의 요청 | 운영팀의 처리 / 확인","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/3qdi5a","slide":11,"text":"건강상담은 전화 또는 온라인 상담 신청이다. 진료예약은 병원 진료예약 지원 요청이며 신청 버튼을 누르는 즉시 병원 예약을 확정하는지 여부는 자료에서 확인되지 않는다. 병원안내는 적합한 병원과 의료진을 안내하는 업무다. 신청 데이터와 처리 결과의 형식은 각각 다를 수 있다. 실제 상담 인력과 배정 방식은 확인한다.\n\n근거 자료: FEATURES.md; 20260720_요청사항_이력.md\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/t864ny","slide":12,"title":"상담 접수와 처리 흐름","textShapes":4}
+{"kind":"textbox","id":"sh/jaxcfud8","slide":12,"name":"상담 접수와 처리 흐름","text":"상담 접수와 처리 흐름","textPreview":"상담 접수와 처리 흐름","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/4v6d8zut","slide":12,"name":"처리 흐름 제안 · 기존 접수·완료 및 비공개 답변 기능을","text":"처리 흐름 제안 · 기존 접수·완료 및 비공개 답변 기능을 구체화","textPreview":"처리 흐름 제안 · 기존 접수·완료 및 비공개 답변 기능을 구체화","textChars":36,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/5wzuh4ve","slide":12,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/u5ov2pcr","slide":12,"name":"12","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/yxcnut0n","slide":12,"name":"","rows":6,"cols":3,"preview":"순서 | 담당 | 처리 내용","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/t864ny","slide":12,"text":"기존 시안의 접수·완료 표시를 유지하면서 운영팀의 접수 확인, 담당 배정, 진행 기록을 설계할지 협의한다. 진료예약은 병원 확인 후 안내한다. 전화 상담은 상담 내용의 보관 범위와 기록 항목을 운영 담당자가 정한다. 자동 배정, 알림톡, SMS, 의료기관 API는 자료만으로 확정하지 않는다.\n\n근거 자료: FEATURES.md; admin.js; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/rybc8c","slide":13,"title":"건강검진 지원 방식","textShapes":5}
+{"kind":"textbox","id":"sh/7m9wr2xc","slide":13,"name":"건강검진 지원 방식","text":"건강검진 지원 방식","textPreview":"건강검진 지원 방식","textChars":10,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/8n2xk7ex","slide":13,"name":"기존 정책 시안 · 네 유형의 실제 개발 범위는 별도 확정","text":"기존 정책 시안 · 네 유형의 실제 개발 범위는 별도 확정","textPreview":"기존 정책 시안 · 네 유형의 실제 개발 범위는 별도 확정","textChars":32,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/tobetcfi","slide":13,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/upkfmhw3","slide":13,"name":"13","text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/gr2xoret","slide":13,"name":"시안에 존재하는 기능과 이번 계약의 개발 범위를 대조","text":"시안에 존재하는 기능과 이번 계약의 개발 범위를 대조","textPreview":"시안에 존재하는 기능과 이번 계약의 개발 범위를 대조","textChars":29,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/6x4rmpc7","slide":13,"name":"","rows":5,"cols":3,"preview":"유형 | 업무 의미 | 추가로 정할 규칙","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/rybc8c","slide":13,"text":"네 가지 유형은 검진정책관리 시안에서 확인한 정의다. 회사지원형은 지원 유형을 정액·전액·기본패키지비용으로 나눈다. 우대예약형은 지원금 대신 제휴 우대 조건을 제공한다. 바우처형·통합바우처형은 발급·차감·복원·정산까지 구현할지 계약 범위를 확인해야 한다. 시안의 금액·고객사 데이터는 예시이므로 사용하지 않는다.\n\n근거 자료: checkup_policy.js, showPolicyGuide 및 정책 편집 화면\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/30f5i3","slide":14,"title":"검진정책의 적용 기준","textShapes":4}
+{"kind":"textbox","id":"sh/4vep4j2d","slide":14,"name":"검진정책의 적용 기준","text":"검진정책의 적용 기준","textPreview":"검진정책의 적용 기준","textChars":11,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/3u5ovel8","slide":14,"name":"기존 정책 시안 · 같은 등급이라도 연도·기간·대상 조건을","text":"기존 정책 시안 · 같은 등급이라도 연도·기간·대상 조건을 확인","textPreview":"기존 정책 시안 · 같은 등급이라도 연도·기간·대상 조건을 확인","textChars":35,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/itw729kn","slide":14,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/hsn6t432","slide":14,"name":"14","text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/poni9sj2","slide":14,"name":"","rows":6,"cols":3,"preview":"조건 | 기존 정책 항목 | 업무상 판단","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/30f5i3","slide":14,"text":"예약 가능 기간과 실제 검진 기간은 서로 다를 수 있다. 회원 자격만 통과해도 모든 패키지를 신청할 수 있는 것은 아니다. 정책에 연결된 병원과 패키지, 가족 관계·인원 등을 확인한다. 기존 시안에서 정책 복사는 최대 연도+1 추천과 날짜 연도 치환을 제공한다. 자동 이관 시 윤년, 기간 역전, 비활성 정책, 이미 접수된 신청 처리의 상세 규칙은 협의한다.\n\n근거 자료: checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/q8gck6","slide":15,"title":"검진 예약 신청 흐름","textShapes":4}
+{"kind":"textbox","id":"sh/gjy5oj2d","slide":15,"name":"검진 예약 신청 흐름","text":"검진 예약 신청 흐름","textPreview":"검진 예약 신청 흐름","textChars":11,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/fip4vels","slide":15,"name":"기존 기획을 업무 순서로 정리 · 최종 신청 전 자격과 금","text":"기존 기획을 업무 순서로 정리 · 최종 신청 전 자격과 금액 재확인","textPreview":"기존 기획을 업무 순서로 정리 · 최종 신청 전 자격과 금액 재확인","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/uhgnm9k7","slide":15,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/tg7mt43m","slide":15,"name":"15","text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/lobmhkzi","slide":15,"name":"","rows":6,"cols":3,"preview":"단계 | 회원의 선택·입력 | 업무 확인","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/q8gck6","slide":15,"text":"화면 시안의 병원 검색, 대상자, 패키지, 검사, 날짜, 요약·동의를 업무 흐름으로 설명한다. 실제 화면 단계번호는 1차 화면 정의서와 대조한다. 가족 신청 시 신청자와 검진대상자를 따로 저장해야 한다. 희망일 1·2순위는 확정일과 분리한다. 신청 제출 시점에 정책·가격·가용일을 서버에서 확인하는 것을 제안한다.\n\n근거 자료: FEATURES.md; app.js 검진 우대예약 및 신청 화면\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/3accp9","slide":16,"title":"검진 상태와 취소 처리","textShapes":5}
+{"kind":"textbox","id":"sh/5ofy983y","slide":16,"name":"검진 상태와 취소 처리","text":"검진 상태와 취소 처리","textPreview":"검진 상태와 취소 처리","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/ilozetk7","slide":16,"name":"기존 시안 · 신청, 확정, 취소요청, 취소를 구분","text":"기존 시안 · 신청, 확정, 취소요청, 취소를 구분","textPreview":"기존 시안 · 신청, 확정, 취소요청, 취소를 구분","textChars":28,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/3mxg7yls","slide":16,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/gzmhcj21","slide":16,"name":"16","text":"16","textPreview":"16","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/ux4fa9kb","slide":16,"name":"협의 필요: 변경·반려·일정 불가, 취소 기한, 재신청, ","text":"협의 필요: 변경·반려·일정 불가, 취소 기한, 재신청, 상태 변경 권한","textPreview":"협의 필요: 변경·반려·일정 불가, 취소 기한, 재신청, 상태 변경 권한","textChars":40,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/07e1gjih","slide":16,"name":"","rows":5,"cols":3,"preview":"상태 | 업무 의미 | 다음 처리","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/3accp9","slide":16,"text":"기존 관리자 시안은 신청·확정·취소요청·취소 상태를 제공한다. 사용자 표시는 예약 확정, 취소완료 등과 혼재해 있어 상태 코드와 표시명을 통일해야 한다. 사용자 취소 요청은 운영자가 병원 확인 후 최종 취소 처리한다는 기존 안내가 있다. 시안에서 확정 시 희망일을 자동 대입하는 동작은 실제 예약 확정 정책의 근거가 아니다. 운영자가 확인한 확정일을 별도로 저장하는 안을 협의한다.\n\n근거 자료: app.js 취소 요청 안내 및 이력 화면; admin.js renderCheckupHistoryAdmin\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/hi6cb9","slide":17,"title":"검진 비용과 결제 안내","textShapes":5}
+{"kind":"textbox","id":"sh/lorq5kfm","slide":17,"name":"검진 비용과 결제 안내","text":"검진 비용과 결제 안내","textPreview":"검진 비용과 결제 안내","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/yl07u5gv","slide":17,"name":"기존 기획 · 우대예약 개인결제비용은 검진일 병원에서 납부","text":"기존 기획 · 우대예약 개인결제비용은 검진일 병원에서 납부","textPreview":"기존 기획 · 우대예약 개인결제비용은 검진일 병원에서 납부","textChars":32,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/zm983axg","slide":17,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/cjypsvyp","slide":17,"name":"17","text":"17","textPreview":"17","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/ahg7q5gz","slide":17,"name":"숫자는 가상 예시 · 실제 계약 금액과 계산식을 별도 확정","text":"숫자는 가상 예시 · 실제 계약 금액과 계산식을 별도 확정","textPreview":"숫자는 가상 예시 · 실제 계약 금액과 계산식을 별도 확정","textChars":32,"textLines":1,"bbox":[66,596,1148,50]}
+{"kind":"table","id":"tb/0jq94r69","slide":17,"name":"","rows":5,"cols":3,"preview":"항목 | 설명용 계산 예시 | 정책 확인","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/hi6cb9","slide":17,"text":"기존 기능 정의서와 변경 이력은 검진일 병원 납부를 명시한다. 온라인 PG 결제와 고객사 정산 기능은 해당 안내만으로 개발 범위에 포함하지 않는다. 정액 지원 계산은 이해를 돕는 예시이며 실제 금액·과세·지원 항목을 의미하지 않는다. 확정된 가격·정책 버전을 신청에 보관하고 이후 가격 변경이 과거 신청을 바꾸지 않도록 하는 안을 협의한다.\n\n근거 자료: FEATURES.md; 20260609_요청사항_이력.md; app.js; checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/ti222f","slide":18,"title":"병원·패키지·검사·일정 데이터","textShapes":4}
+{"kind":"textbox","id":"sh/3q1s3utc","slide":18,"name":"병원·패키지·검사·일정 데이터","text":"병원·패키지·검사·일정 데이터","textPreview":"병원·패키지·검사·일정 데이터","textChars":16,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/4ratczax","slide":18,"name":"기존 화면 구성과 협의 항목 · 예약 가능 조건의 원천 확","text":"기존 화면 구성과 협의 항목 · 예약 가능 조건의 원천 확인","textPreview":"기존 화면 구성과 협의 항목 · 예약 가능 조건의 원천 확인","textChars":33,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/psja54bi","slide":18,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/ul8b6pcv","slide":18,"name":"18","text":"18","textPreview":"18","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/654n6d8j","slide":18,"name":"","rows":6,"cols":3,"preview":"데이터 | 포털에서 쓰는 곳 | 착수 시 확인","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/ti222f","slide":18,"text":"병원 안내, 검진항목 기본·선택·추가 구분, 희망일과 희망검사 검색을 기존 자료에서 확인했다. 병원 일정 관리 시안이 있어도 실시간 병원 예약 API나 재고 원장의 존재를 뜻하지 않는다. 추천검사 기준 엑셀은 본문을 읽지 못했으므로 추천 규칙을 추정하지 않는다. 검사 선택 상호 배제·개수 제한·연령 조건은 실제 병원 상품 자료로 정의해야 한다.\n\n근거 자료: FEATURES.md; hospital_schedule.js; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/4f49kk","slide":19,"title":"관리자 운영 업무","textShapes":4}
+{"kind":"textbox","id":"sh/bulcv2t4","slide":19,"name":"관리자 운영 업무","text":"관리자 운영 업무","textPreview":"관리자 운영 업무","textChars":9,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/cvuto7a9","slide":19,"name":"기존 기획 · 설정 관리와 신청 처리를 연결","text":"기존 기획 · 설정 관리와 신청 처리를 연결","textPreview":"기존 기획 · 설정 관리와 신청 처리를 연결","textChars":24,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/dwnuxcbu","slide":19,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/2pcbids7","slide":19,"name":"19","text":"19","textPreview":"19","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/qxsnq90j","slide":19,"name":"","rows":6,"cols":3,"preview":"업무 | 관리 기능 | 보완할 운영 기준","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/4f49kk","slide":19,"text":"현재 자료에는 중앙 관리자 기능이 있다. 역할별 계정 권한, 고객사 담당자 계정, 승인·변경 이력 상세는 추가 정의가 필요하다. 사이트 변경사항 저장을 누르지 않고 나가면 경고하는 요구사항을 설명한다. 정책 변경이 이미 접수된 신청에 영향을 주는지, 적용 시점은 언제인지 협의한다.\n\n근거 자료: FEATURES.md; admin.js; 20260723_요청사항_이력.md\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/fb97kz","slide":20,"title":"건강정보와 구독·힐링 콘텐츠","textShapes":4}
+{"kind":"textbox","id":"sh/pgby9k7e","slide":20,"name":"건강정보와 구독·힐링 콘텐츠","text":"건강정보와 구독·힐링 콘텐츠","textPreview":"건강정보와 구독·힐링 콘텐츠","textChars":15,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/2dkzy583","slide":20,"name":"기존 기획 · 콘텐츠 발행 방식과 이용 권한을 함께 정리","text":"기존 기획 · 콘텐츠 발행 방식과 이용 권한을 함께 정리","textPreview":"기존 기획 · 콘텐츠 발행 방식과 이용 권한을 함께 정리","textChars":31,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/3etg7ap8","slide":20,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/c3mh4zq5","slide":20,"name":"20","text":"20","textPreview":"20","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/o7mpk3m5","slide":20,"name":"","rows":5,"cols":3,"preview":"영역 | 기존 기능 | 운영 상세 협의","bbox":[66,198,1148,380]}
+{"kind":"notes","id":"nt/fb97kz","slide":20,"text":"분야별 건강정보 상세와 조회수, 구독콘텐츠 관리, 힐링 ASMR 영상 검색·정렬·재생은 기존 자료에서 확인한다. 구독은 포털 콘텐츠 구독인지 외부 발송 서비스인지, 어떤 채널로 전달하는지는 확인이 필요하다. 시안의 외부 이미지 URL, 영상 URL, 임의 본문은 운영 콘텐츠 목록으로 보지 않는다. 게시 승인, 저작물 사용 권한, 파일 저장 위치와 전송 비용을 담당자와 정한다.\n\n근거 자료: FEATURES.md; subscription.js; health_info.js; health_archive.js; app.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/fgu9mh","slide":21,"title":"실제 운영을 위한 데이터·동의","textShapes":4}
+{"kind":"textbox","id":"sh/2l07ax43","slide":21,"name":"실제 운영을 위한 데이터·동의","text":"실제 운영을 위한 데이터·동의","textPreview":"실제 운영을 위한 데이터·동의","textChars":16,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/porq5c3u","slide":21,"name":"기존 동의 기능과 구현 제안 · 수집 목적에 맞는 기록과 ","text":"기존 동의 기능과 구현 제안 · 수집 목적에 맞는 기록과 접근 범위","textPreview":"기존 동의 기능과 구현 제안 · 수집 목적에 맞는 기록과 접근 범위","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/4nipc7m9","slide":21,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/rq987mlk","slide":21,"name":"21","text":"21","textPreview":"21","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/jutknq9s","slide":21,"name":"","rows":6,"cols":3,"preview":"정보 | 관리 목적 | 구현·정책 확인","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/fgu9mh","slide":21,"text":"법률 적합성을 확정하거나 보관기간을 임의로 제시하지 않는다. 기존 기획에는 필수 예약 동의와 위치정보 동의 로그가 있다. 약관 버전, 대상자, 목적, 동의 시각 등을 실제 운영에서 추적하는 것을 제안한다. 가족 정보의 동의 주체와 권한, 철회·삭제·보관기간은 개인정보 담당자가 승인한 기준을 받아 반영한다. 위치 권한 거부 시 지역·병원명 검색을 유지하는 안을 제안한다.\n\n근거 자료: FEATURES.md; admin.js 위치·검진 동의 로그; app.js 동의 화면\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/elg0vg","slide":22,"title":"화면 시안과 실제 개발 범위","textShapes":4}
+{"kind":"textbox","id":"sh/9wnex0fi","slide":22,"name":"화면 시안과 실제 개발 범위","text":"화면 시안과 실제 개발 범위","textPreview":"화면 시안과 실제 개발 범위","textChars":15,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/mtwfmlwr","slide":22,"name":"기존 시안은 브라우저 저장과 샘플 데이터 중심 · 운영 연","text":"기존 시안은 브라우저 저장과 샘플 데이터 중심 · 운영 연결은 별도 구현","textPreview":"기존 시안은 브라우저 저장과 샘플 데이터 중심 · 운영 연결은 별도 구현","textChars":40,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/nu5wvqxc","slide":22,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/wzyxsvet","slide":22,"name":"22","text":"22","textPreview":"22","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/krq90fa9","slide":22,"name":"","rows":6,"cols":3,"preview":"구분 | 시안에서 확인하는 내용 | 실제 개발에서 정할 내용","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/elg0vg","slide":22,"text":"현재 HTML·JavaScript 프로토타입은 localStorage와 sessionStorage, 샘플 데이터를 사용한다. 동일 브라우저에서 관리자 변경이 포털에 반영되는 것은 운영 서버 연동의 검증이 아니다. 실제 DB·API·인증·권한·알림·외부 연동·배포·운영 지원을 범위표로 확정해야 한다. 원본 시안을 삭제하거나 대체하는 것이 아니라 동작 의도를 실제 운영 구조로 구현한다.\n\n근거 자료: app.js; admin.js; checkup_policy.js; provided_services.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/fo0gbo","slide":23,"title":"외부 연동과 수동 처리의 경계","textShapes":4}
+{"kind":"textbox","id":"sh/hon6xozy","slide":23,"name":"외부 연동과 수동 처리의 경계","text":"외부 연동과 수동 처리의 경계","textPreview":"외부 연동과 수동 처리의 경계","textChars":16,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/u1w72tg7","slide":23,"name":"협의 필요 · 각 업무의 원장·처리 주체·연동 방식을 확정","text":"협의 필요 · 각 업무의 원장·처리 주체·연동 방식을 확정","textPreview":"협의 필요 · 각 업무의 원장·처리 주체·연동 방식을 확정","textChars":32,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/f25ovyhs","slide":23,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/szep0jyh","slide":23,"name":"23","text":"23","textPreview":"23","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/srq9gbud","slide":23,"name":"","rows":6,"cols":3,"preview":"업무 | 확인할 원천 / 주체 | 결정할 구현 방식","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/fo0gbo","slide":23,"text":"각 연동에 대해 기존 시스템 사용, 신규 개발, 운영자 수동 처리, 이번 범위 제외의 네 가지 중 하나를 확정한다. API나 자동 알림이 이미 존재한다고 가정하지 않는다. 연동마다 담당자와 테스트 환경, 입력·응답·오류 규격, 운영 재처리 주체가 필요하다. 온라인 결제와 정산은 개인부담금 병원 납부 안내와 별도로 범위를 확인한다.\n\n근거 자료: FEATURES.md; app.js; checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/tfykzw","slide":24,"title":"예외 상황의 처리 기준","textShapes":4}
+{"kind":"textbox","id":"sh/9szu10ve","slide":24,"name":"예외 상황의 처리 기준","text":"예외 상황의 처리 기준","textPreview":"예외 상황의 처리 기준","textChars":12,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/m5ob65w3","slide":24,"name":"제안 · 화면 안내, 운영 처리, 데이터 기록을 같은 기준","text":"제안 · 화면 안내, 운영 처리, 데이터 기록을 같은 기준으로 설계","textPreview":"제안 · 화면 안내, 운영 처리, 데이터 기록을 같은 기준으로 설계","textChars":37,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/76hczado","slide":24,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/wvqtcfe5","slide":24,"name":"24","text":"24","textPreview":"24","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/wb2tsbex","slide":24,"name":"","rows":6,"cols":3,"preview":"상황 | 처리 기준 제안 | 운영 정책 협의","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/tfykzw","slide":24,"text":"이 표는 확정 정책이 아니라 논의 초안이다. 실제 대상자가 바뀌거나 지원 한도가 공유되는 경우 신청 시점의 재검증과 동시 처리 제어가 필요하다. 중복 신청의 범위는 동일 대상자·연도·정책인지, 확정 상태만 제한하는지 협의한다. 외부 시스템 오류 시 신청 자체가 저장되었는지 구분하고 재시도로 중복 신청이 생기지 않게 설계한다.\n\n근거 자료: FEATURES.md; app.js; checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/974rd3","slide":25,"title":"개발 완료를 확인할 업무 시나리오","textShapes":4}
+{"kind":"textbox","id":"sh/by5ojyxk","slide":25,"name":"개발 완료를 확인할 업무 시나리오","text":"개발 완료를 확인할 업무 시나리오","textPreview":"개발 완료를 확인할 업무 시나리오","textChars":18,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/czeps3e5","slide":25,"name":"검수 기준 제안 · 데이터와 결과를 함께 확인","text":"검수 기준 제안 · 데이터와 결과를 함께 확인","textPreview":"검수 기준 제안 · 데이터와 결과를 함께 확인","textChars":25,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/x0n6l8fq","slide":25,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/y1w7udwb","slide":25,"name":"25","text":"25","textPreview":"25","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/6lwv2xsn","slide":25,"name":"","rows":6,"cols":2,"preview":"시나리오 | 확인할 결과","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/974rd3","slide":25,"text":"검수는 버튼 존재뿐 아니라 권한, 저장 결과, 운영자 처리와 사용자 조회까지 확인한다. 역할별 계정과 고객사별 테스트 데이터를 준비한다. 아래 시나리오는 확정 정책에 맞춰 기대 결과를 문서화한 후 검수한다. PC와 모바일의 기능 범위·대응 브라우저도 함께 합의한다.\n\n근거 자료: FEATURES.md; 20260723_요청사항_이력.md; app.js; admin.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/tcat9s","slide":26,"title":"착수 회의에서 결정할 사항","textShapes":4}
+{"kind":"textbox","id":"sh/mlkfqdo7","slide":26,"name":"착수 회의에서 결정할 사항","text":"착수 회의에서 결정할 사항","textPreview":"착수 회의에서 결정할 사항","textChars":14,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/9obe1sny","slide":26,"name":"협의 목록 · 결정마다 담당자와 적용 문서를 지정","text":"협의 목록 · 결정마다 담당자와 적용 문서를 지정","textPreview":"협의 목록 · 결정마다 담당자와 적용 문서를 지정","textChars":27,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/on2xsn6d","slide":26,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/bqdw325o","slide":26,"name":"26","text":"26","textPreview":"26","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"table","id":"tb/vq9ov6xk","slide":26,"name":"","rows":6,"cols":3,"preview":"우선 확인 | 구체적인 결정 질문 | 권장 확인 담당","bbox":[66,198,1148,430]}
+{"kind":"notes","id":"nt/tcat9s","slide":26,"text":"회의에서는 모든 정책을 즉시 결정하려 하기보다 개발에 영향을 크게 주는 항목의 담당자와 결정기한을 정한다. 권한·회원 식별, 서비스 범위, 비용·취소, 외부 연동은 데이터 모델과 개발 일정에 영향을 준다. 합의된 내용은 요구사항 ID로 관리하고 화면 정의서, 정책 정의서, 연동 명세와 연결한다. 기존 코드와 문서가 다르면 사업 담당자가 우선순위를 결정한다.\n\n근거 자료: FEATURES.md; CHANGELOG.md; 사용자 요청\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}
+{"kind":"slide","id":"sl/hqm32r","slide":27,"title":"설명 자료와 상세 문서의 연결","textShapes":13}
+{"kind":"textbox","id":"sh/ny1g3e5c","slide":27,"name":"설명 자료와 상세 문서의 연결","text":"설명 자료와 상세 문서의 연결","textPreview":"설명 자료와 상세 문서의 연결","textChars":16,"textLines":1,"bbox":[64,42,1150,72]}
+{"kind":"textbox","id":"sh/8zaxwjmx","slide":27,"name":"기존 기획서에 업무 정책과 연동·검수 기준을 보완","text":"기존 기획서에 업무 정책과 연동·검수 기준을 보완","textPreview":"기존 기획서에 업무 정책과 연동·검수 기준을 보완","textChars":27,"textLines":1,"bbox":[66,120,1140,56]}
+{"kind":"textbox","id":"sh/90jy5oni","slide":27,"name":"헬스케어포털 개발팀 업무 설명","text":"헬스케어포털 개발팀 업무 설명","textPreview":"헬스케어포털 개발팀 업무 설명","textChars":16,"textLines":1,"bbox":[66,668,1000,28]}
+{"kind":"textbox","id":"sh/yt8fq94v","slide":27,"name":"27","text":"27","textPreview":"27","textChars":2,"textLines":1,"bbox":[1162,668,52,28]}
+{"kind":"textbox","id":"sh/zuhgze5g","slide":27,"name":"업무 설명 PPT","text":"업무 설명 PPT","textPreview":"업무 설명 PPT","textChars":9,"textLines":1,"bbox":[66,205,270,72]}
+{"kind":"textbox","id":"sh/0vqxszml","slide":27,"name":"사업 구조, 용어, 이용·처리 흐름을 공유","text":"사업 구조, 용어, 이용·처리 흐름을 공유","textPreview":"사업 구조, 용어, 이용·처리 흐름을 공유","textChars":23,"textLines":1,"bbox":[356,205,854,83]}
+{"kind":"textbox","id":"sh/lwzy14n6","slide":27,"name":"화면 정의서","text":"화면 정의서","textPreview":"화면 정의서","textChars":6,"textLines":1,"bbox":[66,305,270,72]}
+{"kind":"textbox","id":"sh/ipcf2t4z","slide":27,"name":"화면별 입력값·표시·버튼·예외를 확정","text":"화면별 입력값·표시·버튼·예외를 확정","textPreview":"화면별 입력값·표시·버튼·예외를 확정","textChars":20,"textLines":1,"bbox":[356,305,854,83]}
+{"kind":"textbox","id":"sh/jqlgby5k","slide":27,"name":"정책 / 연동 명세","text":"정책 / 연동 명세","textPreview":"정책 / 연동 명세","textChars":10,"textLines":1,"bbox":[66,405,270,72]}
+{"kind":"textbox","id":"sh/7y54n6lg","slide":27,"name":"자격·금액·상태 규칙과 외부 연결 규격 정의","text":"자격·금액·상태 규칙과 외부 연결 규격 정의","textPreview":"자격·금액·상태 규칙과 외부 연결 규격 정의","textChars":24,"textLines":1,"bbox":[356,405,854,83]}
+{"kind":"textbox","id":"sh/mxwnulkb","slide":27,"name":"검수 기준","text":"검수 기준","textPreview":"검수 기준","textChars":5,"textLines":1,"bbox":[66,505,270,72]}
+{"kind":"textbox","id":"sh/9knmpg3m","slide":27,"name":"업무 시나리오별 기대 결과와 인수 기준 지정","text":"업무 시나리오별 기대 결과와 인수 기준 지정","textPreview":"업무 시나리오별 기대 결과와 인수 기준 지정","textChars":24,"textLines":1,"bbox":[356,505,854,83]}
+{"kind":"textbox","id":"sh/8ze5wb21","slide":27,"name":"초안 근거: 기능 정의·요청 이력·시안 코드 / 원본 PP","text":"초안 근거: 기능 정의·요청 이력·시안 코드 / 원본 PPT·엑셀과 최종 대조 필요","textPreview":"초안 근거: 기능 정의·요청 이력·시안 코드 / 원본 PPT·엑셀과 최종 대조 필요","textChars":46,"textLines":1,"bbox":[66,612,1140,48]}
+{"kind":"notes","id":"nt/hqm32r","slide":27,"text":"이 PPT는 개발팀의 공통 이해를 위한 설명 자료다. 개발 가능한 상세 명세는 별도의 정책표, 상태 정의, 필드 정의, 연동 문서와 검수 기준으로 연결한다. 작업 폴더의 원본 PPTX·XLSX는 현재 환경에서 표준 Office 문서 본문을 추출하지 못했다. 따라서 해당 문서의 세부 정책이나 슬라이드 번호를 근거로 제시하지 않는다. 사용한 근거는 FEATURES.md, CHANGELOG.md, 날짜별 요청사항 이력, HTML·JavaScript 프로토타입이다. 원본 열람 후 중복·누락·상충 내용을 확인하고 최종 버전을 확정한다.\n\n근거 자료: FEATURES.md; CHANGELOG.md; 20260723_요청사항_이력.md; 20260720_요청사항_이력.md; app.js; admin.js; checkup_policy.js\n자료 기준: 작업 폴더의 기능 정의서, 2026년 5~7월 요청사항 이력 및 프로토타입. 기존 자료에서 확인한 구성과 제안·협의 항목을 구분해 설명한다. 실제 계약·운영 정책은 담당자가 확인한다."}

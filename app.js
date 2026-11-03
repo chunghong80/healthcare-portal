@@ -247,7 +247,7 @@ window.handleHospitalAction = function(event, hospitalName, pkg) {
     const pageTitle = subObj ? subObj.label : '';
     const isCompanySupport = activeSub === 'checkupCorporate' || activeSub === 'checkupWelfare' || decodeURIComponent(activeSub).includes('회사지원') || (pageTitle && pageTitle.includes('회사지원'));
     sessionStorage.setItem('isCompanySupport', isCompanySupport ? 'true' : 'false');
-    window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/' + state.activeMenuId + '/consent';
+    window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/' + state.activeMenuId + '/checkup-target';
   }
 };
 
@@ -4125,142 +4125,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
       } else if (state.activeSubId === 'consent') {
         detailContentHtml = `
           <div class="consent-wrapper fade-in" style="animation: fadeIn 0.4s ease; max-width: 600px; margin: 0 auto; padding: 40px 0;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
-              <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 4px;">STEP 1</span>
-              <span style="font-size: 14px; font-weight: 700; color: #475569;">약관 및 개인정보 동의</span>
-            </div>
-            <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 12px;">
-              건강검진 예약 서비스를<br/>이용하기 위해 아래 동의가 필요합니다.
-            </h2>
-            <p style="font-size: 15px; color: #64748b; margin-bottom: 40px;">모든 필수 항목에 동의해야 다음 단계로 이동할 수 있습니다.</p>
-
-
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <!-- Accordion 1 -->
-              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-1')">
-                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 개인정보 수집 및 이용 동의</span>
-                  </div>
-                  <svg id="icon-1" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
-                </label>
-                <div id="detail-1" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
-                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
-                     건강검진 우대예약 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.<br><br>
-                     1) 수집 및 이용 목적<br>
-                     - 건강검진 우대예약 신청 및 접수<br>
-                     - 검진기관 예약 진행 및 본인 확인<br>
-                     - 예약 일정 안내 및 상담 서비스 제공<br>
-                     - 예약 변경 및 취소 처리<br>
-                     - 고객사 및 제휴서비스 이용 고객 대상 건강검진 서비스 운영 및 관리<br><br>
-                     2) 수집 항목<br>
-                     [필수항목]<br>
-                     - 이름, 생년월일, 성별, 휴대전화번호, 이메일 주소, 검진 물품 수령 주소, 고객사명 또는 제휴서비스 정보, 회원/멤버십 가입 여부 및 신청자와의 관계, 희망 검진기관, 희망 예약일시<br><br>
-                     [서비스 이용 과정에서 자동 생성 정보]<br>
-                     - 접속 IP, 쿠키(Cookie), 접속 로그, 기기정보, 브라우저 정보<br><br>
-                     3) 보유 및 이용기간<br>
-                     - 정보 제공 동의일로부터 5년<br>
-                     - 단, 기업소속인 경우 기업과의 계약기간까지<br><br>
-                     4) 동의 거부 권리 및 불이익 안내<br>
-                     이용자는 개인정보 수집·이용 동의를 거부할 권리가 있습니다.<br>
-                     다만, 필수항목에 대한 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
-                   </div>
-                </div>
-              </div>
-
-              <!-- Accordion 2 -->
-              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-2')">
-                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 민감정보 수집 및 이용 동의</span>
-                  </div>
-                  <svg id="icon-2" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
-                </label>
-                <div id="detail-2" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
-                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
-                     건강검진 우대예약 서비스 제공을 위해 아래와 같이 민감정보를 수집·이용합니다.<br><br>
-                     1) 수집 및 이용 목적<br>
-                     - 건강검진 예약 진행<br>
-                     - 검진 가능 여부 확인<br>
-                     - 검진 항목 상담 및 예약 서비스 제공<br>
-                     - 검진 관련 고객 응대<br><br>
-                     2) 수집 항목<br>
-                     [민감정보]<br>
-                     - 건강검진 희망 항목, 문진 정보, 질환 관련 정보, 건강 상태 관련 정보, 기타 건강검진 예약 진행에 필요한 정보<br><br>
-                     3) 보유 및 이용기간<br>
-                     수집된 민감정보는 건강검진 예약 서비스 제공 완료 후 1년간 보관하며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
-                     4) 동의 거부 권리 및 불이익 안내<br>
-                     이용자는 민감정보 수집·이용 동의를 거부할 권리가 있습니다.<br>
-                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
-                   </div>
-                </div>
-              </div>
-
-              <!-- Accordion 3 -->
-              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-3')">
-                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 개인정보 제3자 제공 동의</span>
-                  </div>
-                  <svg id="icon-3" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
-                </label>
-                <div id="detail-3" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
-                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
-                     회사는 건강검진 예약 진행을 위하여 아래와 같이 개인정보를 제3자에게 제공합니다.<br><br>
-                     1) 제공받는 자<br>
-                     - 제휴 건강검진기관 및 병원 (예약 신청 검진기관)<br><br>
-                     2) 제공 목적<br>
-                     - 건강검진 예약 접수 및 진행, 예약 확인 및 본인 확인, 검진 일정 안내 및 상담 진행<br><br>
-                     3) 제공 항목<br>
-                     - 이름, 생년월일, 성별, 휴대전화번호, 이메일 주소, 검진 물품 수령 주소, 고객사명 또는 제휴서비스 정보, 회원/멤버십 가입 여부 및 신청자와의 관계, 희망 검진기관, 희망 예약일시<br><br>
-                     4) 보유 및 이용기간<br>
-                     제공된 개인정보는 건강검진 예약 및 검진 시행 완료 시까지 보관·이용되며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
-                     5) 동의 거부 권리 및 불이익 안내<br>
-                     이용자는 개인정보 제3자 제공 동의를 거부할 권리가 있습니다.<br>
-                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
-                   </div>
-                </div>
-              </div>
-
-              <!-- Accordion 4 -->
-              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
-                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-4')">
-                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 민감정보 제3자 제공 동의</span>
-                  </div>
-                  <svg id="icon-4" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
-                </label>
-                <div id="detail-4" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
-                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
-                     회사는 건강검진 예약 진행을 위하여 아래와 같이 민감정보를 제3자에게 제공합니다.<br><br>
-                     1) 제공받는 자<br>
-                     - 제휴 건강검진기관 및 병원(예약 신청 검진기관)<br><br>
-                     2) 제공 목적<br>
-                     - 건강검진 예약 진행, 검진 가능 여부 확인, 검진 항목 상담 및 예약 서비스 제공<br><br>
-                     3) 제공 항목<br>
-                     - 건강검진 희망 항목, 문진 정보, 질환 관련 정보, 건강 상태 관련 정보, 기타 건강검진 예약 진행에 필요한 정보<br><br>
-                     4) 보유 및 이용기간<br>
-                     제공된 민감정보는 건강검진 예약 및 검진 진행 완료 시까지 보관·이용되며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
-                     5) 동의 거부 권리 및 불이익 안내<br>
-                     이용자는 민감정보 제3자 제공 동의를 거부할 권리가 있습니다.<br>
-                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
-                   </div>
-                </div>
-              </div>
-            </div>
-            <div style="font-size: 16px; font-weight: 800; color: #1e293b; margin-top: 24px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #e2e8f0; padding-top: 24px;">
-              <input type="checkbox" id="chk-all-consent" style="width: 22px; height: 22px; accent-color: #2563eb; cursor: pointer;" onchange="window.toggleAllConsent(this.checked)">
-              <label for="chk-all-consent" style="cursor: pointer; font-size: 16px;">전체 약관에 동의합니다.</label>
-            </div>
-
-            <div style="display: flex; gap: 12px; margin-top: 24px;">
-              <button onclick="window.history.back()" style="flex: 1; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 16px; font-weight: 700; cursor: pointer;">이전</button>
-              <button id="btn-next-consent" disabled onclick="window.submitCheckupConsent()" style="flex: 1; padding: 16px; border-radius: 8px; border: none; background: #94a3b8; color: white; font-size: 16px; font-weight: 700; cursor: not-allowed; transition: background 0.2s;">다음</button>
-            </div>
+             <!-- Moved to summary -->
           </div>
         `;
       } else if (state.activeSubId === 'checkup-target') {
@@ -4268,7 +4133,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
         detailContentHtml = `
           <div class="target-wrapper fade-in" style="animation: fadeIn 0.4s ease; max-width: 600px; margin: 0 auto; padding: 40px 0;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
-              <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 4px;">STEP 2</span>
+              <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 4px;">STEP 1</span>
               <span style="font-size: 14px; font-weight: 700; color: #475569;">검진대상자 선택</span>
             </div>
             <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 24px;">
@@ -4722,7 +4587,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
           <div class="summary-wrapper fade-in" style="animation: fadeIn 0.4s ease; max-width: 900px; margin: 0 auto; padding: 40px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 4px;">STEP 5</span>
+                <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 4px;">STEP 4</span>
                 <span style="font-size: 14px; font-weight: 700; color: #475569;">'예약정보 및 결제비용' 안내</span>
               </div>
             </div>
@@ -4803,9 +4668,138 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
               </div>
             </div>
 
+            <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px; margin-top: 40px;">
+              건강검진 예약 서비스를 위해 아래 동의가 필요합니다.
+            </div>
+            <p style="font-size: 15px; color: #64748b; margin-bottom: 24px;">모든 필수 항목에 동의해야 예약 신청이 가능합니다.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+              <!-- Accordion 1 -->
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-1')">
+                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 개인정보 수집 및 이용 동의</span>
+                  </div>
+                  <svg id="icon-1" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
+                </label>
+                <div id="detail-1" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                     건강검진 우대예약 서비스 제공을 위해 아래와 같이 개인정보를 수집·이용합니다.<br><br>
+                     1) 수집 및 이용 목적<br>
+                     - 건강검진 우대예약 신청 및 접수<br>
+                     - 검진기관 예약 진행 및 본인 확인<br>
+                     - 예약 일정 안내 및 상담 서비스 제공<br>
+                     - 예약 변경 및 취소 처리<br>
+                     - 고객사 및 제휴서비스 이용 고객 대상 건강검진 서비스 운영 및 관리<br><br>
+                     2) 수집 항목<br>
+                     [필수항목]<br>
+                     - 이름, 생년월일, 성별, 휴대전화번호, 이메일 주소, 검진 물품 수령 주소, 고객사명 또는 제휴서비스 정보, 회원/멤버십 가입 여부 및 신청자와의 관계, 희망 검진기관, 희망 예약일시<br><br>
+                     [서비스 이용 과정에서 자동 생성 정보]<br>
+                     - 접속 IP, 쿠키(Cookie), 접속 로그, 기기정보, 브라우저 정보<br><br>
+                     3) 보유 및 이용기간<br>
+                     - 정보 제공 동의일로부터 5년<br>
+                     - 단, 기업소속인 경우 기업과의 계약기간까지<br><br>
+                     4) 동의 거부 권리 및 불이익 안내<br>
+                     이용자는 개인정보 수집·이용 동의를 거부할 권리가 있습니다.<br>
+                     다만, 필수항목에 대한 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
+                   </div>
+                </div>
+              </div>
+
+              <!-- Accordion 2 -->
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-2')">
+                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 민감정보 수집 및 이용 동의</span>
+                  </div>
+                  <svg id="icon-2" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
+                </label>
+                <div id="detail-2" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                     건강검진 우대예약 서비스 제공을 위해 아래와 같이 민감정보를 수집·이용합니다.<br><br>
+                     1) 수집 및 이용 목적<br>
+                     - 건강검진 예약 진행<br>
+                     - 검진 가능 여부 확인<br>
+                     - 검진 항목 상담 및 예약 서비스 제공<br>
+                     - 검진 관련 고객 응대<br><br>
+                     2) 수집 항목<br>
+                     [민감정보]<br>
+                     - 건강검진 희망 항목, 문진 정보, 질환 관련 정보, 건강 상태 관련 정보, 기타 건강검진 예약 진행에 필요한 정보<br><br>
+                     3) 보유 및 이용기간<br>
+                     수집된 민감정보는 건강검진 예약 서비스 제공 완료 후 1년간 보관하며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
+                     4) 동의 거부 권리 및 불이익 안내<br>
+                     이용자는 민감정보 수집·이용 동의를 거부할 권리가 있습니다.<br>
+                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
+                   </div>
+                </div>
+              </div>
+
+              <!-- Accordion 3 -->
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-3')">
+                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 개인정보 제3자 제공 동의</span>
+                  </div>
+                  <svg id="icon-3" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
+                </label>
+                <div id="detail-3" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                     회사는 건강검진 예약 진행을 위하여 아래와 같이 개인정보를 제3자에게 제공합니다.<br><br>
+                     1) 제공받는 자<br>
+                     - 제휴 건강검진기관 및 병원 (예약 신청 검진기관)<br><br>
+                     2) 제공 목적<br>
+                     - 건강검진 예약 접수 및 진행, 예약 확인 및 본인 확인, 검진 일정 안내 및 상담 진행<br><br>
+                     3) 제공 항목<br>
+                     - 이름, 생년월일, 성별, 휴대전화번호, 이메일 주소, 검진 물품 수령 주소, 고객사명 또는 제휴서비스 정보, 회원/멤버십 가입 여부 및 신청자와의 관계, 희망 검진기관, 희망 예약일시<br><br>
+                     4) 보유 및 이용기간<br>
+                     제공된 개인정보는 건강검진 예약 및 검진 시행 완료 시까지 보관·이용되며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
+                     5) 동의 거부 권리 및 불이익 안내<br>
+                     이용자는 개인정보 제3자 제공 동의를 거부할 권리가 있습니다.<br>
+                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
+                   </div>
+                </div>
+              </div>
+
+              <!-- Accordion 4 -->
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white;">
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="consent-req-chk" style="width: 20px; height: 20px; accent-color: #2563eb;" onchange="window.toggleConsentDetail(this, 'detail-4')">
+                    <span style="font-size: 15px; font-weight: 700; color: #334155;"><span style="color: #ef4444;">[필수]</span> 민감정보 제3자 제공 동의</span>
+                  </div>
+                  <svg id="icon-4" width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"></path></svg>
+                </label>
+                <div id="detail-4" style="display: none; padding: 0 20px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+                   <div style="padding-top: 16px; font-size: 13px; color: #475569; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                     회사는 건강검진 예약 진행을 위하여 아래와 같이 민감정보를 제3자에게 제공합니다.<br><br>
+                     1) 제공받는 자<br>
+                     - 제휴 건강검진기관 및 병원(예약 신청 검진기관)<br><br>
+                     2) 제공 목적<br>
+                     - 건강검진 예약 진행, 검진 가능 여부 확인, 검진 항목 상담 및 예약 서비스 제공<br><br>
+                     3) 제공 항목<br>
+                     - 건강검진 희망 항목, 문진 정보, 질환 관련 정보, 건강 상태 관련 정보, 기타 건강검진 예약 진행에 필요한 정보<br><br>
+                     4) 보유 및 이용기간<br>
+                     제공된 민감정보는 건강검진 예약 및 검진 진행 완료 시까지 보관·이용되며, 관계 법령에 따라 보관이 필요한 경우 해당 법령에서 정한 기간 동안 보관합니다.<br><br>
+                     5) 동의 거부 권리 및 불이익 안내<br>
+                     이용자는 민감정보 제3자 제공 동의를 거부할 권리가 있습니다.<br>
+                     다만, 동의를 거부할 경우 건강검진 우대예약 서비스 이용이 제한될 수 있습니다.
+                   </div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="font-size: 16px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; border-top: 1px solid #e2e8f0; padding-top: 24px; margin-bottom: 24px;">
+              <input type="checkbox" id="chk-all-consent" style="width: 22px; height: 22px; accent-color: #2563eb; cursor: pointer;" onchange="window.toggleAllConsent(this.checked)">
+              <label for="chk-all-consent" style="cursor: pointer; font-size: 16px;">전체 약관에 동의합니다.</label>
+            </div>
+
             <div style="display: flex; gap: 12px;">
               <button onclick="window.history.back()" style="flex: 1; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 16px; font-weight: 700; cursor: pointer;">이전 단계</button>
-              <button onclick="
+              <button id="btn-next-consent" disabled onclick="
+                if (!window.submitCheckupConsent()) return;
                 let hist = JSON.parse(localStorage.getItem('hc_checkup_history') || '[]');
                 hist.unshift({
                     id: 'chk-' + Date.now(),
@@ -4847,7 +4841,7 @@ if (state.activeMenuId === 'hospitalGuide' && !state.activeSubId) {
                 }
                 alert('예약 신청이 성공적으로 완료되었습니다.\\n신청이력 화면으로 이동합니다.');
                 window.location.hash = targetHash;
-              " style="flex: 1; padding: 16px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;">예약신청완료</button>
+              " style="flex: 1; padding: 16px; border-radius: 8px; border: none; background: #94a3b8; color: white; font-size: 16px; font-weight: 700; cursor: not-allowed; transition: background 0.2s;">예약신청완료</button>
             </div>
           </div>
         `;
@@ -5203,23 +5197,55 @@ window.toggleAllConsent = function(checked) {
 };
 
 window.submitCheckupConsent = function() {
-  const logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
-  const logEntry = {
-    LOG_ID: 'C_LOG_' + Date.now(),
-    MEMBER_ID: state.currentUser ? state.currentUser.name : 'user_' + Math.floor(Math.random() * 9000 + 1000),
-    CONSENT_YN: 'Y',
-    CONSENT_DATETIME: new Date().toLocaleString('ko-KR'),
+  const checks = Array.from(document.querySelectorAll('.consent-req-chk'));
+  if (checks.length !== 4 || checks.some(check => !check.checked)) {
+    alert('모든 필수 동의항목을 확인해 주세요.');
+    return false;
+  }
+  const definitions = [
+    ['PERSONAL_COLLECTION', '개인정보 수집 및 이용 동의'],
+    ['SENSITIVE_COLLECTION', '민감정보 수집 및 이용 동의'],
+    ['PERSONAL_PROVISION', '개인정보 제3자 제공 동의'],
+    ['SENSITIVE_PROVISION', '민감정보 제3자 제공 동의']
+  ];
+  const now = new Date().toISOString();
+  const batchId = 'CB_' + (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Date.now() + '_' + Math.random().toString(36).slice(2));
+  const entries = definitions.map(([code, name], index) => ({
+    SCHEMA_VERSION: 2,
+    LOG_ID: batchId + '_' + code,
+    CONSENT_BATCH_ID: batchId,
+    MEMBER_ID: state.currentUser?.id || null,
+    MEMBER_NAME: state.currentUser?.name || null,
+    CONSENT_CODE: code,
+    CONSENT_NAME: name,
+    REQUIRED_YN: 'Y',
+    CONSENT_YN: checks[index].checked ? 'Y' : 'N',
+    CONSENT_DATETIME: now,
+    TERMS_VERSION: null,
+    TERMS_TEXT: document.getElementById('detail-' + (index + 1))?.textContent.trim() || null,
+    CLIENT_ID: state.activeClient?.id || null,
+    SITE_ID: state.activeSite?.siteId || null,
     SERVICE_TYPE: '건강검진 우대예약',
-    SCREEN_ID: '동의서 작성',
-    PURPOSE: '개인 및 민감정보 수집/제공 동의',
-    CLIENT_IP: '192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255),
+    SCREEN_ID: '검진 예약 최종 확인',
+    PURPOSE: name,
+    CHANNEL: 'PC',
+    CLIENT_IP: null,
     USER_AGENT: navigator.userAgent,
-    CREATED_AT: new Date().toLocaleString('ko-KR')
-  };
-  logs.unshift(logEntry);
-  localStorage.setItem('checkupConsentLogs', JSON.stringify(logs));
-
-  window.location.hash = '#/portal/' + state.activeClient.id + '/' + state.activeSite.siteId + '/' + state.activeMenuId + '/checkup-target';
+    CREATED_AT: now
+  }));
+  if (entries.some(entry => !entry.TERMS_TEXT)) {
+    alert('동의 내용을 확인할 수 없습니다. 화면을 새로고침해 주세요.');
+    return false;
+  }
+  try {
+    const logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
+    if (!Array.isArray(logs)) throw new Error('Invalid consent history');
+    localStorage.setItem('checkupConsentLogs', JSON.stringify([...entries, ...logs]));
+    return true;
+  } catch (error) {
+    alert('동의이력을 저장하지 못했습니다. 다시 시도해 주세요.');
+    return false;
+  }
 };
 
 window.saveCheckupTargetInfo = function() {
@@ -7940,6 +7966,41 @@ function seedMyPageMockData() {
   }
 }
 
+function renderSubscriptionDeliveryHistory(item) {
+  const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const hasHistory = Array.isArray(item.details.deliveryHistory);
+  const contents = JSON.parse(localStorage.getItem('sub_contents') || '[]');
+  const count = Math.max(0, Math.min(parseInt(item.details.currTerm, 10) || 0, parseInt(item.details.totalTerms, 10) || 4));
+  // The portal is a prototype: generated delivery entries are explicitly marked as examples.
+  const deliveries = hasHistory ? item.details.deliveryHistory : Array.from({ length: count }, (_, index) => {
+    const week = index + 1;
+    const content = contents.find(entry => entry.progId === item.details.progId && parseInt(entry.seq, 10) === week);
+    const date = new Date(item.date + 'T00:00:00Z');
+    date.setUTCDate(date.getUTCDate() + index * 7);
+    return { week, title: content ? content.title : item.title + ' ' + week + '주차 콘텐츠', sentAt: Number.isNaN(date.getTime()) ? '-' : date.toISOString().slice(0, 10) + ' 09:00', status: '발송완료' };
+  });
+  return `<section aria-label="콘텐츠 주차별 발송이력" style="padding:20px 24px;">
+    <h5 style="margin:0 0 8px; font-size:15px; color:#1e293b;">콘텐츠 주차별 발송이력</h5>
+    <p style="margin:0 0 16px; font-size:12px; color:#64748b;">${hasHistory ? '주차별 콘텐츠 발송 내역을 확인할 수 있습니다.' : '화면 확인을 위한 예시 발송이력입니다.'}</p>
+    <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px; background:white;">
+      <table style="width:100%; min-width:460px; border-collapse:collapse; text-align:left; font-size:13px;">
+        <thead style="background:#f1f5f9;"><tr>
+          <th scope="col" style="padding:12px; width:65px;">주차</th>
+          <th scope="col" style="padding:12px;">콘텐츠명</th>
+          <th scope="col" style="padding:12px; width:145px;">발송일시</th>
+          <th scope="col" style="padding:12px; width:85px;">발송상태</th>
+        </tr></thead>
+        <tbody>${deliveries.length ? deliveries.map(delivery => `<tr>
+          <td style="padding:12px; border-top:1px solid #e2e8f0; font-weight:700; color:#2563eb;">${escapeText(delivery.week)}주차</td>
+          <td style="padding:12px; border-top:1px solid #e2e8f0; color:#334155;">${escapeText(delivery.title)}</td>
+          <td style="padding:12px; border-top:1px solid #e2e8f0; color:#64748b;">${escapeText(delivery.sentAt || '-')}</td>
+          <td style="padding:12px; border-top:1px solid #e2e8f0; font-weight:700; color:#475569;">${escapeText(delivery.status || '-')}</td>
+        </tr>`).join('') : '<tr><td colspan="4" style="padding:28px; text-align:center; color:#94a3b8;">아직 발송된 콘텐츠가 없습니다.</td></tr>'}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
 function getMyPageHistory() {
   const user = state.currentUser;
   const client = state.activeClient;
@@ -8020,7 +8081,7 @@ function getMyPageHistory() {
       title: s.progName || '구독 프로그램',
       date: s.applyDate || '2026-06-01',
       status: s.status || '구독중',
-      details: { id: s.id, type: 'admin', title: s.progName, category: s.catName, cycle: s.cycle, duration: s.duration, currTerm: currTermNum, totalTerms: totalTerms }
+      details: { id: s.id, type: 'admin', title: s.progName, category: s.catName, cycle: s.cycle, duration: s.duration, currTerm: currTermNum, totalTerms: totalTerms, progId: prog ? prog.id : s.progId, deliveryHistory: s.deliveryHistory }
     };
   });
 
@@ -8499,7 +8560,7 @@ window.renderMyPage = function() {
                   <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                   <td onclick="event.stopPropagation();">
                     <div style="display:flex; gap:6px; justify-content:center;">
-                      <button onclick="window.toggleMyPageHistoryDetail('${item.id}')" style="padding:6px 10px; background:white; border:1px solid #e2e8f0; color:#64748b; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                      <button aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="subscription-delivery-${item.id}" onclick="window.toggleMyPageHistoryDetail('${item.id}')" style="padding:6px 10px; background:white; border:1px solid #e2e8f0; color:#64748b; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
                         ${isExpanded ? '접기' : '상세보기'}
                       </button>
                       ${!isCancelled ? `
@@ -8510,19 +8571,9 @@ window.renderMyPage = function() {
                     </div>
                   </td>
                 </tr>
-                <tr style="display:${isExpanded ? 'table-row' : 'none'}; background:#f8fafc;">
+                <tr id="subscription-delivery-${item.id}" style="display:${isExpanded ? 'table-row' : 'none'}; background:#f8fafc;">
                   <td colspan="7" style="padding:0; text-align:left; border-bottom: 2px solid #cbd5e1;">
-                    <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center;">
-                      <div>
-                        <span style="font-size:12px; color:#64748b; font-weight:600; display:block; margin-bottom:4px;">구독 상세정보</span>
-                        <span style="font-size:13.5px; font-weight:700; color:#1e293b;">
-                          주기: ${item.details.cycle || '주 1회'} / 기간: ${item.details.duration || '4주'} (진행률: ${Math.round(((item.details.currTerm || 1) / (item.details.totalTerms || 4)) * 100)}%)
-                        </span>
-                      </div>
-                      <div style="font-size:13px; color:#64748b; font-weight:600;">
-                        상태: <span style="color:${isCancelled ? '#ef4444' : '#16a34a'}; font-weight:700;">${isCancelled ? '구독 해지됨' : '정상 구독 중'}</span>
-                      </div>
-                    </div>
+                    ${renderSubscriptionDeliveryHistory(item)}
                   </td>
                 </tr>
                 `;

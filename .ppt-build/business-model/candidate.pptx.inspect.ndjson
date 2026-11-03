@@ -1,0 +1,147 @@
+{"kind":"deck","id":"pr/ve89zz","name":"Deck"}
+{"kind":"layout","layoutId":"f65c5b3d-7dee-4331-9bfc-a34066bbae10","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"7a38baef-229a-4f98-8757-ed9b05b9f146","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/utikup","slide":1,"title":"우리 회사의 B2B 헬스케어 사업 구조","textShapes":16}
+{"kind":"textbox","id":"sh/y9wzm107","slide":1,"name":"우리 회사의 B2B 헬스케어 사업 구조","text":"우리 회사의 B2B 헬스케어 사업 구조","textPreview":"우리 회사의 B2B 헬스케어 사업 구조","textChars":21,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/lcnyxwzy","slide":1,"name":"고객사와 위탁계약을 맺고, 고객사의 보험가입·멤버십·E","text":"고객사와 위탁계약을 맺고, 고객사의 보험가입·멤버십·EAP 고객에게 서비스를 제공합니다","textPreview":"고객사와 위탁계약을 맺고, 고객사의 보험가입·멤버십·EAP 고객에게 서비스를 제공합니다","textChars":48,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/kbehorid","slide":1,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/b6lgrmhg","slide":1,"name":"01","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/a5czih0b","slide":1,"name":"고객사","bbox":[64,257,310,213]}
+{"kind":"textbox","id":"sh/x8nytwzm","slide":1,"name":"고객사","text":"고객사","textPreview":"고객사","textChars":3,"textLines":1,"bbox":[76,277,286,54]}
+{"kind":"textbox","id":"sh/c7ehkri1","slide":1,"name":"위탁계약 체결\n회원정보·등급 제공","text":"위탁계약 체결\n회원정보·등급 제공","textPreview":"위탁계약 체결 | 회원정보·등급 제공","textChars":18,"textLines":2,"bbox":[82,335,274,129]}
+{"kind":"shape","id":"sh/v2p03qh0","slide":1,"name":"우리 회사","bbox":[485,257,310,213]}
+{"kind":"textbox","id":"sh/u1gzulgf","slide":1,"name":"우리 회사","text":"우리 회사","textPreview":"우리 회사","textChars":5,"textLines":1,"bbox":[497,277,286,54]}
+{"kind":"textbox","id":"sh/4nyt03a9","slide":1,"name":"콜센터 기반 운영\n대상별 서비스 제공","text":"콜센터 기반 운영\n대상별 서비스 제공","textPreview":"콜센터 기반 운영 | 대상별 서비스 제공","textChars":20,"textLines":2,"bbox":[503,335,274,129]}
+{"kind":"shape","id":"sh/587at8bu","slide":1,"name":"이용 고객","bbox":[904,257,310,213]}
+{"kind":"textbox","id":"sh/ilgbyts3","slide":1,"name":"이용 고객","text":"이용 고객","textPreview":"이용 고객","textChars":5,"textLines":1,"bbox":[916,277,286,54]}
+{"kind":"textbox","id":"sh/3mpsryto","slide":1,"name":"보험가입고객\n멤버십고객\nEAP고객","text":"보험가입고객\n멤버십고객\nEAP고객","textPreview":"보험가입고객 | 멤버십고객 | EAP고객","textChars":18,"textLines":3,"bbox":[922,335,274,129]}
+{"kind":"shape","id":"sh/gjytwjax","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/hk7apobi","slide":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/uhwbuts7","slide":1,"name":"서비스 위탁","text":"서비스 위탁","textPreview":"서비스 위탁","textChars":6,"textLines":1,"bbox":[374,317,111,35]}
+{"kind":"textbox","id":"sh/vi5snyts","slide":1,"name":"서비스 제공","text":"서비스 제공","textPreview":"서비스 제공","textChars":6,"textLines":1,"bbox":[794,317,111,35]}
+{"kind":"textbox","id":"sh/8fe9sju1","slide":1,"name":"계약과 대상 기준","text":"계약과 대상 기준","textPreview":"계약과 대상 기준","textChars":9,"textLines":1,"bbox":[64,505,310,40]}
+{"kind":"textbox","id":"sh/tgnalobm","slide":1,"name":"헬스케어서비스 운영","text":"헬스케어서비스 운영","textPreview":"헬스케어서비스 운영","textChars":10,"textLines":1,"bbox":[485,505,310,40]}
+{"kind":"textbox","id":"sh/90vi9gzy","slide":1,"name":"혜택 확인과 이용","text":"혜택 확인과 이용","textPreview":"혜택 확인과 이용","textChars":9,"textLines":1,"bbox":[904,505,310,40]}
+{"kind":"textbox","id":"sh/ozmh0bit","slide":1,"name":"고객사가 정한 회원·등급 기준에 맞춰 우리 회사가 서비","text":"고객사가 정한 회원·등급 기준에 맞춰 우리 회사가 서비스를 제공합니다.","textPreview":"고객사가 정한 회원·등급 기준에 맞춰 우리 회사가 서비스를 제공합니다.","textChars":39,"textLines":1,"bbox":[64,610,1150,54]}
+{"kind":"notes","id":"nt/utikup","slide":1,"text":"우리 회사의 현재 사업은 B2B 모델입니다. 고객사와 위탁계약을 맺고 그 고객사의 보험가입고객, 멤버십고객, EAP고객에게 헬스케어서비스를 제공합니다. 고객사는 서비스 대상 회원정보와 등급을 정해 제공합니다. 우리 회사는 제공받은 기준에 따라 서비스를 운영합니다. 계약 상대인 고객사와 실제 이용 고객을 구분해 설명합니다. 수익 방식이나 정산 구조는 이번 설명에 포함하지 않습니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/b9k1uv","slide":2,"title":"콜센터를 중심으로 제공하는 헬스케어서비스","textShapes":11}
+{"kind":"textbox","id":"sh/kvytoze1","slide":2,"name":"콜센터를 중심으로 제공하는 헬스케어서비스","text":"콜센터를 중심으로 제공하는 헬스케어서비스","textPreview":"콜센터를 중심으로 제공하는 헬스케어서비스","textChars":22,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/jupsvudg","slide":2,"name":"상담·검진·진료 지원과 특정질병 진단 고객의 추가 지원","text":"상담·검진·진료 지원과 특정질병 진단 고객의 추가 지원을 운영합니다","textPreview":"상담·검진·진료 지원과 특정질병 진단 고객의 추가 지원을 운영합니다","textChars":37,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/ytgrm9wv","slide":2,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/tkra1ovi","slide":2,"name":"02","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/8zitsjex","slide":2,"name":"콜센터","bbox":[64,329,265,175]}
+{"kind":"textbox","id":"sh/7y9szedc","slide":2,"name":"콜센터","text":"콜센터","textPreview":"콜센터","textChars":3,"textLines":1,"bbox":[76,349,241,54]}
+{"kind":"textbox","id":"sh/6xgbq9w7","slide":2,"name":"상담 접수\n서비스 안내·연계","text":"상담 접수\n서비스 안내·연계","textPreview":"상담 접수 | 서비스 안내·연계","textChars":15,"textLines":2,"bbox":[82,407,229,91]}
+{"kind":"shape","id":"sh/9onapkfe","slide":2,"name":"상담·검진·진료 지원","bbox":[466,221,748,174]}
+{"kind":"textbox","id":"sh/o3e9gfet","slide":2,"name":"상담·검진·진료 지원","text":"상담·검진·진료 지원","textPreview":"상담·검진·진료 지원","textChars":11,"textLines":1,"bbox":[478,241,724,54]}
+{"kind":"textbox","id":"sh/2lgnytsr","slide":2,"name":"건강상담 / 검진설계·건강검진우대예약\n명의·병원안내 /","text":"건강상담 / 검진설계·건강검진우대예약\n명의·병원안내 / 상급병원 진료예약","textPreview":"건강상담 / 검진설계·건강검진우대예약 | 명의·병원안내 / 상급병원 진료예약","textChars":40,"textLines":2,"bbox":[484,299,712,90]}
+{"kind":"shape","id":"sh/3mp47y9c","slide":2,"name":"특정질병 진단 고객 지원","bbox":[466,442,748,159]}
+{"kind":"textbox","id":"sh/ony503ax","slide":2,"name":"특정질병 진단 고객 지원","text":"특정질병 진단 고객 지원","textPreview":"특정질병 진단 고객 지원","textChars":13,"textLines":1,"bbox":[478,462,724,54]}
+{"kind":"textbox","id":"sh/po7m98ri","slide":2,"name":"암·심장질환·뇌혈관질환 등\n간호사 진료동행 및 기타 부","text":"암·심장질환·뇌혈관질환 등\n간호사 진료동행 및 기타 부가서비스","textPreview":"암·심장질환·뇌혈관질환 등 | 간호사 진료동행 및 기타 부가서비스","textChars":34,"textLines":2,"bbox":[484,520,712,75]}
+{"kind":"shape","id":"sh/q9gn2ds3","slide":2,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/ba94bi9o","slide":2,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/cbi543a9","slide":2,"name":"고객사와 등급에 따라 제공할 서비스의 범위가 달라집니다","text":"고객사와 등급에 따라 제공할 서비스의 범위가 달라집니다.","textPreview":"고객사와 등급에 따라 제공할 서비스의 범위가 달라집니다.","textChars":31,"textLines":1,"bbox":[64,610,1150,54]}
+{"kind":"notes","id":"nt/b9k1uv","slide":2,"text":"현재 서비스는 콜센터 기반으로 운영합니다. 건강상담, 검진설계 및 건강검진우대예약, 명의나 병원안내, 상급병원 진료예약을 제공합니다. 암·심장질환·뇌혈관질환 등 특정질병을 진단받은 고객에게는 간호사 진료동행과 기타 부가서비스를 제공합니다. 실제 제공 범위는 해당 고객사·등급 조건에 연결합니다. 포털은 이 업무의 안내·이용 창구와 설정·관리 기반으로 설명하며 콜센터 업무의 자동 대체를 전제하지 않습니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/f1qdjf","slide":3,"title":"헬스케어포털이 필요한 이유","textShapes":10}
+{"kind":"textbox","id":"sh/i10rixo7","slide":3,"name":"헬스케어포털이 필요한 이유","text":"헬스케어포털이 필요한 이유","textPreview":"헬스케어포털이 필요한 이유","textChars":14,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/54radsny","slide":3,"name":"여러 고객사의 서로 다른 조건을 홈페이지에 반영하고, ","text":"여러 고객사의 서로 다른 조건을 홈페이지에 반영하고, 운영 중 변화에도 대응해야 합니다","textPreview":"여러 고객사의 서로 다른 조건을 홈페이지에 반영하고, 운영 중 변화에도 대응해야 합니다","textChars":48,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/43i9kn6d","slide":3,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/vyp87i5g","slide":3,"name":"03","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/uxgredob","slide":3,"name":"고객사별 서비스 차이","bbox":[64,218,358,92]}
+{"kind":"textbox","id":"sh/h07q9snm","slide":3,"name":"고객사별 서비스 차이","text":"고객사별 서비스 차이","textPreview":"고객사별 서비스 차이","textChars":11,"textLines":1,"bbox":[76,243,334,54]}
+{"kind":"shape","id":"sh/gzy9gn61","slide":3,"name":"고객의 등급·특성 차이","bbox":[64,364,358,92]}
+{"kind":"textbox","id":"sh/7up83y5k","slide":3,"name":"고객의 등급·특성 차이","text":"고객의 등급·특성 차이","textPreview":"고객의 등급·특성 차이","textChars":12,"textLines":1,"bbox":[76,389,334,54]}
+{"kind":"shape","id":"sh/6tgradoz","slide":3,"name":"고객사·등급의 지속 추가","bbox":[64,508,358,92]}
+{"kind":"textbox","id":"sh/4jalsnu1","slide":3,"name":"고객사·등급의 지속 추가","text":"고객사·등급의 지속 추가","textPreview":"고객사·등급의 지속 추가","textChars":13,"textLines":1,"bbox":[76,533,334,54]}
+{"kind":"shape","id":"sh/pk3m1svm","slide":3,"name":"고객사·등급별 전용사이트","bbox":[624,263,590,294]}
+{"kind":"textbox","id":"sh/2hs3qxcb","slide":3,"name":"고객사·등급별 전용사이트","text":"고객사·등급별 전용사이트","textPreview":"고객사·등급별 전용사이트","textChars":13,"textLines":1,"bbox":[636,283,566,54]}
+{"kind":"textbox","id":"sh/3i14zidw","slide":3,"name":"회원에게 해당 서비스 안내·제공\n관리자는 정해진 규칙으","text":"회원에게 해당 서비스 안내·제공\n관리자는 정해진 규칙으로 맞춤 설정\n설정 후 빠르게 서비스 런칭","textPreview":"회원에게 해당 서비스 안내·제공 | 관리자는 정해진 규칙으로 맞춤 설정 | 설정 후 빠르게 서비스 런칭","textChars":53,"textLines":3,"bbox":[642,341,554,210]}
+{"kind":"shape","id":"sh/gfalonu5","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/hgjmxsvq","slide":3,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/uds3mdwz","slide":3,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/fe14vidk","slide":3,"name":"포털은 다양한 고객사 조건을 반복해서 설정하고 운영하는","text":"포털은 다양한 고객사 조건을 반복해서 설정하고 운영하는 공통 기반입니다.","textPreview":"포털은 다양한 고객사 조건을 반복해서 설정하고 운영하는 공통 기반입니다.","textChars":40,"textLines":1,"bbox":[64,610,1150,54]}
+{"kind":"notes","id":"nt/f1qdjf","slide":3,"text":"고객사별 계약과 대상 고객의 특성이 다르므로 안내할 서비스와 이용 메뉴가 달라집니다. 같은 고객사 안에서도 등급별 구성이 다를 수 있습니다. 신규 고객사가 계속 추가되고 기존 고객사에도 등급이 추가됩니다. 이를 공통 기반 위에서 전용사이트로 구성하고 관리해야 합니다. 따라서 포털의 사업상 목적은 고객에게 해당 서비스를 보여주는 동시에 관리자가 고객사별 설정을 반복하고 빠르게 런칭할 수 있는 구조를 제공하는 것입니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/big9br","slide":4,"title":"공통 기반에서 고객사·등급별 전용사이트를 구성","textShapes":12}
+{"kind":"textbox","id":"sh/xwvmlo7q","slide":4,"name":"공통 기반에서 고객사·등급별 전용사이트를 구성","text":"공통 기반에서 고객사·등급별 전용사이트를 구성","textPreview":"공통 기반에서 고객사·등급별 전용사이트를 구성","textChars":25,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/atknqt8f","slide":4,"name":"전용사이트는 고객사 또는 등급에 맞게 서비스와 노출 구","text":"전용사이트는 고객사 또는 등급에 맞게 서비스와 노출 구성을 달리하는 개념입니다","textPreview":"전용사이트는 고객사 또는 등급에 맞게 서비스와 노출 구성을 달리하는 개념입니다","textChars":43,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/bud4jypk","slide":4,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/kjm5w3qh","slide":4,"name":"04","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/lkv6p872","slide":4,"name":"헬스케어포털 공통 기반","bbox":[370,208,540,90]}
+{"kind":"textbox","id":"sh/yx4nut8b","slide":4,"name":"헬스케어포털 공통 기반","text":"헬스케어포털 공통 기반","textPreview":"헬스케어포털 공통 기반","textChars":12,"textLines":1,"bbox":[382,232,516,54]}
+{"kind":"shape","id":"sh/jidonypw","slide":4,"name":"A사 전용사이트","bbox":[64,422,354,170]}
+{"kind":"textbox","id":"sh/0n25kzqx","slide":4,"name":"A사 전용사이트","text":"A사 전용사이트","textPreview":"A사 전용사이트","textChars":8,"textLines":1,"bbox":[76,442,330,54]}
+{"kind":"textbox","id":"sh/1obmd47i","slide":4,"name":"A사 회원 대상\nA사 서비스·메뉴 구성","text":"A사 회원 대상\nA사 서비스·메뉴 구성","textPreview":"A사 회원 대상 | A사 서비스·메뉴 구성","textChars":21,"textLines":2,"bbox":[82,500,318,86]}
+{"kind":"shape","id":"sh/dobad8bq","slide":4,"name":"B사 기본등급 사이트","bbox":[464,422,354,170]}
+{"kind":"textbox","id":"sh/sn2943ul","slide":4,"name":"B사 기본등급 사이트","text":"B사 기본등급 사이트","textPreview":"B사 기본등급 사이트","textChars":11,"textLines":1,"bbox":[476,442,330,54]}
+{"kind":"textbox","id":"sh/rmtsbyd0","slide":4,"name":"B사 기본등급 대상\n해당 등급 서비스 구성","text":"B사 기본등급 대상\n해당 등급 서비스 구성","textPreview":"B사 기본등급 대상 | 해당 등급 서비스 구성","textChars":23,"textLines":2,"bbox":[482,500,318,86]}
+{"kind":"shape","id":"sh/qlkr2tcf","slide":4,"name":"B사 VIP등급 사이트","bbox":[864,422,350,170]}
+{"kind":"textbox","id":"sh/1cvah8b2","slide":4,"name":"B사 VIP등급 사이트","text":"B사 VIP등급 사이트","textPreview":"B사 VIP등급 사이트","textChars":12,"textLines":1,"bbox":[876,442,326,54]}
+{"kind":"textbox","id":"sh/0bmt83uh","slide":4,"name":"B사 VIP등급 대상\n해당 등급 서비스 구성","text":"B사 VIP등급 대상\n해당 등급 서비스 구성","textPreview":"B사 VIP등급 대상 | 해당 등급 서비스 구성","textChars":24,"textLines":2,"bbox":[882,500,314,86]}
+{"kind":"shape","id":"sh/fqtsfitw","slide":4,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/epkb6dcb","slide":4,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/pgvalsby","slide":4,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/ofmtcnud","slide":4,"name":"구성 예시 · 회원은 로그인·인증 후 본인의 고객사·등","text":"구성 예시 · 회원은 로그인·인증 후 본인의 고객사·등급에 해당하는 서비스를 이용","textPreview":"구성 예시 · 회원은 로그인·인증 후 본인의 고객사·등급에 해당하는 서비스를 이용","textChars":45,"textLines":1,"bbox":[64,610,1150,54]}
+{"kind":"notes","id":"nt/big9br","slide":4,"text":"한 공통 운영 기반에서 고객사별 사이트를 만들거나 필요에 따라 고객사 내 특정 등급의 전용사이트를 만들 수 있습니다. 아래 A사·B사와 기본·VIP는 설명용 예시이며 실제 계약 구성을 뜻하지 않습니다. 회원은 로그인·인증을 통해 소속 고객사와 등급에 맞는 서비스를 확인하고 이용합니다. 사이트 구분, 서비스 이용 자격, 화면 노출은 고객사 기준과 관리자 설정이 함께 연결되어야 합니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/jgb919","slide":5,"title":"공통 기능과 고객사별 가변 설정","textShapes":9}
+{"kind":"textbox","id":"sh/6x4butgn","slide":5,"name":"공통 기능과 고객사별 가변 설정","text":"공통 기능과 고객사별 가변 설정","textPreview":"공통 기능과 고객사별 가변 설정","textChars":17,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/t0vu5ofe","slide":5,"name":"공통 요소는 재사용하고, 고객사별 차이는 설정으로 반영","text":"공통 요소는 재사용하고, 고객사별 차이는 설정으로 반영하는 구조가 필요합니다","textPreview":"공통 요소는 재사용하고, 고객사별 차이는 설정으로 반영하는 구조가 필요합니다","textChars":42,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/szmtwjyt","slide":5,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/jutczexc","slide":5,"name":"05","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/i9kbq9gr","slide":5,"name":"공통으로 유지할 기반","bbox":[64,224,524,310]}
+{"kind":"textbox","id":"sh/5wvu1of2","slide":5,"name":"공통으로 유지할 기반","text":"공통으로 유지할 기반","textPreview":"공통으로 유지할 기반","textChars":11,"textLines":1,"bbox":[76,244,500,54]}
+{"kind":"textbox","id":"sh/kv2tsjyx","slide":5,"name":"로그인·인증과 회원 확인\n서비스 안내·이용의 기본 흐름","text":"로그인·인증과 회원 확인\n서비스 안내·이용의 기본 흐름\n공통 화면과 운영 기능\n고객사·등급의 추가 관리","textPreview":"로그인·인증과 회원 확인 | 서비스 안내·이용의 기본 흐름 | 공통 화면과 운영 기능 | 고객사·등급의 추가 관리","textChars":57,"textLines":4,"bbox":[82,302,488,226]}
+{"kind":"shape","id":"sh/v6tcvex0","slide":5,"name":"고객사별로 달라질 설정","bbox":[680,224,534,310]}
+{"kind":"textbox","id":"sh/a5kbm9gf","slide":5,"name":"고객사별로 달라질 설정","text":"고객사별로 달라질 설정","textPreview":"고객사별로 달라질 설정","textChars":12,"textLines":1,"bbox":[692,244,510,54]}
+{"kind":"textbox","id":"sh/gvql036t","slide":5,"name":"사이트명·브랜드 표현\n고객사·등급별 서비스 구성\n메뉴·","text":"사이트명·브랜드 표현\n고객사·등급별 서비스 구성\n메뉴·콘텐츠의 노출 여부\n서비스별 안내·신청 연결","textPreview":"사이트명·브랜드 표현 | 고객사·등급별 서비스 구성 | 메뉴·콘텐츠의 노출 여부 | 서비스별 안내·신청 연결","textChars":54,"textLines":4,"bbox":[698,302,498,226]}
+{"kind":"shape","id":"sh/hwz298ne","slide":5,"name":"공통 규칙 안에서 고객사별 맞춤 구성","bbox":[370,590,540,65]}
+{"kind":"textbox","id":"sh/ut83yton","slide":5,"name":"공통 규칙 안에서 고객사별 맞춤 구성","text":"공통 규칙 안에서 고객사별 맞춤 구성","textPreview":"공통 규칙 안에서 고객사별 맞춤 구성","textChars":20,"textLines":1,"bbox":[382,602,516,54]}
+{"kind":"shape","id":"sh/vuhk7y58","slide":5,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/8r6lw36h","slide":5,"bbox":[0,0,0,0]}
+{"kind":"notes","id":"nt/jgb919","slide":5,"text":"이 페이지는 사용자 요구에서 도출한 구현 방향입니다. 공통 기반은 로그인·인증과 회원 확인, 서비스 안내·이용의 기본 흐름, 공통 화면과 운영 기능, 고객사·등급 추가 관리를 포함합니다. 가변 설정은 고객사별 서비스 구성, 등급별 제공 범위, 메뉴·콘텐츠 노출 여부, 안내·신청 연결을 뜻합니다. 브랜드 표현은 기존 포털 기획의 사이트별 설정과 연결하는 항목입니다. 가변성이 있어도 서비스 이용 자격은 고객사 기준에 맞게 적용해야 합니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/hku6m9","slide":6,"title":"관리자의 맞춤 설정과 서비스 런칭 흐름","textShapes":15}
+{"kind":"textbox","id":"sh/q9cna90z","slide":6,"name":"관리자의 맞춤 설정과 서비스 런칭 흐름","text":"관리자의 맞춤 설정과 서비스 런칭 흐름","textPreview":"관리자의 맞춤 설정과 서비스 런칭 흐름","textChars":21,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/dc3m5ojq","slide":6,"name":"정해진 규칙에 따라 고객사별 구성을 설정하고 확인한 뒤","text":"정해진 규칙에 따라 고객사별 구성을 설정하고 확인한 뒤 서비스를 오픈합니다","textPreview":"정해진 규칙에 따라 고객사별 구성을 설정하고 확인한 뒤 서비스를 오픈합니다","textChars":41,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/cbu5cji5","slide":6,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/zy5o7e1g","slide":6,"name":"06","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/yxcne90v","slide":6,"name":"대상 등록","bbox":[64,297,194,196]}
+{"kind":"textbox","id":"sh/l0n69ozm","slide":6,"name":"대상 등록","text":"대상 등록","textPreview":"대상 등록","textChars":5,"textLines":1,"bbox":[76,317,170,54]}
+{"kind":"textbox","id":"sh/0ze5gji1","slide":6,"name":"고객사 제공\n회원·등급","text":"고객사 제공\n회원·등급","textPreview":"고객사 제공 | 회원·등급","textChars":12,"textLines":2,"bbox":[82,375,158,112]}
+{"kind":"shape","id":"sh/f214vu1c","slide":6,"name":"사이트 생성","bbox":[303,297,194,196]}
+{"kind":"textbox","id":"sh/e1sn2p0r","slide":6,"name":"사이트 생성","text":"사이트 생성","textPreview":"사이트 생성","textChars":6,"textLines":1,"bbox":[315,317,170,54]}
+{"kind":"textbox","id":"sh/83ypor6h","slide":6,"name":"고객사·등급\n사이트 연결","text":"고객사·등급\n사이트 연결","textPreview":"고객사·등급 | 사이트 연결","textChars":13,"textLines":2,"bbox":[321,375,158,112]}
+{"kind":"shape","id":"sh/9476hwn2","slide":6,"name":"맞춤 설정","bbox":[542,297,194,196]}
+{"kind":"textbox","id":"sh/m1g7mhob","slide":6,"name":"맞춤 설정","text":"맞춤 설정","textPreview":"맞춤 설정","textChars":5,"textLines":1,"bbox":[554,317,170,54]}
+{"kind":"textbox","id":"sh/72pofm5w","slide":6,"name":"제공서비스\n메뉴 노출","text":"제공서비스\n메뉴 노출","textPreview":"제공서비스 | 메뉴 노출","textChars":11,"textLines":2,"bbox":[560,375,158,112]}
+{"kind":"shape","id":"sh/wrypsr6t","slide":6,"name":"구성 확인","bbox":[781,297,194,196]}
+{"kind":"textbox","id":"sh/hs7qlwny","slide":6,"name":"구성 확인","text":"구성 확인","textPreview":"구성 확인","textChars":5,"textLines":1,"bbox":[793,317,170,54]}
+{"kind":"textbox","id":"sh/upg7q1on","slide":6,"name":"등급별 화면\n이용 범위","text":"등급별 화면\n이용 범위","textPreview":"등급별 화면 | 이용 범위","textChars":12,"textLines":2,"bbox":[799,375,158,112]}
+{"kind":"shape","id":"sh/vqp8j658","slide":6,"name":"서비스 런칭","bbox":[1020,297,194,196]}
+{"kind":"textbox","id":"sh/cvepg769","slide":6,"name":"서비스 런칭","text":"서비스 런칭","textPreview":"서비스 런칭","textChars":6,"textLines":1,"bbox":[1032,317,170,54]}
+{"kind":"textbox","id":"sh/dwn69cnu","slide":6,"name":"사이트 오픈\n변경 관리","text":"사이트 오픈\n변경 관리","textPreview":"사이트 오픈 | 변경 관리","textChars":12,"textLines":2,"bbox":[1038,375,158,112]}
+{"kind":"shape","id":"sh/tgvex4bm","slide":6,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/sfmdozu1","slide":6,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/redwvutg","slide":6,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/6d4vmpcv","slide":6,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/1kfe1obi","slide":6,"name":"신규 고객사 추가 또는 기존 고객사 등급 추가 시에도 ","text":"신규 고객사 추가 또는 기존 고객사 등급 추가 시에도 같은 설정 흐름을 적용","textPreview":"신규 고객사 추가 또는 기존 고객사 등급 추가 시에도 같은 설정 흐름을 적용","textChars":42,"textLines":1,"bbox":[64,543,1150,76]}
+{"kind":"notes","id":"nt/hku6m9","slide":6,"text":"관리자가 고객사의 회원정보·등급 기준을 반영하고 사이트를 생성합니다. 고객사·등급을 사이트에 연결하고 제공서비스와 메뉴 노출을 설정합니다. 고객사·등급별 화면과 이용 가능 서비스를 확인한 후 런칭합니다. 이는 업무 흐름을 설명하는 구축 방향이며 실제 승인 단계나 운영 담당자는 별도 상세 기획에서 정합니다. 중요한 목표는 고객사·등급이 추가될 때 기존 공통 기능을 재사용하고 관리자 설정으로 빠르게 대응하는 것입니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}
+{"kind":"slide","id":"sl/fp9wdx","slide":7,"title":"이번 구축에서 만드는 기본 판","textShapes":12}
+{"kind":"textbox","id":"sh/8vq1cf6l","slide":7,"name":"이번 구축에서 만드는 기본 판","text":"이번 구축에서 만드는 기본 판","textPreview":"이번 구축에서 만드는 기본 판","textChars":16,"textLines":1,"bbox":[62,43,1155,80]}
+{"kind":"textbox","id":"sh/nuhkjap0","slide":7,"name":"고객사별 전용사이트를 지속적으로 만들고 관리할 수 있는","text":"고객사별 전용사이트를 지속적으로 만들고 관리할 수 있는 구조를 함께 설계합니다","textPreview":"고객사별 전용사이트를 지속적으로 만들고 관리할 수 있는 구조를 함께 설계합니다","textChars":43,"textLines":1,"bbox":[64,128,1150,68]}
+{"kind":"textbox","id":"sh/mt8ja5of","slide":7,"name":"헬스케어포털 사업 구조와 구축 목적","text":"헬스케어포털 사업 구조와 구축 목적","textPreview":"헬스케어포털 사업 구조와 구축 목적","textChars":19,"textLines":1,"bbox":[64,674,1080,28]}
+{"kind":"textbox","id":"sh/lsz2hk7a","slide":7,"name":"07","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1165,674,48,28]}
+{"kind":"shape","id":"sh/0rq18f6p","slide":7,"name":"공통 기반 + 설정 가능한 구조","bbox":[337,211,606,82]}
+{"kind":"textbox","id":"sh/zqxkfap4","slide":7,"name":"공통 기반 + 설정 가능한 구조","text":"공통 기반 + 설정 가능한 구조","textPreview":"공통 기반 + 설정 가능한 구조","textChars":17,"textLines":1,"bbox":[349,231,582,54]}
+{"kind":"shape","id":"sh/ypoj65oj","slide":7,"name":"기획","bbox":[64,401,354,191]}
+{"kind":"textbox","id":"sh/5oj2t4ne","slide":7,"name":"기획","text":"기획","textPreview":"기획","textChars":2,"textLines":1,"bbox":[76,421,330,54]}
+{"kind":"textbox","id":"sh/knalkz6t","slide":7,"name":"공통·가변 항목 정의\n고객사·등급 설정 규칙\n관리자 운","text":"공통·가변 항목 정의\n고객사·등급 설정 규칙\n관리자 운영 흐름","textPreview":"공통·가변 항목 정의 | 고객사·등급 설정 규칙 | 관리자 운영 흐름","textChars":34,"textLines":3,"bbox":[82,479,318,107]}
+{"kind":"shape","id":"sh/ixonu1g7","slide":7,"name":"디자인","bbox":[464,401,354,191]}
+{"kind":"textbox","id":"sh/3yxon6xs","slide":7,"name":"디자인","text":"디자인","textPreview":"디자인","textChars":3,"textLines":1,"bbox":[476,421,330,54]}
+{"kind":"textbox","id":"sh/4z65wbyd","slide":7,"name":"재사용 가능한 공통 화면\n노출 조합별 화면 구성\n고객사","text":"재사용 가능한 공통 화면\n노출 조합별 화면 구성\n고객사별 브랜드 적용","textPreview":"재사용 가능한 공통 화면 | 노출 조합별 화면 구성 | 고객사별 브랜드 적용","textChars":38,"textLines":3,"bbox":[482,479,318,107]}
+{"kind":"shape","id":"sh/50f6pgfi","slide":7,"name":"개발","bbox":[864,401,350,191]}
+{"kind":"textbox","id":"sh/ut4nq1gv","slide":7,"name":"개발","text":"개발","textPreview":"개발","textChars":2,"textLines":1,"bbox":[876,421,326,54]}
+{"kind":"textbox","id":"sh/vud4j6xg","slide":7,"name":"고객사·등급·서비스 연결\n설정 기반의 사이트 구성\n신규","text":"고객사·등급·서비스 연결\n설정 기반의 사이트 구성\n신규 고객사·등급 추가","textPreview":"고객사·등급·서비스 연결 | 설정 기반의 사이트 구성 | 신규 고객사·등급 추가","textChars":40,"textLines":3,"bbox":[882,479,314,107]}
+{"kind":"shape","id":"sh/gv65sry1","slide":7,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/hwf6lwfm","slide":7,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/ep8n2lgf","slide":7,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/fqhovqx0","slide":7,"name":"목표: 고객사별 맞춤 서비스를 관리자가 빠르게 구성하고","text":"목표: 고객사별 맞춤 서비스를 관리자가 빠르게 구성하고 런칭할 수 있는 포털","textPreview":"목표: 고객사별 맞춤 서비스를 관리자가 빠르게 구성하고 런칭할 수 있는 포털","textChars":42,"textLines":1,"bbox":[64,610,1150,54]}
+{"kind":"notes","id":"nt/fp9wdx","slide":7,"text":"외부 기획자·디자이너·개발자가 같은 구축 목적을 공유하도록 정리한 구현 방향입니다. 기획은 공통·가변 항목과 관리자 설정 규칙을 정의합니다. 디자인은 공통 화면을 재사용하면서 메뉴 노출과 브랜드가 달라지는 구성을 표현합니다. 개발은 고객사·등급·사이트·서비스를 연결하고 설정 기반으로 구성이 바뀌는 구조를 구현합니다. 이 단계는 상세 기술 설계나 각 서비스의 완료 기준을 확정하는 단계가 아닙니다.\n\n근거: 사용자가 직접 제공한 사업 설명(2026.10.02)과 회원·등급 관련 설명(2026.10.01). 운영·구축 방향은 사용자 요구를 도식화한 설명이며 기술 규격이나 계약 상세 정책을 확정하는 문서는 아니다. A사·B사와 등급명은 설명용 가상 예시다."}

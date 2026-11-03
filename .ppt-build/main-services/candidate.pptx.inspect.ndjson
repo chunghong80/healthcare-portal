@@ -1,0 +1,31 @@
+{"kind":"deck","id":"pr/wn71oi","name":"Deck"}
+{"kind":"layout","layoutId":"1f959872-08d5-408f-8b35-4531ebe88ab9","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"6c324d3d-0a91-403a-8287-ca13aed4830e","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/8qt2rp","slide":1,"title":"우리 회사의 5대 주요 헬스케어서비스","textShapes":15}
+{"kind":"textbox","id":"sh/vqd87ilo","slide":1,"text":"우리 회사의 5대 주요 헬스케어서비스","textPreview":"우리 회사의 5대 주요 헬스케어서비스","textChars":20,"textLines":1,"bbox":[64,43,1150,78]}
+{"kind":"textbox","id":"sh/grm90nm9","slide":1,"text":"고객사 회원을 대상으로 상담, 의료기관 이용, 검진 및 진료동행 서비스를 제공합니다","textPreview":"고객사 회원을 대상으로 상담, 의료기관 이용, 검진 및 진료동행 서비스를 제공합니다","textChars":46,"textLines":1,"bbox":[64,128,1150,55]}
+{"kind":"shape","id":"sh/hsvq9s3u","slide":1,"bbox":[64,344,278,157]}
+{"kind":"textbox","id":"sh/it4r2x4f","slide":1,"text":"5대 주요 서비스","textPreview":"5대 주요 서비스","textChars":9,"textLines":1,"bbox":[76,365,254,47]}
+{"kind":"textbox","id":"sh/3ud8b2l0","slide":1,"text":"고객사 회원 대상\n콜센터 기반 안내·연계","textPreview":"고객사 회원 대상 | 콜센터 기반 안내·연계","textChars":22,"textLines":2,"bbox":[76,425,254,68]}
+{"kind":"shape","id":"sh/4vm94nm5","slide":1,"bbox":[476,194,738,80]}
+{"kind":"textbox","id":"sh/5gfqds3q","slide":1,"text":"건강상담","textPreview":"건강상담","textChars":4,"textLines":1,"bbox":[493,199,705,39]}
+{"kind":"textbox","id":"sh/qhor6x4b","slide":1,"text":"건강 관련 문의와 상담 제공","textPreview":"건강 관련 문의와 상담 제공","textChars":15,"textLines":1,"bbox":[493,237,705,33]}
+{"kind":"shape","id":"sh/rixsf2lw","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/balgfm1c","slide":1,"bbox":[476,287,738,80]}
+{"kind":"textbox","id":"sh/q9cf610r","slide":1,"text":"병원(명의)안내","textPreview":"병원(명의)안내","textChars":8,"textLines":1,"bbox":[493,292,705,39]}
+{"kind":"textbox","id":"sh/dcnyhwj2","slide":1,"text":"고객의 상황에 맞는 병원과 의료진 안내","textPreview":"고객의 상황에 맞는 병원과 의료진 안내","textChars":21,"textLines":1,"bbox":[493,330,705,33]}
+{"kind":"shape","id":"sh/cbux8rix","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/36lgbm10","slide":1,"bbox":[476,380,738,80]}
+{"kind":"textbox","id":"sh/25cf2h0f","slide":1,"text":"진료예약","textPreview":"진료예약","textChars":4,"textLines":1,"bbox":[493,385,705,39]}
+{"kind":"textbox","id":"sh/p83ydwj6","slide":1,"text":"상급병원 진료예약 지원","textPreview":"상급병원 진료예약 지원","textChars":12,"textLines":1,"bbox":[493,423,705,33]}
+{"kind":"shape","id":"sh/o7ux4ril","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/n25gn61k","slide":1,"bbox":[476,473,738,80]}
+{"kind":"textbox","id":"sh/m1wzel0z","slide":1,"text":"건강검진우대예약","textPreview":"건강검진우대예약","textChars":8,"textLines":1,"bbox":[493,478,705,39]}
+{"kind":"textbox","id":"sh/ix0jmpk7","slide":1,"text":"검진설계와 제휴 검진기관 우대예약 지원","textPreview":"검진설계와 제휴 검진기관 우대예약 지원","textChars":21,"textLines":1,"bbox":[493,516,705,33]}
+{"kind":"shape","id":"sh/jy90fals","slide":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/kzi1of2x","slide":1,"bbox":[476,566,738,80]}
+{"kind":"textbox","id":"sh/50rihk3i","slide":1,"text":"간호사진료동행","textPreview":"간호사진료동행","textChars":7,"textLines":1,"bbox":[493,571,705,39]}
+{"kind":"textbox","id":"sh/610jqpk3","slide":1,"text":"특정질병 진단 고객의 병원 진료에 간호사 동행","textPreview":"특정질병 진단 고객의 병원 진료에 간호사 동행","textChars":25,"textLines":1,"bbox":[493,609,705,33]}
+{"kind":"shape","id":"sh/7290julo","slide":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/s321cz29","slide":1,"text":"고객사와 회원 등급에 따라 제공서비스의 범위를 구성합니다.","textPreview":"고객사와 회원 등급에 따라 제공서비스의 범위를 구성합니다.","textChars":32,"textLines":1,"bbox":[64,671,1150,30]}
+{"kind":"notes","id":"nt/8qt2rp","slide":1,"text":"우리 회사의 주요 서비스는 건강상담, 병원(명의)안내, 진료예약, 건강검진우대예약, 간호사진료동행입니다. 현재 콜센터를 기반으로 서비스 안내와 연계를 운영합니다. 건강검진우대예약에는 검진설계와 예약 지원이 포함됩니다. 간호사진료동행은 암·심장질환·뇌혈관질환 등 특정질병을 진단받은 고객에게 제공하는 서비스입니다. 실제 제공 범위는 고객사와 회원 등급 조건에 맞게 구성합니다. 근거: 사용자가 직접 제공한 사업 설명 및 주요서비스 지정(2026.10.02)."}

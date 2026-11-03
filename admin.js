@@ -15,6 +15,13 @@ const BRAND_DEFAULTS = {
 };
 
 // --- Global State ---
+const MENU_CONTENT_TYPES = {
+  board: { label: '게시판형', description: '제목과 본문으로 게시글을 등록합니다.' },
+  video: { label: '동영상형', description: '동영상 주소와 썸네일을 등록합니다.' },
+  html: { label: 'HTML형', description: 'HTML로 소개·안내 페이지를 작성합니다.' },
+  url: { label: 'URL형', description: '메뉴에서 이동할 웹 주소를 설정합니다.' }
+};
+
 let adminClientConfigs = {
   kyobo: { id: "kyobo", name: "교보생명", serviceName: "교보생명 헬스케어", csNumber: "1588-7524", clientLink: "https://www.kyobo.com", dasomLink: "", tiers: ["VIP", "골드", "실버"], heroText: { title: "삶을 사랑하는 마음, 건강까지 함께합니다.", subtitle: "든든한 건강 파트너, 교보생명 헬스케어서비스를 지금 이용해 보세요." }, menus: [] },
   dasom: { id: "dasom", name: "교보다솜케어", serviceName: "교보다솜헬스케어", csNumber: "1588-1002", clientLink: "", dasomLink: "", tiers: ["통합등급", "우대등급"], heroText: { title: "더 건강한 삶, 교보다솜케어", subtitle: "고객님의 평생 건강 파트너, 교보다솜케어가 프리미엄 서비스를 시작합니다." }, menus: [] },
@@ -408,6 +415,8 @@ function syncAllClientMenus(configs) {
       const defaultLabel = masterMenu.defaultLabel || masterMenu.label;
       
       const newMenu = {
+        ...(targetMenu || {}),
+        contentType: masterMenu.contentType,
         id: masterMenu.id,
         defaultLabel: defaultLabel,
         label: label,
@@ -673,70 +682,104 @@ function renderLocationLogs(container) {
 
 // --- View: Checkup Consent Logs ---
 function renderCheckupConsentLogs(container) {
-  const logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
-  
-  let rowsHtml = logs.length === 0 
-    ? '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #64748b; font-size:14px;">저장된 로그 내역이 없습니다.</td></tr>'
-    : logs.map(log => `
-      <tr>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.LOG_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; font-weight:600;">${log.MEMBER_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px; text-align:center;"><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:13px; background:${log.CONSENT_YN==='Y'?'#dcfce7':'#fee2e2'}; color:${log.CONSENT_YN==='Y'?'#166534':'#991b1b'};">${log.CONSENT_YN}</span></td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CONSENT_DATETIME}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SERVICE_TYPE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.SCREEN_ID}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.PURPOSE}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CLIENT_IP}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:13px; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${log.USER_AGENT}">${log.USER_AGENT}</td>
-        <td style="padding:12px; border-bottom:1px solid #e2e8f0; font-size:14px;">${log.CREATED_AT}</td>
-      </tr>
-    `).join('');
-
-  container.innerHTML = `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">건강검진 동의 이력 조회</h1>
-        <p class="page-subtitle">서비스 내에서 수집된 건강검진 우대예약 관련 약관 동의 이력을 확인합니다.</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-secondary" onclick="if(confirm('모든 로그를 삭제하시겠습니까?')) { localStorage.removeItem('checkupConsentLogs'); navigateTo('checkup-consent-logs'); }">전체 로그 삭제</button>
-      </div>
-    </div>
-    
-    <div class="config-card">
-      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 class="card-title">로그 목록 (총 ${logs.length}건)</h2>
-        <div style="display:flex; gap:8px;">
-          <select class="form-input" style="width: 150px; font-size:14px; height:40px;">
-            <option value="ALL">전체 상태</option>
-            <option value="Y">동의(Y)</option>
-            <option value="N">거부(N)</option>
-          </select>
-        </div>
-      </div>
-      <div class="card-body" style="padding:0; overflow-x:auto;">
-        <table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:left;">
-          <thead style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
-            <tr>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">LOG_ID</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">MEMBER_ID</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569; text-align:center;">동의여부</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">동의/거부일시</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">서비스 구분</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">요청 화면</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">이용 목적</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">CLIENT_IP</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">USER_AGENT</th>
-              <th style="padding:12px; font-size:14px; font-weight:600; color:#475569;">생성일시</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  let logs;
+  try {
+    logs = JSON.parse(localStorage.getItem('checkupConsentLogs') || '[]');
+    if (!Array.isArray(logs)) throw new Error('Invalid consent history');
+    logs = logs.filter(log => log && typeof log === 'object');
+  } catch (error) {
+    container.innerHTML = '<div class="config-card" role="alert">동의이력을 불러오지 못했습니다. 저장된 데이터를 확인해 주세요.</div>';
+    return;
+  }
+  const isCurrent = log => log.SCHEMA_VERSION === 2;
+  const memberId = log => isCurrent(log) ? (log.MEMBER_ID || '미기록') : '미기록';
+  const memberName = log => isCurrent(log) ? (log.MEMBER_NAME || '미기록') : (log.MEMBER_ID || '미기록');
+  const consentItemNames = [
+    '개인정보 수집 및 이용 동의',
+    '민감정보 수집 및 이용 동의',
+    '개인정보 제3자 제공 동의',
+    '민감정보 제3자 제공 동의'
+  ];
+  const itemName = log => log.CONSENT_NAME || consentItemNames.join('\n');
+  const statusName = log => log.CONSENT_YN === 'Y' ? '동의' : log.CONSENT_YN === 'N' ? '거부' : '확인 불가';
+  const formatTime = value => {
+    if (!value) return '미기록';
+    if (!/^\d{4}-\d{2}-\d{2}T/.test(value)) return value;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '확인 불가' : date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
+  };
+  const items = [...new Set(logs.map(itemName))];
+  const statusOptions = [...new Set(logs.map(log => log.CONSENT_YN))].filter(status => status === 'Y' || status === 'N');
+  container.innerHTML = `<div class="page-header"><div>
+    <h1 class="page-title">건강검진 동의 이력 조회</h1>
+    <p class="page-subtitle">동의항목별 처리 결과와 동의 당시 내용을 확인합니다.</p>
+  </div></div>
+  <div class="config-card">
+    <div class="card-header" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+      <h2 class="card-title" id="consent-result-count" aria-live="polite"></h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="consent-search" class="form-input" style="width:220px;" aria-label="회원ID 또는 이름 검색" placeholder="회원ID / 이름 검색">
+        <select id="consent-item-filter" class="form-input" style="width:260px;" aria-label="동의항목 필터">
+          <option value="">전체 동의항목</option>${items.map((item, index) => '<option value="' + index + '">' + escape(item) + '</option>').join('')}
+        </select>
+        <select id="consent-status-filter" class="form-input" style="width:140px;" aria-label="동의 상태 필터">
+          <option value="">전체 상태</option>${statusOptions.map(status => '<option value="' + status + '">' + (status === 'Y' ? '동의(Y)' : '거부(N)') + '</option>').join('')}
+        </select>
       </div>
     </div>
-  `;
+    <p style="padding:0 20px;color:#64748b;font-size:13px;">기존 이력에는 4개 동의항목을 함께 표시합니다. 항목별 처리 결과와 당시 약관 원문이 없는 기록은 상세보기에 안내합니다.</p>
+    <div class="card-body" style="padding:0;overflow-x:auto;">
+      <table style="width:100%;min-width:1150px;border-collapse:collapse;text-align:left;">
+        <thead style="background:#f8fafc;"><tr>${['처리일시', '회원ID', '이름', '동의항목', '동의여부', '약관 버전', '서비스 구분', '요청 화면', '상세'].map(label => '<th style="padding:12px;white-space:nowrap;">' + label + '</th>').join('')}</tr></thead>
+        <tbody id="consent-log-rows"></tbody>
+      </table>
+    </div>
+  </div>`;
+  const openDetail = log => {
+    const dialog = document.createElement('dialog');
+    dialog.setAttribute('aria-labelledby', 'consent-detail-title');
+    dialog.style.cssText = 'width:min(760px,90vw);max-height:85vh;border:1px solid #cbd5e1;border-radius:12px;padding:24px;color:#334155;';
+    const fields = [
+      ['이력ID', log.LOG_ID || '미기록'], ['동의묶음ID', log.CONSENT_BATCH_ID || '미기록'],
+      ['회원ID', memberId(log)], [isCurrent(log) ? '이름' : '이름(기존 기록)', memberName(log)],
+      ['동의항목', itemName(log)], ...(!log.CONSENT_NAME ? [['기록 안내', '기존 기록은 4개 항목의 전체 동의 결과만 보관되어 있으며, 항목별 처리 결과는 기록되어 있지 않습니다.']] : []), ['동의여부', statusName(log)],
+      ['필수·선택', log.REQUIRED_YN === 'Y' ? '필수' : log.REQUIRED_YN === 'N' ? '선택' : '미기록'],
+      ['약관 버전', log.TERMS_VERSION || '미기록'], ['처리일시', formatTime(log.CONSENT_DATETIME)],
+      ['서비스 구분', log.SERVICE_TYPE || '미기록'], ['요청 화면', log.SCREEN_ID || '미기록'],
+      ['이용 목적', log.PURPOSE || '미기록'], ['접속 채널', log.CHANNEL || '미기록'],
+      ['고객사ID', log.CLIENT_ID || '미기록'], ['사이트ID', log.SITE_ID || '미기록'],
+      ['접속IP', isCurrent(log) ? (log.CLIENT_IP || '미수집') : '확인 불가(기존 예시값)'],
+      ['브라우저·기기정보', log.USER_AGENT || '미기록'], ['저장일시', formatTime(log.CREATED_AT)]
+    ];
+    dialog.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 id="consent-detail-title" style="margin:0;">동의 이력 상세</h2><button type="button" class="btn btn-secondary" data-close>닫기</button>
+      </div><dl>${fields.map(([label, value]) => '<div style="display:grid;grid-template-columns:130px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid #e2e8f0;"><dt style="font-weight:600;">' + escape(label) + '</dt><dd style="margin:0;white-space:pre-line;overflow-wrap:anywhere;">' + escape(value) + '</dd></div>').join('')}</dl>
+      <h3>동의 당시 약관 원문</h3><div style="white-space:pre-wrap;line-height:1.7;background:#f8fafc;padding:16px;border-radius:8px;overflow-wrap:anywhere;">${escape(log.TERMS_TEXT || '당시 약관 원문이 기록되어 있지 않습니다.')}</div>`;
+    dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+  };
+  const renderRows = () => {
+    const keyword = container.querySelector('#consent-search').value.trim().toLowerCase();
+    const item = container.querySelector('#consent-item-filter').value;
+    const status = container.querySelector('#consent-status-filter').value;
+    const filtered = logs.map((log, index) => ({ log, index })).filter(({ log }) =>
+      (!keyword || [memberId(log), memberName(log)].some(value => String(value).toLowerCase().includes(keyword))) &&
+      (item === '' || itemName(log) === items[Number(item)]) && (!status || log.CONSENT_YN === status));
+    container.querySelector('#consent-result-count').textContent = '동의항목 이력 ' + filtered.length + '건 / 전체 ' + logs.length + '건';
+    const tbody = container.querySelector('#consent-log-rows');
+    tbody.innerHTML = filtered.length ? filtered.map(({ log, index }) => {
+      const values = [formatTime(log.CONSENT_DATETIME), memberId(log), memberName(log), itemName(log), statusName(log), log.TERMS_VERSION || '미기록', log.SERVICE_TYPE || '미기록', log.SCREEN_ID || '미기록'];
+      return '<tr>' + values.map(value => '<td style="padding:12px;border-bottom:1px solid #e2e8f0;white-space:pre-line;">' + escape(value) + '</td>').join('') + '<td style="padding:12px;border-bottom:1px solid #e2e8f0;"><button type="button" class="btn btn-secondary" data-consent-index="' + index + '">상세보기</button></td></tr>';
+    }).join('') : '<tr><td colspan="9" style="text-align:center;padding:40px;color:#64748b;">조회된 동의 이력이 없습니다.</td></tr>';
+    tbody.querySelectorAll('[data-consent-index]').forEach(button => button.addEventListener('click', () => openDetail(logs[Number(button.dataset.consentIndex)])));
+  };
+  container.querySelector('#consent-search').addEventListener('input', renderRows);
+  container.querySelector('#consent-item-filter').addEventListener('change', renderRows);
+  container.querySelector('#consent-status-filter').addEventListener('change', renderRows);
+  renderRows();
 }
 
 // --- View: Checkup History Admin ---
@@ -1238,7 +1281,7 @@ function renderMenuSettingsEditor(container) {
         <div id="site-tabs-area"></div>
       </div>
       <div class="card-body">
-        <div class="menu-tree-header" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 280px; padding: 12px 16px; background:#f8fafc; font-weight:600; font-size:13px; border-radius:8px; margin-bottom:12px; gap:12px;">
+        <div class="menu-tree-header" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 390px; padding: 12px 16px; background:#f8fafc; font-weight:600; font-size:13px; border-radius:8px; margin-bottom:12px; gap:12px;">
            <span>기본 메뉴명</span>
            <span>고객사별 메뉴명</span>
            <span style="text-align:center;">노출여부</span>
@@ -1518,6 +1561,7 @@ function updateMenuStructureFromDOM() {
   function flat(menus) {
     menus.forEach(m => {
       flatMenus[m.id] = {
+        ...m,
         id: m.id,
         defaultLabel: m.defaultLabel,
         label: m.label,
@@ -1745,7 +1789,7 @@ function renderMenuLevel(menus, container, depth) {
     item.className = `menu-tree-item depth-${depth}`;
     item.setAttribute('data-id', menu.id);
     item.innerHTML = `
-      <div class="menu-item-row ${!menu.isVisible ? 'disabled' : ''}" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 280px; align-items:center; gap:12px;">
+      <div class="menu-item-row ${!menu.isVisible ? 'disabled' : ''}" style="display:grid; grid-template-columns: 1.2fr 1.2fr 100px 390px; align-items:center; gap:12px;">
         <div class="menu-tree-info" style="display:flex; align-items:center; gap:8px;">
           <!-- Drag Handle -->
           <div class="drag-handle" style="display:flex; align-items:center; justify-content:center; width:20px; height:20px; cursor:grab; margin-right:4px;" onmousedown="enableDrag(event)" onmouseup="disableDrag(event)" onmouseleave="disableDrag(event)">
@@ -1758,10 +1802,10 @@ function renderMenuLevel(menus, container, depth) {
               <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
             </svg>
           </div>
-          <input type="text" class="form-input default-label-input" value="${menu.defaultLabel || menu.label}" onchange="updateMenuDefaultLabel('${menu.id}', this.value)" placeholder="기본 명칭">
+          <input type="text" class="form-input default-label-input" value="${escapeMenuContent(menu.defaultLabel || menu.label)}" onchange="updateMenuDefaultLabel('${menu.id}', this.value)" placeholder="기본 명칭">
         </div>
         <div class="menu-tree-info">
-          <input type="text" class="form-input" value="${menu.label}" onchange="updateMenuLabel('${menu.id}', this.value)" placeholder="고객사 노출 명칭">
+          <input type="text" class="form-input" value="${escapeMenuContent(menu.label)}" onchange="updateMenuLabel('${menu.id}', this.value)" placeholder="고객사 노출 명칭">
         </div>
         <div class="menu-action" style="justify-content:center;">
           <label class="switch">
@@ -1770,6 +1814,7 @@ function renderMenuLevel(menus, container, depth) {
           </label>
         </div>
         <div class="menu-management" style="text-align:right; display:flex; justify-content:flex-end; gap:4px; align-items:center;">
+          ${menu.contentType ? `<span class="menu-content-badge">${MENU_CONTENT_TYPES[menu.contentType]?.label || ''}</span><button class="btn btn-sm" onclick="openMenuContentModal('${menu.id}')">콘텐츠 ${menu.content?.items?.length || menu.content?.html || menu.content?.url ? '관리' : '등록'}</button>` : ''}
           ${depth < 3 ? `<button class="btn btn-sm" onclick="addSubMenu('${menu.id}', ${depth})">+ 하위</button>` : ''}
           <button class="btn btn-sm" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" onclick="openMenuRBACModal('${menu.id}')">⚙️ 노출 조건</button>
           <button class="btn btn-sm" style="color:#ef4444;" onclick="deleteMenu('${menu.id}')">삭제</button>
@@ -1845,9 +1890,14 @@ window.addTopMenu = function() {
 
 window.addSubMenu = function(parentId, depth) {
   if (depth >= 3) return;
+  openMenuCreateModal(parentId, depth);
+};
+
+function createTypedSubMenu(parentId, depth, label, contentType) {
+  if (depth >= 3) return;
   const newId = 'm_' + Date.now();
   const newSubMenu = {
-    id: newId, defaultLabel: '새 하위 메뉴', label: '새 하위 메뉴', isVisible: false, children: []
+    id: newId, defaultLabel: label, label, contentType, content: {}, isVisible: false, children: []
   };
   
   Object.keys(adminClientConfigs).forEach(clientId => {
@@ -1865,6 +1915,181 @@ window.addSubMenu = function(parentId, depth) {
   });
   
   loadClientSettings();
+  window.isMenuSettingsDirty = true;
+}
+
+function escapeMenuContent(value = '') {
+  return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+}
+
+function showMenuContentDialog(title, body, submitLabel, onSubmit) {
+  document.getElementById('menu-content-modal')?.remove();
+  const previousFocus = document.activeElement;
+  const overlay = document.createElement('div');
+  overlay.id = 'menu-content-modal';
+  overlay.className = 'menu-content-overlay';
+  overlay.innerHTML = `<section class="menu-content-dialog" role="dialog" aria-modal="true" aria-labelledby="menu-content-title">
+    <header><h2 id="menu-content-title">${escapeMenuContent(title)}</h2><button type="button" class="btn btn-sm" data-close aria-label="닫기">✕</button></header>
+    <form><div class="menu-content-body">${body}<p class="menu-content-error" role="alert"></p></div>
+    <footer><span>변경 후 메뉴설정의 ‘저장’을 눌러 반영하세요.</span><button type="button" class="btn" data-close>취소</button><button type="submit" class="btn btn-primary">${submitLabel}</button></footer></form>
+  </section>`;
+  const close = () => { overlay.remove(); if (previousFocus?.isConnected) previousFocus.focus(); };
+  overlay.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', close));
+  overlay.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    if (event.key === 'Tab') {
+      const controls = [...overlay.querySelectorAll('button, input, textarea, select')].filter(el => !el.disabled && el.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
+  overlay.querySelector('form').addEventListener('submit', event => {
+    event.preventDefault();
+    const error = overlay.querySelector('[role="alert"]');
+    error.textContent = '';
+    try { onSubmit(overlay, close); } catch (err) { error.textContent = err.message; }
+  });
+  document.body.appendChild(overlay);
+  (overlay.querySelector('input, textarea, select') || overlay.querySelector('button')).focus();
+  return overlay;
+}
+
+function openMenuCreateModal(parentId, depth) {
+  const client = adminClientConfigs[currentClientId];
+  const site = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const parent = findMenuById(site.menus, parentId);
+  if (!parent) return;
+  showMenuContentDialog(`${depth + 1}뎁스 메뉴 추가`, `
+    <p class="menu-content-help">상위 메뉴: ${escapeMenuContent(parent.label)}</p>
+    <label class="form-label" for="new-menu-name">메뉴명</label>
+    <input id="new-menu-name" class="form-input" required maxlength="60" placeholder="메뉴명을 입력하세요">
+    <fieldset class="menu-content-types"><legend>콘텐츠 유형 선택</legend>
+    ${Object.entries(MENU_CONTENT_TYPES).map(([type, info]) => `<label class="menu-content-type"><input type="radio" name="content-type" value="${type}" required><span><strong>${info.label}</strong><small>${info.description}</small></span></label>`).join('')}
+    </fieldset><p class="menu-content-help">메뉴 추가 후 ‘콘텐츠 등록’ 버튼으로 내용을 입력할 수 있습니다.</p>`, '메뉴 추가', (modal, close) => {
+      const name = modal.querySelector('#new-menu-name').value.trim();
+      const type = modal.querySelector('[name="content-type"]:checked')?.value;
+      if (!name || !MENU_CONTENT_TYPES[type]) throw new Error('메뉴명과 콘텐츠 유형을 입력해 주세요.');
+      createTypedSubMenu(parentId, depth, name, type);
+      close();
+    });
+}
+
+function requireMenuWebUrl(value, label, optional = false) {
+  if (!value && optional) return '';
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    return url.href;
+  } catch { throw new Error(`${label}에 http:// 또는 https://로 시작하는 주소를 입력해 주세요.`); }
+}
+
+window.openMenuContentModal = function(menuId) {
+  const client = adminClientConfigs[currentClientId];
+  const site = client.sites.find(s => s.siteId === currentSiteId) || client.sites[0];
+  const menu = findMenuById(site.menus, menuId);
+  if (!menu || !MENU_CONTENT_TYPES[menu.contentType]) return;
+  const type = menu.contentType;
+  const draft = JSON.parse(JSON.stringify(menu.content || {}));
+  const collection = type === 'board' || type === 'video';
+  let editingId = null;
+  const input = (id, label, value = '', required = false, inputType = 'text') => `<div class="form-group"><label class="form-label" for="${id}">${label}</label><input class="form-input" id="${id}" type="${inputType}" value="${escapeMenuContent(value)}" ${required ? 'required' : ''}></div>`;
+  const textarea = (id, label, value = '') => `<div class="form-group"><label class="form-label" for="${id}">${label}</label><textarea class="form-input menu-content-textarea" id="${id}" required>${escapeMenuContent(value)}</textarea></div>`;
+  const body = `<p class="menu-content-help">${escapeMenuContent(site.siteName)} / ${escapeMenuContent(menu.label)} · ${MENU_CONTENT_TYPES[type].label}</p>` + (collection
+    ? `<div id="menu-content-list"></div><h3 id="menu-content-editor-title">새 콘텐츠 등록</h3>${input('content-title', '제목', '', true)}${type === 'board' ? textarea('content-body', '본문') : input('content-video', '동영상 주소', '', true, 'url') + input('content-thumbnail', '썸네일 주소 (선택)', '', false, 'url') + textarea('content-description', '동영상 설명')}<button class="btn" type="button" id="content-reset">새 콘텐츠 작성</button>`
+    : type === 'html' ? textarea('content-html', 'HTML 본문', draft.html || '') + '<p class="menu-content-help">안내 페이지에 표시할 HTML 소스를 입력하세요.</p>'
+    : input('content-url', '연결 주소', draft.url || '', true, 'url') + `<div class="form-group"><label class="form-label" for="content-target">열기 방식</label><select class="form-input" id="content-target"><option value="_self">현재 창</option><option value="_blank" ${draft.target === '_blank' ? 'selected' : ''}>새 창</option></select></div>`);
+  const modal = showMenuContentDialog(`${menu.label} · 콘텐츠 ${collection ? '관리' : '등록'}`, body, collection ? '콘텐츠 등록' : '설정 적용', (dialog, close) => {
+    const read = id => dialog.querySelector(`#${id}`).value.trim();
+    if (collection) {
+      const entry = { id: editingId || 'c_' + Date.now(), title: read('content-title') };
+      if (!entry.title) throw new Error('제목을 입력해 주세요.');
+      if (type === 'board') {
+        entry.body = read('content-body');
+        if (!entry.body) throw new Error('본문을 입력해 주세요.');
+      } else {
+        entry.videoUrl = requireMenuWebUrl(read('content-video'), '동영상 주소');
+        entry.thumbnailUrl = requireMenuWebUrl(read('content-thumbnail'), '썸네일 주소', true);
+        entry.description = read('content-description');
+        if (!entry.description) throw new Error('동영상 설명을 입력해 주세요.');
+      }
+      draft.items = draft.items || [];
+      const index = draft.items.findIndex(item => item.id === editingId);
+      if (index >= 0) draft.items[index] = entry; else draft.items.push(entry);
+      menu.content = JSON.parse(JSON.stringify(draft));
+      window.isMenuSettingsDirty = true;
+      renderList(); resetEditor(); refreshTree();
+      showToast('콘텐츠를 적용했습니다. 메뉴설정에서 저장해 주세요.');
+    } else {
+      if (type === 'html') {
+        draft.html = read('content-html');
+        if (!draft.html) throw new Error('HTML 본문을 입력해 주세요.');
+      } else {
+        draft.url = requireMenuWebUrl(read('content-url'), '연결 주소');
+        draft.target = read('content-target');
+      }
+      menu.content = draft;
+      window.isMenuSettingsDirty = true;
+      refreshTree(); close();
+      showToast('콘텐츠를 적용했습니다. 메뉴설정에서 저장해 주세요.');
+    }
+  });
+  function refreshTree() {
+    const tree = document.getElementById('menu-tree-container');
+    tree.innerHTML = '';
+    renderMenuLevel(site.menus, tree, 1);
+    setupMenuDragAndDrop();
+  }
+  function resetEditor() {
+    editingId = null;
+    modal.querySelectorAll('.menu-content-body input, .menu-content-body textarea').forEach(el => { el.value = ''; });
+    modal.querySelector('#menu-content-editor-title').textContent = '새 콘텐츠 등록';
+    modal.querySelector('[type="submit"]').textContent = '콘텐츠 등록';
+    modal.querySelector('[role="alert"]').textContent = '';
+  }
+  function renderList() {
+    const list = modal.querySelector('#menu-content-list');
+    list.innerHTML = `<h3>등록 콘텐츠 (${(draft.items || []).length}건)</h3>`;
+    if (!draft.items?.length) list.innerHTML += '<p class="menu-content-help">등록된 콘텐츠가 없습니다.</p>';
+    (draft.items || []).forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'menu-content-entry';
+      const title = document.createElement('span');
+      title.textContent = entry.title;
+      const edit = document.createElement('button');
+      edit.type = 'button'; edit.className = 'btn btn-sm'; edit.textContent = '수정';
+      edit.addEventListener('click', () => {
+        editingId = entry.id;
+        modal.querySelector('#content-title').value = entry.title;
+        if (type === 'board') modal.querySelector('#content-body').value = entry.body;
+        else {
+          modal.querySelector('#content-video').value = entry.videoUrl;
+          modal.querySelector('#content-thumbnail').value = entry.thumbnailUrl || '';
+          modal.querySelector('#content-description').value = entry.description || '';
+        }
+        modal.querySelector('#menu-content-editor-title').textContent = '콘텐츠 수정';
+        modal.querySelector('[type="submit"]').textContent = '수정 적용';
+        modal.querySelector('#content-title').focus();
+      });
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.className = 'btn btn-sm'; remove.textContent = '삭제';
+      remove.addEventListener('click', () => {
+        if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return;
+        draft.items = draft.items.filter(item => item.id !== entry.id);
+        menu.content = JSON.parse(JSON.stringify(draft));
+        window.isMenuSettingsDirty = true;
+        if (editingId === entry.id) resetEditor();
+        renderList(); refreshTree();
+      });
+      row.append(title, edit, remove); list.appendChild(row);
+    });
+  }
+  if (collection) {
+    renderList();
+    modal.querySelector('#content-reset').addEventListener('click', resetEditor);
+    modal.querySelector('[data-close]').textContent = '닫기';
+    modal.querySelector('footer [data-close]').textContent = '닫기';
+  }
 };
 
 window.deleteMenu = function(id) {
